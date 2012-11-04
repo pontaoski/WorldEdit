@@ -11,17 +11,13 @@ using Terraria;
 using TShockAPI.DB;
 using TShockAPI;
 using WorldEdit.Commands;
-/*using Mono.Data.Sqlite;
-using MySql.Data.MySqlClient;
-using Newtonsoft.Json;
-*/
+
 namespace WorldEdit
 {
     [APIVersion(1, 12)]
     public class WorldEdit : TerrariaPlugin
     {
         public static List<byte[]> BiomeConversions = new List<byte[]>();
-        public static IDbConnection db;
         public static List<string> BiomeNames = new List<string>();
         public static List<byte> InvalidTiles = new List<byte>();
         public static PlayerInfo[] Players = new PlayerInfo[256];
@@ -99,7 +95,6 @@ namespace WorldEdit
                             {TShock.Players[e.Msg.whoAmI].SendMessage("Not Protected", Color.Red);
                             return;}
                             curReg = regionManager.GetRegionByName(Reg[0]);
-                                TShock.Players[e.Msg.whoAmI].SendMessage(String.Format("Got Here.", X, Y));
                                 info.x = curReg.Area.X;
                                 info.y = curReg.Area.Y;
                                 info.x2 = curReg.Area.X + curReg.Area.Width;
@@ -882,12 +877,12 @@ namespace WorldEdit
                     if (regions.Count > 1)
                     {
                         e.Player.SendMessage("Overlapping regions. Using first encountered");
-                        int q = 0;
+                        /*int q = 0;
                         foreach (string reg in regions)
                         {
                             e.Player.SendMessage("Region " + q + ": " + reg);
                             q++;
-                        }
+                        }*/
 
                     }
                     curReg = regionManager.GetRegionByName(regions[0]);
