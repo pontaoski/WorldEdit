@@ -849,7 +849,7 @@ namespace WorldEdit
 			{
 				PlayerInfo info = Players[e.Player.Index];
 				Region curReg = TShock.Regions.ZacksGetRegionByName(e.Parameters[0].ToLower());
-				if (curReg != null)
+				if (curReg == null)
 				{
 					e.Player.SendMessage("Invalid region.", Color.Red);
 				}
