@@ -118,35 +118,34 @@ namespace WorldEdit
 		}
 		void OnInitialize()
 		{
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", All, "/all"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", Biome, "/biome"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("butcher", ButcherNear, "/butchernear"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", ClearClipboard, "/clearclipboard"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", ClearHistory, "/clearhistory"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", Contract, "/contract"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", Copy, "/copy"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", Cut, "/cut"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", Drain, "/drain"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", Expand, "/expand"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", FixGrass, "/fixgrass"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", Flip, "/flip"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", Flood, "/flood"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", Inset, "/inset"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", Outset, "/outset"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", Paste, "/paste"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", PointCmd, "/point"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", Redo, "/redo"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", Region, "/region"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", Replace, "/replace"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", ReplaceWall, "/replacewall"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", Rotate, "/rotate"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", Schematic, "/schematic", "/schem"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", Select, "/select"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", Set, "/set"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", SetWall, "/setwall"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", Shift, "/shift"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", Size, "/size"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit", Undo, "/undo"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.all", All, "/all"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.biome", Biome, "/biome"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.clear", ClearClipboard, "/clearclipboard"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.history.clear", ClearHistory, "/clearhistory"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.contract", Contract, "/contract"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.copy", Copy, "/copy"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.cut", Cut, "/cut"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.drain", Drain, "/drain"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.expand", Expand, "/expand"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.fixgrass", FixGrass, "/fixgrass"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.flip", Flip, "/flip"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.flood", Flood, "/flood"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.inset", Inset, "/inset"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.outset", Outset, "/outset"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.paste", Paste, "/paste"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", PointCmd, "/point"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.history.redo", Redo, "/redo"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.region", Region, "/region"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.replace", Replace, "/replace"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.replacewall", ReplaceWall, "/replacewall"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.rotate", Rotate, "/rotate"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.schematic", Schematic, "/schematic", "/schem"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.selecttype", Select, "/select"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.set", Set, "/set"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.setwall", SetWall, "/setwall"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.shift", Shift, "/shift"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.size", Size, "/size"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.history.undo", Undo, "/undo"));
 			#region Biomes
 			// 255 => remove
 			byte[] Corruption = { 0, 25, 112, 23, 24, 255, 32 };
@@ -362,38 +361,6 @@ namespace WorldEdit
 			int x2 = Math.Max(info.x, info.x2);
 			int y2 = Math.Max(info.y, info.y2);
 			CommandQueue.Add(new BiomeCommand(x, y, x2, y2, e.Player.Index, biome1, biome2));
-		}
-		void ButcherNear(CommandArgs e)
-		{
-			if (e.Parameters.Count != 1)
-			{
-				e.Player.SendMessage("Invalid syntax! Proper syntax: /butchernear <radius>", Color.Red);
-				return;
-			}
-
-			int radius;
-			if (!int.TryParse(e.Parameters[0], out radius) || radius <= 0)
-			{
-				e.Player.SendMessage("Invalid radius.", Color.Red);
-				return;
-			}
-
-			int npcs = 0;
-			int lowX = (e.Player.TileX - radius) * 16;
-			int highX = (e.Player.TileX + radius + 2) * 16;
-			int lowY = (e.Player.TileY - radius + 1) * 16;
-			int highY = (e.Player.TileY + radius + 1) * 16;
-			foreach (NPC npc in Main.npc)
-			{
-				if (npc != null && npc.active && !npc.friendly &&
-					npc.position.X >= lowX && npc.position.X <= highX &&
-					npc.position.Y >= lowY && npc.position.Y <= highY)
-				{
-					TSPlayer.Server.StrikeNPC(npc.whoAmI, 99999, 90f, 1);
-					npcs++;
-				}
-			}
-			e.Player.SendMessage(string.Format("Butchered nearby mobs. ({0})", npcs), Color.Green);
 		}
 		void ClearClipboard(CommandArgs e)
 		{
