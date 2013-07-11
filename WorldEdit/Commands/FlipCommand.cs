@@ -9,7 +9,7 @@ namespace WorldEdit.Commands
 	{
 		private byte direction;
 
-		public FlipCommand(int plr, byte direction)
+		public FlipCommand(TSPlayer plr, byte direction)
 			: base(0, 0, 0, 0, plr)
 		{
 			this.direction = direction;
@@ -17,7 +17,7 @@ namespace WorldEdit.Commands
 
 		public override void Execute()
 		{
-			string clipboardPath = Path.Combine("worldedit", String.Format("clipboard-{0}.dat", plr));
+			string clipboardPath = Tools.GetClipboardPath(plr);
 			Tile[,] tiles = Tools.LoadWorldData(clipboardPath);
 			int lenX = tiles.GetLength(0);
 			int lenY = tiles.GetLength(1);
@@ -40,7 +40,7 @@ namespace WorldEdit.Commands
 					}
 				}
 			}
-			TShock.Players[plr].SendMessage(String.Format("Flipped clipboard."), Color.Green);
+			plr.SendSuccessMessage(String.Format("Flipped clipboard."));
 		}
 	}
 }

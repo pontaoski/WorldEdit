@@ -7,10 +7,10 @@ namespace WorldEdit.Commands
 {
 	public class PasteCommand : WECommand
 	{
-		public PasteCommand(int x, int y, int plr)
+		public PasteCommand(int x, int y, TSPlayer plr)
 			: base(x, y, 0, 0, plr)
 		{
-			string clipboardPath = Path.Combine("worldedit", String.Format("clipboard-{0}.dat", plr));
+			string clipboardPath = Tools.GetClipboardPath(plr);
 			using (BinaryReader reader = new BinaryReader(new FileStream(clipboardPath, FileMode.Open)))
 			{
 				x2 = x + reader.ReadInt32() - 1;
@@ -20,7 +20,7 @@ namespace WorldEdit.Commands
 
 		public override void Execute()
 		{
-			string clipboardPath = Path.Combine("worldedit", String.Format("clipboard-{0}.dat", plr));
+			string clipboardPath = Tools.GetClipboardPath(plr);
 			using (BinaryReader reader = new BinaryReader(new FileStream(clipboardPath, FileMode.Open)))
 			{
 				reader.ReadInt64();
@@ -34,7 +34,7 @@ namespace WorldEdit.Commands
 				}
 			}
 			ResetSection();
-			TShock.Players[plr].SendMessage(String.Format("Pasted clipboard to selection."), Color.Green);
+			plr.SendSuccessMessage(String.Format("Pasted clipboard to selection."));
 		}
 	}
 }

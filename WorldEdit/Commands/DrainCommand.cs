@@ -9,7 +9,7 @@ namespace WorldEdit.Commands
 {
 	public class DrainCommand : WECommand
 	{
-		public DrainCommand(int x, int y, int x2, int y2, int plr)
+		public DrainCommand(int x, int y, int x2, int y2, TSPlayer plr)
 			: base(x, y, x2, y2, plr)
 		{
 		}
@@ -31,7 +31,7 @@ namespace WorldEdit.Commands
 				}
 			}
 			ResetSection();
-			TShock.Players[plr].SendMessage(String.Format("Drained nearby area. ({0})", edits), Color.Green);
+			plr.SendSuccessMessage(String.Format("Drained nearby area. ({0})", edits));
 		}
 	}
 }

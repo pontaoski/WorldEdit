@@ -10,14 +10,14 @@ namespace WorldEdit.Commands
 {
 	public class CutCommand : WECommand
 	{
-		public CutCommand(int x, int y, int x2, int y2, int plr)
+		public CutCommand(int x, int y, int x2, int y2, TSPlayer plr)
 			: base(x, y, x2, y2, plr)
 		{
 		}
 
 		public override void Execute()
 		{
-			string clipboardPath = Path.Combine("worldedit", String.Format("clipboard-{0}.dat", plr));
+			string clipboardPath = Tools.GetClipboardPath(plr);
 			using (BinaryWriter writer = new BinaryWriter(new FileStream(clipboardPath, FileMode.Create)))
 			{
 				writer.Write(x2 - x + 1);
@@ -49,7 +49,7 @@ namespace WorldEdit.Commands
 				}
 			}
 			ResetSection();
-			TShock.Players[plr].SendMessage(String.Format("Cut selection. ({0})", edits), Color.Green);
+			plr.SendSuccessMessage(String.Format("Cut selection. ({0})", edits));
 		}
 	}
 }

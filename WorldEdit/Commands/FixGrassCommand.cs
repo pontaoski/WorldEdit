@@ -9,7 +9,7 @@ namespace WorldEdit.Commands
 {
 	public class FixGrassCommand : WECommand
 	{
-		public FixGrassCommand(int x, int y, int x2, int y2, int plr)
+		public FixGrassCommand(int x, int y, int x2, int y2, TSPlayer plr)
 			: base(x, y, x2, y2, plr)
 		{
 		}
@@ -24,9 +24,8 @@ namespace WorldEdit.Commands
 				{
 					if (Main.tile[i, j].type == 2 || Main.tile[i, j].type == 23 || Main.tile[i, j].type == 60 || Main.tile[i, j].type == 109)
 					{
-						if (TileSolid(i - 1, j - 1) && TileSolid(i - 1, j) && TileSolid(i - 1, j + 1)
-							&& TileSolid(i, j - 1) && TileSolid(i, j + 1)
-							&& TileSolid(i + 1, j) && TileSolid(i + 1, j) && TileSolid(i + 1, j + 1))
+						if (TileSolid(i - 1, j - 1) && TileSolid(i - 1, j) && TileSolid(i - 1, j + 1) && TileSolid(i, j - 1)
+							&& TileSolid(i, j + 1) && TileSolid(i + 1, j) && TileSolid(i + 1, j) && TileSolid(i + 1, j + 1))
 						{
 							Main.tile[i, j].type = (Main.tile[i, j].type == 60) ? (byte)59 : (byte)0;
 							edits++;
@@ -35,7 +34,7 @@ namespace WorldEdit.Commands
 				}
 			}
 			ResetSection();
-			TShock.Players[plr].SendMessage(String.Format("Fixed nearby grass. ({0})", edits), Color.Green);
+			plr.SendSuccessMessage(String.Format("Fixed nearby grass. ({0})", edits));
 		}
 		private bool TileSolid(int x, int y)
 		{

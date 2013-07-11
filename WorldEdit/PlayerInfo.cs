@@ -2,7 +2,6 @@
 {
 	public class PlayerInfo
 	{
-		public int limit;
 		public int pt;
 		public int select = -1;
 		public int redoLevel = -1;

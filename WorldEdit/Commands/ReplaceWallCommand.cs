@@ -9,7 +9,7 @@ namespace WorldEdit.Commands
 		private byte wall1;
 		private byte wall2;
 
-		public ReplaceWallCommand(int x, int y, int x2, int y2, int plr, byte wall1, byte wall2) :
+		public ReplaceWallCommand(int x, int y, int x2, int y2, TSPlayer plr, byte wall1, byte wall2) :
 			base(x, y, x2, y2, plr)
 		{
 			this.wall1 = wall1;
@@ -38,8 +38,7 @@ namespace WorldEdit.Commands
 
 			string wallName1 = wall1 == 0 ? "air" : "wall " + wall1;
 			string wallName2 = wall2 == 0 ? "air" : "wall " + wall2;
-			TShock.Players[plr].SendMessage(String.Format("Replaced {0} with {1}. ({2})",
-				wallName1, wallName2, edits), Color.Green);
+			plr.SendSuccessMessage(String.Format("Replaced {0} with {1}. ({2})", wallName1, wallName2, edits));
 		}
 	}
 }

@@ -7,7 +7,7 @@ namespace WorldEdit.Commands
 	{
 		private int steps;
 
-		public UndoCommand(int plr, int steps)
+		public UndoCommand(TSPlayer plr, int steps)
 			: base(0, 0, 0, 0, plr)
 		{
 			this.steps = steps;
@@ -16,12 +16,11 @@ namespace WorldEdit.Commands
 		public override void Execute()
 		{
 			int i = 0;
-			for (; WorldEdit.Players[plr].undoLevel != -1 && i < steps; i++)
+			for (; WorldEdit.GetPlayerInfo(plr).undoLevel != -1 && i < steps; i++)
 			{
 				Tools.Undo(plr);
 			}
-			TShock.Players[plr].SendMessage(String.Format("Undid last {0}action{1}.",
-				i == 1 ? "" : i + " ", i == 1 ? "" : "s"), Color.Green);
+			plr.SendSuccessMessage(String.Format("Undid last {0}action{1}.", i == 1 ? "" : i + " ", i == 1 ? "" : "s"));
 		}
 	}
 }

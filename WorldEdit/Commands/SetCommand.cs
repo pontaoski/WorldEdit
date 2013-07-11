@@ -10,7 +10,7 @@ namespace WorldEdit.Commands
 
 		private byte tile;
 
-		public SetCommand(int x, int y, int x2, int y2, int plr, byte tile)
+		public SetCommand(int x, int y, int x2, int y2, TSPlayer plr, byte tile)
 			: base(x, y, x2, y2, plr)
 		{
 			this.tile = tile;
@@ -40,7 +40,7 @@ namespace WorldEdit.Commands
 			ResetSection();
 
 			string tileName = tile > 148 ? SpecialTileNames[tile - 149] : "tile " + tile;
-			TShock.Players[plr].SendMessage(String.Format("Set tiles to {0}. ({1})", tileName, edits), Color.Green);
+			plr.SendSuccessMessage(String.Format("Set tiles to {0}. ({1})", tileName, edits));
 		}
 	}
 }

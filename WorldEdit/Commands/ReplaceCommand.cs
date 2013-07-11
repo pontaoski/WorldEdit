@@ -11,7 +11,7 @@ namespace WorldEdit.Commands
 		private byte tile1;
 		private byte tile2;
 
-		public ReplaceCommand(int x, int y, int x2, int y2, int plr, byte tile1, byte tile2)
+		public ReplaceCommand(int x, int y, int x2, int y2, TSPlayer plr, byte tile1, byte tile2)
 			: base(x, y, x2, y2, plr)
 		{
 			this.tile1 = tile1;
@@ -44,8 +44,7 @@ namespace WorldEdit.Commands
 
 			string tileName1 = tile1 > 148 ? SpecialTileNames[tile1 - 149] : "tile " + tile1;
 			string tileName2 = tile2 > 148 ? SpecialTileNames[tile2 - 149] : "tile " + tile2;
-			TShock.Players[plr].SendMessage(String.Format("Replaced {0} with {1}. ({2})",
-				tileName1, tileName2, edits), Color.Green);
+			plr.SendSuccessMessage(String.Format("Replaced {0} with {1}. ({2})", tileName1, tileName2, edits));
 		}
 	}
 }

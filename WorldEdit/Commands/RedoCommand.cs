@@ -7,7 +7,7 @@ namespace WorldEdit.Commands
 	{
 		private int steps;
 
-		public RedoCommand(int plr, int steps)
+		public RedoCommand(TSPlayer plr, int steps)
 			: base(0, 0, 0, 0, plr)
 		{
 			this.steps = steps;
@@ -16,12 +16,11 @@ namespace WorldEdit.Commands
 		public override void Execute()
 		{
 			int i = 0;
-			for (; WorldEdit.Players[plr].redoLevel != -1 && i < steps; i++)
+			for (; WorldEdit.GetPlayerInfo(plr).redoLevel != -1 && i < steps; i++)
 			{
 				Tools.Redo(plr);
 			}
-			TShock.Players[plr].SendMessage(String.Format("Redid last {0}action{1}.",
-				i == 1 ? "" : i + " ", i == 1 ? "" : "s"), Color.Green);
+			plr.SendSuccessMessage(String.Format("Redid last {0}action{1}.", i == 1 ? "" : i + " ", i == 1 ? "" : "s"));
 		}
 	}
 }

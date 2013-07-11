@@ -6,17 +6,17 @@ namespace WorldEdit.Commands
 {
 	public abstract class WECommand
 	{
-		protected int plr;
-		protected Func<int, int, int, bool> selectFunc = (x, y, plr) => true;
+		protected TSPlayer plr;
+		protected Func<int, int, TSPlayer, bool> selectFunc = (x, y, plr) => true;
 		protected int x;
 		protected int x2;
 		protected int y;
 		protected int y2;
 
-		protected WECommand(int x, int y, int x2, int y2, int plr)
+		protected WECommand(int x, int y, int x2, int y2, TSPlayer plr)
 		{
 			this.plr = plr;
-			int select = WorldEdit.Players[plr].select;
+			int select = WorldEdit.GetPlayerInfo(plr).select;
 			if (select >= 0)
 			{
 				selectFunc = WorldEdit.Selections[select];

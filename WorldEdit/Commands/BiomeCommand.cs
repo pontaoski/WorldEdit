@@ -9,7 +9,7 @@ namespace WorldEdit.Commands
 		private byte biome1;
 		private byte biome2;
 
-		public BiomeCommand(int x, int y, int x2, int y2, int plr, byte biome1, byte biome2)
+		public BiomeCommand(int x, int y, int x2, int y2, TSPlayer plr, byte biome1, byte biome2)
 			: base(x, y, x2, y2, plr)
 		{
 			this.biome1 = biome1;
@@ -51,7 +51,7 @@ namespace WorldEdit.Commands
 				ResetSection();
 			}
 			string msg = String.Format("Converted {0} to {1}. ({2})", WorldEdit.BiomeNames[biome1], WorldEdit.BiomeNames[biome2], edits);
-			TShock.Players[plr].SendMessage(msg, Color.Green);
+			plr.SendSuccessMessage(msg);
 		}
 	}
 }

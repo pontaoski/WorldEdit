@@ -9,7 +9,7 @@ namespace WorldEdit.Commands
 	{
 		private int degrees;
 
-		public RotateCommand(int plr, int degrees)
+		public RotateCommand(TSPlayer plr, int degrees)
 			: base(0, 0, 0, 0, plr)
 		{
 			this.degrees = degrees;
@@ -17,7 +17,7 @@ namespace WorldEdit.Commands
 
 		public override void Execute()
 		{
-			string clipboardPath = Path.Combine("worldedit", String.Format("clipboard-{0}.dat", plr));
+			string clipboardPath = Tools.GetClipboardPath(plr);
 			Tile[,] tiles = Tools.LoadWorldData(clipboardPath);
 			int lenX = tiles.GetLength(0);
 			int lenY = tiles.GetLength(1);
@@ -72,7 +72,7 @@ namespace WorldEdit.Commands
 						break;
 				}
 			}
-			TShock.Players[plr].SendMessage(String.Format("Rotated clipboard {0} degrees.", degrees), Color.Green);
+			plr.SendSuccessMessage(String.Format("Rotated clipboard {0} degrees.", degrees));
 		}
 	}
 }

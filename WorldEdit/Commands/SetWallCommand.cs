@@ -8,7 +8,7 @@ namespace WorldEdit.Commands
 	{
 		private byte wall;
 
-		public SetWallCommand(int x, int y, int x2, int y2, int plr, byte wall)
+		public SetWallCommand(int x, int y, int x2, int y2, TSPlayer plr, byte wall)
 			: base(x, y, x2, y2, plr)
 		{
 			this.wall = wall;
@@ -32,7 +32,7 @@ namespace WorldEdit.Commands
 			ResetSection();
 
 			string wallName = wall == 0 ? "air" : "wall " + wall;
-			TShock.Players[plr].SendMessage(String.Format("Set walls to {0}. ({1})", wallName, edits), Color.Green);
+			plr.SendSuccessMessage(String.Format("Set walls to {0}. ({1})", wallName, edits));
 		}
 	}
 }

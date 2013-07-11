@@ -2,11 +2,17 @@
 using System.Collections.Generic;
 using System.IO;
 using Terraria;
+using TShockAPI;
 
 namespace WorldEdit
 {
 	public static class Tools
 	{
+		public static string GetClipboardPath(TSPlayer plr)
+		{
+			string id = plr.RealPlayer ? plr.Index.ToString() : "server";
+			return Path.Combine("worldedit", String.Format("clipboard-{0}.dat", id));
+		}
 		public static List<byte> GetTileByName(string tile)
 		{
 			byte ID;
@@ -52,9 +58,10 @@ namespace WorldEdit
 			}
 			return list;
 		}
-		public static bool HasClipboard(int plr)
+		public static bool HasClipboard(TSPlayer plr)
 		{
-			return File.Exists(Path.Combine("worldedit", String.Format("clipboard-{0}.dat", plr)));
+			string id = plr.RealPlayer ? plr.Index.ToString() : "server";
+			return File.Exists(Path.Combine("worldedit", String.Format("clipboard-{0}.dat", id)));
 		}
 		public static Tile[,] LoadWorldData(string path)
 		{
@@ -95,11 +102,12 @@ namespace WorldEdit
 				ResetSection(x, y, x + xLen, y + yLen);
 			}
 		}
-		public static void PrepareUndo(int x, int y, int x2, int y2, int plr)
+		public static void PrepareUndo(int x, int y, int x2, int y2, TSPlayer plr)
 		{
-			WorldEdit.Players[plr].redoLevel = -1;
-			WorldEdit.Players[plr].undoLevel++;
-			string path = Path.Combine("worldedit", String.Format("undo-{0}-{1}.dat", plr, WorldEdit.Players[plr].undoLevel));
+			WorldEdit.GetPlayerInfo(plr).redoLevel = -1;
+			WorldEdit.GetPlayerInfo(plr).undoLevel++;
+			string id = plr.RealPlayer ? plr.Index.ToString() : "server";
+			string path = Path.Combine("worldedit", String.Format("undo-{0}-{1}.dat", id, WorldEdit.GetPlayerInfo(plr).undoLevel));
 			SaveWorldSection(x, y, x2, y2, path);
 
 			foreach (string fileName in Directory.EnumerateFiles("worldedit", String.Format("redo-{0}-*.dat", plr)))
@@ -146,12 +154,13 @@ namespace WorldEdit
 			}
 			return tile;
 		}
-		public static void Redo(int plr)
+		public static void Redo(TSPlayer plr)
 		{
-			WorldEdit.Players[plr].undoLevel++;
-			string redoPath = Path.Combine("worldedit", String.Format("redo-{0}-{1}.dat", plr, WorldEdit.Players[plr].redoLevel));
-			string undoPath = Path.Combine("worldedit", String.Format("undo-{0}-{1}.dat", plr, WorldEdit.Players[plr].undoLevel));
-			WorldEdit.Players[plr].redoLevel--;
+			WorldEdit.GetPlayerInfo(plr).undoLevel++;
+			string id = plr.RealPlayer ? plr.Index.ToString() : "server";
+			string redoPath = Path.Combine("worldedit", String.Format("redo-{0}-{1}.dat", id, WorldEdit.GetPlayerInfo(plr).redoLevel));
+			string undoPath = Path.Combine("worldedit", String.Format("undo-{0}-{1}.dat", id, WorldEdit.GetPlayerInfo(plr).undoLevel));
+			WorldEdit.GetPlayerInfo(plr).redoLevel--;
 			using (BinaryReader reader = new BinaryReader(new FileStream(redoPath, FileMode.Open)))
 			{
 				int x = reader.ReadInt32();
@@ -258,12 +267,13 @@ namespace WorldEdit
 				writer.Write(tile.liquid);
 			}
 		}
-		public static void Undo(int plr)
+		public static void Undo(TSPlayer plr)
 		{
-			WorldEdit.Players[plr].redoLevel++;
-			string redoPath = Path.Combine("worldedit", String.Format("redo-{0}-{1}.dat", plr, WorldEdit.Players[plr].redoLevel));
-			string undoPath = Path.Combine("worldedit", String.Format("undo-{0}-{1}.dat", plr, WorldEdit.Players[plr].undoLevel));
-			WorldEdit.Players[plr].undoLevel--;
+			WorldEdit.GetPlayerInfo(plr).redoLevel++;
+			string id = plr.RealPlayer ? plr.Index.ToString() : "server";
+			string redoPath = Path.Combine("worldedit", String.Format("redo-{0}-{1}.dat", id, WorldEdit.GetPlayerInfo(plr).redoLevel));
+			string undoPath = Path.Combine("worldedit", String.Format("undo-{0}-{1}.dat", id, WorldEdit.GetPlayerInfo(plr).undoLevel));
+			WorldEdit.GetPlayerInfo(plr).undoLevel--;
 			using (BinaryReader reader = new BinaryReader(new FileStream(undoPath, FileMode.Open)))
 			{
 				int x = reader.ReadInt32();
