@@ -62,6 +62,11 @@ namespace WorldEdit
 				ServerHooks.Leave -= OnLeave;
 
 				CommandQueueThread.Abort();
+				File.Delete(Path.Combine("worldedit", "clipboard-server.dat"));
+				foreach (string fileName in Directory.EnumerateFiles("worldedit", "??do-server-*.dat"))
+				{
+					File.Delete(fileName);
+				}
 			}
 		}
 		public override void Initialize()
