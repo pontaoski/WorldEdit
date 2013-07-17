@@ -792,7 +792,7 @@ namespace WorldEdit
 
 			int x, y;
 			if (!int.TryParse(e.Parameters[0], out x) || x < 0 || x > Main.maxTilesX
-				|| !int.TryParse(e.Parameters[0], out y) || y < 0 || y > Main.maxTilesY)
+				|| !int.TryParse(e.Parameters[1], out y) || y < 0 || y > Main.maxTilesY)
 			{
 				e.Player.SendErrorMessage("Invalid coordinates.");
 				return;
@@ -812,7 +812,7 @@ namespace WorldEdit
 
 			int x, y;
 			if (!int.TryParse(e.Parameters[0], out x) || x < 0 || x > Main.maxTilesX
-				|| !int.TryParse(e.Parameters[0], out y) || y < 0 || y > Main.maxTilesY)
+				|| !int.TryParse(e.Parameters[1], out y) || y < 0 || y > Main.maxTilesY)
 			{
 				e.Player.SendErrorMessage("Invalid coordinates.");
 				return;
@@ -875,14 +875,14 @@ namespace WorldEdit
 			}
 			else if (e.Parameters.Count == 1)
 			{
-				PlayerInfo info = GetPlayerInfo(e.Player);
-				Region curReg = TShock.Regions.ZacksGetRegionByName(e.Parameters[0].ToLower());
+				Region curReg = TShock.Regions.ZacksGetRegionByName(e.Parameters[0]);
 				if (curReg == null)
 				{
 					e.Player.SendErrorMessage("Invalid region.");
 				}
 				else
 				{
+					PlayerInfo info = GetPlayerInfo(e.Player);
 					info.x = curReg.Area.X;
 					info.y = curReg.Area.Y;
 					info.x2 = curReg.Area.X + curReg.Area.Width;
