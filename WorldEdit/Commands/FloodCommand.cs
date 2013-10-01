@@ -25,9 +25,9 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (!Main.tile[i, j].active || !Main.tileSolid[Main.tile[i, j].type])
+					if (!Main.tile[i, j].active() || !Main.tileSolid[Main.tile[i, j].type])
 					{
-						Main.tile[i, j].lava = lava;
+						Main.tile[i, j].lava(lava);
 						Main.tile[i, j].liquid = 255;
 						edits++;
 					}

@@ -6,9 +6,9 @@ namespace WorldEdit.Commands
 {
 	public class SetWallCommand : WECommand
 	{
-		private byte wall;
+		private int wall;
 
-		public SetWallCommand(int x, int y, int x2, int y2, TSPlayer plr, byte wall)
+		public SetWallCommand(int x, int y, int x2, int y2, TSPlayer plr, int wall)
 			: base(x, y, x2, y2, plr)
 		{
 			this.wall = wall;
@@ -24,7 +24,7 @@ namespace WorldEdit.Commands
 				{
 					if (selectFunc(i, j, plr) && Main.tile[i, j].wall != wall)
 					{
-						Main.tile[i, j].wall = wall;
+						Main.tile[i, j].wall = (byte)wall;
 						edits++;
 					}
 				}

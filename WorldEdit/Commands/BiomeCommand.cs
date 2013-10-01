@@ -26,7 +26,7 @@ namespace WorldEdit.Commands
 				{
 					for (int j = y; j <= y2; j++)
 					{
-						if (selectFunc(i, j, plr) && Main.tile[i, j].active)
+						if (selectFunc(i, j, plr) && Main.tile[i, j].active())
 						{
 							for (int k = 0; k < WorldEdit.BiomeConversions[biome1].Length; k++)
 							{
@@ -34,7 +34,7 @@ namespace WorldEdit.Commands
 								{
 									if (WorldEdit.BiomeConversions[biome2][k] == 255)
 									{
-										Main.tile[i, j].active = false;
+										Main.tile[i, j].active(false);
 										Main.tile[i, j].type = 0;
 									}
 									else

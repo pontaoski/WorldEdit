@@ -77,43 +77,43 @@ namespace WorldEdit.Commands
 				}
 			}
 		}
-		public void SetTile(int i, int j, byte tile)
+		public void SetTile(int i, int j, int tile)
 		{
 			switch (tile)
 			{
-				case 149:
-					Main.tile[i, j].active = false;
+				case -1:
+					Main.tile[i, j].active(false);
 					Main.tile[i, j].frameX = -1;
 					Main.tile[i, j].frameY = -1;
-					Main.tile[i, j].lava = false;
+					Main.tile[i, j].lava(false);
 					Main.tile[i, j].liquid = 0;
 					Main.tile[i, j].type = 0;
 					break;
-				case 150:
-					Main.tile[i, j].active = false;
-					Main.tile[i, j].lava = true;
+				case -2:
+					Main.tile[i, j].active(false);
+					Main.tile[i, j].lava(true);
 					Main.tile[i, j].liquid = 255;
 					Main.tile[i, j].type = 0;
 					break;
-				case 151:
-					Main.tile[i, j].active = false;
-					Main.tile[i, j].lava = false;
+				case -3:
+					Main.tile[i, j].active(false);
+					Main.tile[i, j].lava(false);
 					Main.tile[i, j].liquid = 255;
 					Main.tile[i, j].type = 0;
 					break;
-				case 152:
-					Main.tile[i, j].wire = true;
+				case -4:
+					Main.tile[i, j].wire(true);
 					break;
-				case 153:
-					Main.tile[i, j].wire = false;
+				case -5:
+					Main.tile[i, j].wire(false);
 					break;
 				default:
-					Main.tile[i, j].active = true;
+					Main.tile[i, j].active(true);
 					Main.tile[i, j].frameX = -1;
 					Main.tile[i, j].frameY = -1;
-					Main.tile[i, j].lava = false;
+					Main.tile[i, j].lava(false);
 					Main.tile[i, j].liquid = 0;
-					Main.tile[i, j].type = tile;
+					Main.tile[i, j].type = (byte)tile;
 					break;
 			}
 		}

@@ -6,25 +6,25 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Data;
-using Hooks;
 using Terraria;
-using TShockAPI.DB;
+using TerrariaApi.Server;
 using TShockAPI;
+using TShockAPI.DB;
 using WorldEdit.Commands;
 
 namespace WorldEdit
 {
-	[APIVersion(1, 12)]
+	[ApiVersion(1, 14)]
 	public class WorldEdit : TerrariaPlugin
 	{
 		public static List<byte[]> BiomeConversions = new List<byte[]>();
 		public static List<string> BiomeNames = new List<string>();
-		public static List<byte> InvalidTiles = new List<byte>();
+		public static List<int> InvalidTiles = new List<int>();
 		public static PlayerInfo[] Players = new PlayerInfo[257];
 		public static List<Func<int, int, TSPlayer, bool>> Selections = new List<Func<int, int, TSPlayer, bool>>();
 		public static List<string> SelectionNames = new List<string>();
-		public static Dictionary<string, byte> TileNames = new Dictionary<string, byte>();
-		public static Dictionary<string, byte> WallNames = new Dictionary<string, byte>();
+		public static Dictionary<string, int> TileNames = new Dictionary<string, int>();
+		public static Dictionary<string, int> WallNames = new Dictionary<string, int>();
 
 		public override string Author
 		{
@@ -57,9 +57,9 @@ namespace WorldEdit
 		{
 			if (disposing)
 			{
-				GameHooks.Initialize -= OnInitialize;
-				NetHooks.GetData -= OnGetData;
-				ServerHooks.Leave -= OnLeave;
+				ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
+				ServerApi.Hooks.NetGetData.Deregister(this, OnGetData);
+				ServerApi.Hooks.ServerLeave.Deregister(this, OnLeave);
 
 				CommandQueueThread.Abort();
 				File.Delete(Path.Combine("worldedit", "clipboard-server.dat"));
@@ -71,9 +71,9 @@ namespace WorldEdit
 		}
 		public override void Initialize()
 		{
-			GameHooks.Initialize += OnInitialize;
-			NetHooks.GetData += OnGetData;
-			ServerHooks.Leave += OnLeave;
+			ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
+			ServerApi.Hooks.NetGetData.Register(this, OnGetData);
+			ServerApi.Hooks.ServerLeave.Register(this, OnLeave);
 		}
 
 		public static PlayerInfo GetPlayerInfo(TSPlayer player)
@@ -133,7 +133,7 @@ namespace WorldEdit
 				}
 			}
 		}
-		void OnInitialize()
+		void OnInitialize(EventArgs e)
 		{
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.all", All, "/all"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.biome", Biome, "/biome"));
@@ -154,7 +154,7 @@ namespace WorldEdit
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", Point2, "/point2"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", PointCmd, "/point") { AllowServer = false });
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.history.redo", Redo, "/redo"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.region", Region, "/region"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.region", RegionCmd, "/region"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.replace", Replace, "/replace"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.replacewall", ReplaceWall, "/replacewall"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.rotate", Rotate, "/rotate"));
@@ -225,6 +225,12 @@ namespace WorldEdit
 			SelectionNames.Add("outline");
 			#endregion
 			#region Tile Names
+			// These are not actually correct, but are for ease of usage.
+			TileNames.Add("air", -1);
+			TileNames.Add("lava", -2);
+			TileNames.Add("water", -3);
+			TileNames.Add("wire", -4);
+			// Names
 			TileNames.Add("dirt", 0);
 			TileNames.Add("stone", 1);
 			TileNames.Add("grass", 2);
@@ -287,11 +293,6 @@ namespace WorldEdit
 			TileNames.Add("green candy cane", 146);
 			TileNames.Add("snow", 147);
 			TileNames.Add("snow brick", 148);
-			// These are not actually correct, but are for ease of usage.
-			TileNames.Add("air", 149);
-			TileNames.Add("lava", 150);
-			TileNames.Add("water", 151);
-			TileNames.Add("wire", 152);
 			#endregion
 			#region Wall Names
 			WallNames.Add("air", 0);
@@ -327,14 +328,14 @@ namespace WorldEdit
 			CommandQueueThread.Start();
 			Directory.CreateDirectory("worldedit");
 		}
-		void OnLeave(int plr)
+		void OnLeave(LeaveEventArgs e)
 		{
-			File.Delete(Path.Combine("worldedit", String.Format("clipboard-{0}.dat", plr)));
-			foreach (string fileName in Directory.EnumerateFiles("worldedit", String.Format("??do-{0}-*.dat", plr)))
+			File.Delete(Path.Combine("worldedit", String.Format("clipboard-{0}.dat", e.Who)));
+			foreach (string fileName in Directory.EnumerateFiles("worldedit", String.Format("??do-{0}-*.dat", e.Who)))
 			{
 				File.Delete(fileName);
 			}
-			Players[plr] = new PlayerInfo();
+			Players[e.Who] = new PlayerInfo();
 		}
 
 		void QueueCallback(object t)
@@ -861,7 +862,7 @@ namespace WorldEdit
 			}
 			CommandQueue.Add(new RedoCommand(e.Player, steps));
 		}
-		void Region(CommandArgs e)
+		void RegionCmd(CommandArgs e)
 		{
 			if (e.Parameters.Count > 2)
 			{
@@ -941,8 +942,8 @@ namespace WorldEdit
 				return;
 			}
 
-			List<byte> values1 = Tools.GetTileByName(e.Parameters[0].ToLower());
-			List<byte> values2 = Tools.GetTileByName(e.Parameters[1].ToLower());
+			List<int> values1 = Tools.GetTileByName(e.Parameters[0].ToLower());
+			List<int> values2 = Tools.GetTileByName(e.Parameters[1].ToLower());
 			if (values1.Count == 0)
 			{
 				e.Player.SendErrorMessage("Invalid tile.");
@@ -978,8 +979,8 @@ namespace WorldEdit
 				return;
 			}
 
-			List<byte> values1 = Tools.GetWallByName(e.Parameters[0].ToLower());
-			List<byte> values2 = Tools.GetWallByName(e.Parameters[1].ToLower());
+			List<int> values1 = Tools.GetWallByName(e.Parameters[0].ToLower());
+			List<int> values2 = Tools.GetWallByName(e.Parameters[1].ToLower());
 			if (values1.Count == 0)
 			{
 				e.Player.SendErrorMessage("Invalid wall.");
@@ -1177,10 +1178,10 @@ namespace WorldEdit
 				return;
 			}
 
-			List<byte> values = Tools.GetTileByName(e.Parameters[0].ToLower());
+			List<int> values = Tools.GetTileByName(e.Parameters[0].ToLower());
 			if (e.Parameters[0].ToLower() == "nowire")
 			{
-				values.Add(153);
+				values.Add(-6);
 			}
 			if (values.Count == 0)
 			{
@@ -1209,7 +1210,7 @@ namespace WorldEdit
 				return;
 			}
 
-			List<byte> values = Tools.GetWallByName(e.Parameters[0].ToLower());
+			List<int> values = Tools.GetWallByName(e.Parameters[0].ToLower());
 			if (values.Count == 0)
 			{
 				e.Player.SendErrorMessage("Invalid wall.");

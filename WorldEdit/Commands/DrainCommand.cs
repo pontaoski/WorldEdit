@@ -24,7 +24,7 @@ namespace WorldEdit.Commands
 				{
 					if (Main.tile[i, j].liquid > 0)
 					{
-						Main.tile[i, j].lava = false;
+						Main.tile[i, j].lava(false);
 						Main.tile[i, j].liquid = 0;
 						edits++;
 					}

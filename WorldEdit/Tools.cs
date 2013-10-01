@@ -13,21 +13,21 @@ namespace WorldEdit
 			string id = plr.RealPlayer ? plr.Index.ToString() : "server";
 			return Path.Combine("worldedit", String.Format("clipboard-{0}.dat", id));
 		}
-		public static List<byte> GetTileByName(string tile)
+		public static List<int> GetTileByName(string tile)
 		{
-			byte ID;
-			if (byte.TryParse(tile, out ID) && ID < 149 &&
+			int ID;
+			if (int.TryParse(tile, out ID) && ID >= 0 && ID < Main.maxTileSets &&
 				!Main.tileFrameImportant[ID] && !WorldEdit.InvalidTiles.Contains(ID))
 			{
-				return new List<byte> { ID };
+				return new List<int> { ID };
 			}
 
-			List<byte> list = new List<byte>();
-			foreach (KeyValuePair<string, byte> kv in WorldEdit.TileNames)
+			List<int> list = new List<int>();
+			foreach (KeyValuePair<string, int> kv in WorldEdit.TileNames)
 			{
 				if (kv.Key == tile)
 				{
-					return new List<byte> { kv.Value };
+					return new List<int> { kv.Value };
 				}
 				if (kv.Key.StartsWith(tile))
 				{
@@ -36,20 +36,20 @@ namespace WorldEdit
 			}
 			return list;
 		}
-		public static List<byte> GetWallByName(string wall)
+		public static List<int> GetWallByName(string wall)
 		{
-			byte ID;
-			if (byte.TryParse(wall, out ID) && ID < 32)
+			int ID;
+			if (int.TryParse(wall, out ID) && ID >= 0 && ID < Main.maxWallTypes)
 			{
-				return new List<byte> { ID };
+				return new List<int> { ID };
 			}
 
-			List<byte> list = new List<byte>();
-			foreach (KeyValuePair<string, byte> kv in WorldEdit.WallNames)
+			List<int> list = new List<int>();
+			foreach (KeyValuePair<string, int> kv in WorldEdit.WallNames)
 			{
 				if (kv.Key == wall)
 				{
-					return new List<byte> { kv.Value };
+					return new List<int> { kv.Value };
 				}
 				if (kv.Key.StartsWith(wall))
 				{
@@ -96,7 +96,7 @@ namespace WorldEdit
 					for (int j = 0; j < yLen; j++)
 					{
 						Main.tile[i + x, j + y] = ReadTile(reader);
-						Main.tile[i + x, j + y].skipLiquid = true;
+						Main.tile[i + x, j + y].skipLiquid(true);
 					}
 				}
 				ResetSection(x, y, x + xLen, y + yLen);
@@ -122,11 +122,11 @@ namespace WorldEdit
 			if ((flags & 1) == 1)
 			{
 				byte type = reader.ReadByte();
-				tile.active = true;
+				tile.active(true);
 				tile.type = type;
 				if (Main.tileFrameImportant[type])
 				{
-					tile.frameNumber = reader.ReadByte();
+					tile.frameNumber(reader.ReadByte());
 					tile.frameX = reader.ReadInt16();
 					tile.frameY = reader.ReadInt16();
 				}
@@ -146,11 +146,11 @@ namespace WorldEdit
 			}
 			if ((flags & 8) == 8)
 			{
-				tile.lava = true;
+				tile.lava(true);
 			}
 			if ((flags & 16) == 16)
 			{
-				tile.wire = true;
+				tile.wire(true);
 			}
 			return tile;
 		}
@@ -226,7 +226,7 @@ namespace WorldEdit
 		public static void WriteTile(BinaryWriter writer, Tile tile)
 		{
 			byte flags = 0;
-			if (tile.active)
+			if (tile.active())
 			{
 				flags |= 1;
 			}
@@ -238,11 +238,11 @@ namespace WorldEdit
 			{
 				flags |= 4;
 			}
-			if (tile.lava)
+			if (tile.lava())
 			{
 				flags |= 8;
 			}
-			if (tile.wire)
+			if (tile.wire())
 			{
 				flags |= 16;
 			}
@@ -253,7 +253,7 @@ namespace WorldEdit
 				writer.Write(tile.type);
 				if (Main.tileFrameImportant[tile.type])
 				{
-					writer.Write(tile.frameNumber);
+					writer.Write(tile.frameNumber());
 					writer.Write(tile.frameX);
 					writer.Write(tile.frameY);
 				}

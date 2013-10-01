@@ -8,9 +8,9 @@ namespace WorldEdit.Commands
 	{
 		private static string[] SpecialTileNames = { "air", "lava", "water", "wire", "no wire" };
 
-		private byte tile;
+		private int tile;
 
-		public SetCommand(int x, int y, int x2, int y2, TSPlayer plr, byte tile)
+		public SetCommand(int x, int y, int x2, int y2, TSPlayer plr, int tile)
 			: base(x, y, x2, y2, plr)
 		{
 			this.tile = tile;
@@ -25,12 +25,12 @@ namespace WorldEdit.Commands
 				for (int j = y; j <= y2; j++)
 				{
 					if (selectFunc(i, j, plr) &&
-						((tile < 149 && (!Main.tile[i, j].active || Main.tile[i, j].type != tile))
-						|| (tile == 149 && (Main.tile[i, j].active || Main.tile[i, j].liquid > 0))
-						|| (tile == 150)
-						|| (tile == 151)
-						|| (tile == 152 && !Main.tile[i, j].wire)
-						|| (tile == 153 && Main.tile[i, j].wire)))
+						((tile >= 0 && (!Main.tile[i, j].active() || Main.tile[i, j].type != tile))
+						|| (tile == -1 && (Main.tile[i, j].active() || Main.tile[i, j].liquid > 0))
+						|| (tile == -2)
+						|| (tile == -3)
+						|| (tile == -4 && !Main.tile[i, j].wire())
+						|| (tile == -5 && Main.tile[i, j].wire())))
 					{
 						SetTile(i, j, tile);
 						edits++;
@@ -39,7 +39,7 @@ namespace WorldEdit.Commands
 			}
 			ResetSection();
 
-			string tileName = tile > 148 ? SpecialTileNames[tile - 149] : "tile " + tile;
+			string tileName = tile < 0 ? SpecialTileNames[-tile - 1] : "tile " + tile;
 			plr.SendSuccessMessage(String.Format("Set tiles to {0}. ({1})", tileName, edits));
 		}
 	}

@@ -42,7 +42,7 @@ namespace WorldEdit.Commands
 			{
 				return true;
 			}
-			return Main.tile[x, y].active && Main.tileSolid[Main.tile[x, y].type];
+			return Main.tile[x, y].active() && Main.tileSolid[Main.tile[x, y].type];
 		}
 	}
 }
