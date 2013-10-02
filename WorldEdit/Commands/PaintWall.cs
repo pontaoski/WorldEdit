@@ -7,11 +7,14 @@ using TShockAPI;
 
 namespace WorldEdit.Commands
 {
-	public class DrainCommand : WECommand
+	public class PaintWall : WECommand
 	{
-		public DrainCommand(int x, int y, int x2, int y2, TSPlayer plr)
+		private int color;
+
+		public PaintWall(int x, int y, int x2, int y2, TSPlayer plr, int color)
 			: base(x, y, x2, y2, plr)
 		{
+			this.color = color;
 		}
 
 		public override void Execute()
@@ -22,16 +25,16 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (Main.tile[i, j].liquid > 0)
+					if (selectFunc(i, j, plr) && Main.tile[i, j].wall != 0 && Main.tile[i, j].wallColor() != color)
 					{
-						Main.tile[i, j].lava(false);
-						Main.tile[i, j].liquid = 0;
+						Main.tile[i, j].wallColor((byte)color);
 						edits++;
 					}
 				}
 			}
 			ResetSection();
-			plr.SendSuccessMessage(String.Format("Drained nearby area. ({0})", edits));
+
+			plr.SendSuccessMessage("Painted walls {0}. ({1})", WorldEdit.ColorNames[color], edits);
 		}
 	}
 }

@@ -5,11 +5,11 @@ using TShockAPI;
 
 namespace WorldEdit.Commands
 {
-	public class FlipCommand : WECommand
+	public class Flip : WECommand
 	{
 		private byte direction;
 
-		public FlipCommand(TSPlayer plr, byte direction)
+		public Flip(TSPlayer plr, byte direction)
 			: base(0, 0, 0, 0, plr)
 		{
 			this.direction = direction;
@@ -36,11 +36,11 @@ namespace WorldEdit.Commands
 				{
 					for (int j = flipY ? lenY - 1 : 0; j != endY; j += incY)
 					{
-						Tools.WriteTile(writer, tiles[i, j]);
+						writer.Write(tiles[i, j]);
 					}
 				}
 			}
-			plr.SendSuccessMessage(String.Format("Flipped clipboard."));
+			plr.SendSuccessMessage("Flipped clipboard.");
 		}
 	}
 }

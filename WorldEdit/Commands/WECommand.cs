@@ -101,12 +101,6 @@ namespace WorldEdit.Commands
 					Main.tile[i, j].liquid = 255;
 					Main.tile[i, j].type = 0;
 					break;
-				case -4:
-					Main.tile[i, j].wire(true);
-					break;
-				case -5:
-					Main.tile[i, j].wire(false);
-					break;
 				default:
 					Main.tile[i, j].active(true);
 					Main.tile[i, j].frameX = -1;

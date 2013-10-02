@@ -3,11 +3,11 @@ using TShockAPI;
 
 namespace WorldEdit.Commands
 {
-	public class RedoCommand : WECommand
+	public class Redo : WECommand
 	{
 		private int steps;
 
-		public RedoCommand(TSPlayer plr, int steps)
+		public Redo(TSPlayer plr, int steps)
 			: base(0, 0, 0, 0, plr)
 		{
 			this.steps = steps;
@@ -20,7 +20,7 @@ namespace WorldEdit.Commands
 			{
 				Tools.Redo(plr);
 			}
-			plr.SendSuccessMessage(String.Format("Redid last {0}action{1}.", i == 1 ? "" : i + " ", i == 1 ? "" : "s"));
+			plr.SendSuccessMessage("Redid last {0}action{1}.", i == 1 ? "" : i + " ", i == 1 ? "" : "s");
 		}
 	}
 }

@@ -4,13 +4,13 @@ using TShockAPI;
 
 namespace WorldEdit.Commands
 {
-	public class SetCommand : WECommand
+	public class Set : WECommand
 	{
-		private static string[] SpecialTileNames = { "air", "lava", "water", "wire", "no wire" };
+		private static string[] SpecialTileNames = { "air", "lava", "honey", "water" };
 
 		private int tile;
 
-		public SetCommand(int x, int y, int x2, int y2, TSPlayer plr, int tile)
+		public Set(int x, int y, int x2, int y2, TSPlayer plr, int tile)
 			: base(x, y, x2, y2, plr)
 		{
 			this.tile = tile;
@@ -26,11 +26,10 @@ namespace WorldEdit.Commands
 				{
 					if (selectFunc(i, j, plr) &&
 						((tile >= 0 && (!Main.tile[i, j].active() || Main.tile[i, j].type != tile))
-						|| (tile == -1 && (Main.tile[i, j].active() || Main.tile[i, j].liquid > 0))
+						|| (tile == -1 && (Main.tile[i, j].active() || Main.tile[i, j].liquid != 0))
 						|| (tile == -2)
 						|| (tile == -3)
-						|| (tile == -4 && !Main.tile[i, j].wire())
-						|| (tile == -5 && Main.tile[i, j].wire())))
+						|| (tile == -4)))
 					{
 						SetTile(i, j, tile);
 						edits++;
@@ -40,7 +39,7 @@ namespace WorldEdit.Commands
 			ResetSection();
 
 			string tileName = tile < 0 ? SpecialTileNames[-tile - 1] : "tile " + tile;
-			plr.SendSuccessMessage(String.Format("Set tiles to {0}. ({1})", tileName, edits));
+			plr.SendSuccessMessage("Set tiles to {0}. ({1})", tileName, edits);
 		}
 	}
 }

@@ -5,9 +5,9 @@ using TShockAPI;
 
 namespace WorldEdit.Commands
 {
-	public class CopyCommand : WECommand
+	public class Copy : WECommand
 	{
-		public CopyCommand(int x, int y, int x2, int y2, TSPlayer plr)
+		public Copy(int x, int y, int x2, int y2, TSPlayer plr)
 			: base(x, y, x2, y2, plr)
 		{
 		}
@@ -23,11 +23,11 @@ namespace WorldEdit.Commands
 				{
 					for (int j = y; j <= y2; j++)
 					{
-						Tools.WriteTile(writer, Main.tile[i, j]);
+						writer.Write(Main.tile[i, j]);
 					}
 				}
 			}
-			plr.SendSuccessMessage(String.Format("Copied selection to clipboard."));
+			plr.SendSuccessMessage("Copied selection to clipboard.");
 		}
 	}
 }

@@ -4,11 +4,11 @@ using TShockAPI;
 
 namespace WorldEdit.Commands
 {
-	public class SetWallCommand : WECommand
+	public class SetWall : WECommand
 	{
 		private int wall;
 
-		public SetWallCommand(int x, int y, int x2, int y2, TSPlayer plr, int wall)
+		public SetWall(int x, int y, int x2, int y2, TSPlayer plr, int wall)
 			: base(x, y, x2, y2, plr)
 		{
 			this.wall = wall;
@@ -32,7 +32,7 @@ namespace WorldEdit.Commands
 			ResetSection();
 
 			string wallName = wall == 0 ? "air" : "wall " + wall;
-			plr.SendSuccessMessage(String.Format("Set walls to {0}. ({1})", wallName, edits));
+			plr.SendSuccessMessage("Set walls to {0}. ({1})", wallName, edits);
 		}
 	}
 }

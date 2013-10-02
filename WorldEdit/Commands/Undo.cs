@@ -3,11 +3,11 @@ using TShockAPI;
 
 namespace WorldEdit.Commands
 {
-	public class UndoCommand : WECommand
+	public class Undo : WECommand
 	{
 		private int steps;
 
-		public UndoCommand(TSPlayer plr, int steps)
+		public Undo(TSPlayer plr, int steps)
 			: base(0, 0, 0, 0, plr)
 		{
 			this.steps = steps;
@@ -20,7 +20,7 @@ namespace WorldEdit.Commands
 			{
 				Tools.Undo(plr);
 			}
-			plr.SendSuccessMessage(String.Format("Undid last {0}action{1}.", i == 1 ? "" : i + " ", i == 1 ? "" : "s"));
+			plr.SendSuccessMessage("Undid last {0}action{1}.", i == 1 ? "" : i + " ", i == 1 ? "" : "s");
 		}
 	}
 }

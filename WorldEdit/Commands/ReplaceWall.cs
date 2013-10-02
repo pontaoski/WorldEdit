@@ -4,12 +4,12 @@ using TShockAPI;
 
 namespace WorldEdit.Commands
 {
-	public class ReplaceWallCommand : WECommand
+	public class ReplaceWall : WECommand
 	{
 		private int wall1;
 		private int wall2;
 
-		public ReplaceWallCommand(int x, int y, int x2, int y2, TSPlayer plr, int wall1, int wall2) :
+		public ReplaceWall(int x, int y, int x2, int y2, TSPlayer plr, int wall1, int wall2) :
 			base(x, y, x2, y2, plr)
 		{
 			this.wall1 = wall1;
@@ -38,7 +38,7 @@ namespace WorldEdit.Commands
 
 			string wallName1 = wall1 == 0 ? "air" : "wall " + wall1;
 			string wallName2 = wall2 == 0 ? "air" : "wall " + wall2;
-			plr.SendSuccessMessage(String.Format("Replaced {0} with {1}. ({2})", wallName1, wallName2, edits));
+			plr.SendSuccessMessage("Replaced {0} with {1}. ({2})", wallName1, wallName2, edits);
 		}
 	}
 }

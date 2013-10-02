@@ -17,8 +17,9 @@ namespace WorldEdit
 	[ApiVersion(1, 14)]
 	public class WorldEdit : TerrariaPlugin
 	{
-		public static List<byte[]> BiomeConversions = new List<byte[]>();
+		public static List<int[]> BiomeConversions = new List<int[]>();
 		public static List<string> BiomeNames = new List<string>();
+		public static List<string> ColorNames = new List<string>();
 		public static List<int> InvalidTiles = new List<int>();
 		public static PlayerInfo[] Players = new PlayerInfo[257];
 		public static List<Func<int, int, TSPlayer, bool>> Selections = new List<Func<int, int, TSPlayer, bool>>();
@@ -137,11 +138,8 @@ namespace WorldEdit
 		{
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.all", All, "/all"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.biome", Biome, "/biome"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.clear", ClearClipboard, "/clearclipboard"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.history.clear", ClearHistory, "/clearhistory"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.contract", Contract, "/contract"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.copy", Copy, "/copy"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.cut", Cut, "/cut"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.drain", Drain, "/drain"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.expand", Expand, "/expand"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.fixgrass", FixGrass, "/fixgrass"));
@@ -149,6 +147,8 @@ namespace WorldEdit
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.flood", Flood, "/flood"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.inset", Inset, "/inset"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.outset", Outset, "/outset"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.paint", Paint, "/paint"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.paintwall", PaintWall, "/paintwall"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.paste", Paste, "/paste"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", Point1, "/point1"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", Point2, "/point2"));
@@ -162,27 +162,58 @@ namespace WorldEdit
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.selecttype", Select, "/select"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.set", Set, "/set"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.setwall", SetWall, "/setwall"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.setwire", SetWire, "/setwire"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.shift", Shift, "/shift"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.size", Size, "/size"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.history.undo", Undo, "/undo"));
 
 			#region Biomes
-			// 255 => remove
-			byte[] Corruption = { 0, 25, 112, 23, 24, 255, 255, 32 };
-			byte[] Hallow = { 0, 117, 116, 109, 110, 113, 52, 255 };
-			byte[] Jungle = { 59, 1, 53, 60, 61, 74, 62, 69 };
-			byte[] Mushroom = { 59, 1, 53, 70, 71, 255, 255, 255 };
-			byte[] Normal = { 0, 1, 53, 2, 3, 73, 52, 255 };
-			BiomeConversions.Add(Corruption);
-			BiomeConversions.Add(Hallow);
-			BiomeConversions.Add(Jungle);
-			BiomeConversions.Add(Mushroom);
-			BiomeConversions.Add(Normal);
+			// Format: dirt, stone, sand, grass, plants, tall plants, vines, thorn
+
+			BiomeConversions.Add(new[] { 0, 203, 234, 199, -1, -1, 205, 32 });
+			BiomeConversions.Add(new[] { 0, 25, 112, 23, 24, -1, -1, 32 });
+			BiomeConversions.Add(new[] { 0, 117, 116, 109, 110, 113, 52, -1 });
+			BiomeConversions.Add(new[] { 59, 1, 53, 60, 61, 74, 62, 69 });
+			BiomeConversions.Add(new[] { 59, 1, 53, 70, 71, -1, -1, -1 });
+			BiomeConversions.Add(new[] { 0, 1, 53, 2, 3, 73, 52, -1 });
+			BiomeConversions.Add(new[] { 147, 161, 53, 147, -1, -1, -1, -1 });
+			BiomeNames.Add("crimson");
 			BiomeNames.Add("corruption");
 			BiomeNames.Add("hallow");
 			BiomeNames.Add("jungle");
 			BiomeNames.Add("mushroom");
 			BiomeNames.Add("normal");
+			BiomeNames.Add("snow");
+			#endregion
+			#region Color Names
+			ColorNames.Add("");
+			ColorNames.Add("red");
+			ColorNames.Add("orange");
+			ColorNames.Add("yellow");
+			ColorNames.Add("lime");
+			ColorNames.Add("green");
+			ColorNames.Add("teal");
+			ColorNames.Add("cyan");
+			ColorNames.Add("sky blue");
+			ColorNames.Add("blue");
+			ColorNames.Add("purple");
+			ColorNames.Add("violet");
+			ColorNames.Add("pink");
+			ColorNames.Add("deep red");
+			ColorNames.Add("deep orange");
+			ColorNames.Add("deep yellow");
+			ColorNames.Add("deep lime");
+			ColorNames.Add("deep green");
+			ColorNames.Add("deep teal");
+			ColorNames.Add("deep cyan");
+			ColorNames.Add("deep sky blue");
+			ColorNames.Add("deep blue");
+			ColorNames.Add("deep purple");
+			ColorNames.Add("deep violet");
+			ColorNames.Add("deep pink");
+			ColorNames.Add("black");
+			ColorNames.Add("white");
+			ColorNames.Add("gray");
 			#endregion
 			#region Invalid Tiles
 			InvalidTiles.Add(33);
@@ -225,12 +256,11 @@ namespace WorldEdit
 			SelectionNames.Add("outline");
 			#endregion
 			#region Tile Names
-			// These are not actually correct, but are for ease of usage.
 			TileNames.Add("air", -1);
 			TileNames.Add("lava", -2);
-			TileNames.Add("water", -3);
-			TileNames.Add("wire", -4);
-			// Names
+			TileNames.Add("honey", -3);
+			TileNames.Add("water", -4);
+
 			TileNames.Add("dirt", 0);
 			TileNames.Add("stone", 1);
 			TileNames.Add("grass", 2);
@@ -285,7 +315,7 @@ namespace WorldEdit
 			TileNames.Add("mythril brick", 122);
 			TileNames.Add("silt", 123);
 			TileNames.Add("wooden beam", 124);
-			TileNames.Add("ice", 127);
+			TileNames.Add("icerod", 127);
 			TileNames.Add("active stone", 130);
 			TileNames.Add("inactive stone", 131);
 			TileNames.Add("demonite brick", 140);
@@ -293,6 +323,62 @@ namespace WorldEdit
 			TileNames.Add("green candy cane", 146);
 			TileNames.Add("snow", 147);
 			TileNames.Add("snow brick", 148);
+			TileNames.Add("adamantite beam", 150);
+			TileNames.Add("sandstone brick", 151);
+			TileNames.Add("ebonstone brick", 152);
+			TileNames.Add("red stucco", 153);
+			TileNames.Add("yellow stucco", 154);
+			TileNames.Add("green stucco", 155);
+			TileNames.Add("gray stucco", 156);
+			TileNames.Add("ebonwood", 157);
+			TileNames.Add("rich mahogany", 158);
+			TileNames.Add("pearlwood", 159);
+			TileNames.Add("rainbow brick", 160);
+			TileNames.Add("ice", 161);
+			TileNames.Add("thin ice", 162);
+			TileNames.Add("corrupted ice", 162);
+			TileNames.Add("hallowed ice", 162);
+			TileNames.Add("tin", 166);
+			TileNames.Add("lead", 167);
+			TileNames.Add("tungsten", 168);
+			TileNames.Add("platinum", 169);
+			TileNames.Add("tin brick", 175);
+			TileNames.Add("tungsten brick", 176);
+			TileNames.Add("platinum brick", 177);
+			TileNames.Add("cactus", 188);
+			TileNames.Add("cloud", 189);
+			TileNames.Add("glowing mushroom", 190);
+			TileNames.Add("tree", 191);
+			TileNames.Add("leaf", 192);
+			TileNames.Add("slime", 193);
+			TileNames.Add("bone", 194);
+			TileNames.Add("flesh", 195);
+			TileNames.Add("rain cloud", 196);
+			TileNames.Add("frozen slime", 197);
+			TileNames.Add("asphalt", 198);
+			TileNames.Add("crimson dirt", 199);
+			TileNames.Add("crimson ice", 200);
+			TileNames.Add("sunplate", 202);
+			TileNames.Add("crimstone", 203);
+			TileNames.Add("crimtane", 204);
+			TileNames.Add("ice brick", 206);
+			TileNames.Add("shadewood", 208);
+			TileNames.Add("chlorophyte", 211);
+			TileNames.Add("palladium", 221);
+			TileNames.Add("orichalcum", 222);
+			TileNames.Add("titanium", 223);
+			TileNames.Add("slush", 224);
+			TileNames.Add("hive", 225);
+			TileNames.Add("lihzahrd brick", 226);
+			TileNames.Add("honey block", 229);
+			TileNames.Add("crispy honey block", 230);
+			TileNames.Add("wooden spike", 232);
+			TileNames.Add("crimsand", 234);
+			TileNames.Add("teleporter", 235);
+			TileNames.Add("metal bar", 239);
+			TileNames.Add("palladium column", 248);
+			TileNames.Add("bubblegum", 249);
+			TileNames.Add("titanstone", 250);
 			#endregion
 			#region Wall Names
 			WallNames.Add("air", 0);
@@ -322,6 +408,52 @@ namespace WorldEdit
 			WallNames.Add("candy cane", 29);
 			WallNames.Add("green candy cane", 30);
 			WallNames.Add("snow brick", 31);
+			WallNames.Add("adamantite beam", 32);
+			WallNames.Add("demonite brick", 33);
+			WallNames.Add("sandstone brick", 34);
+			WallNames.Add("ebonstone brick", 35);
+			WallNames.Add("red stucco", 36);
+			WallNames.Add("yellow stucco", 37);
+			WallNames.Add("green stucco", 38);
+			WallNames.Add("gray stucco", 39);
+			WallNames.Add("ebonwood", 41);
+			WallNames.Add("rich mahogany", 42);
+			WallNames.Add("pearlwood", 43);
+			WallNames.Add("rainbow brick", 44);
+			WallNames.Add("tin brick", 45);
+			WallNames.Add("tungsten brick", 46);
+			WallNames.Add("platinum brick", 47);
+			WallNames.Add("grass", 66);
+			WallNames.Add("jungle", 67);
+			WallNames.Add("flower", 68);
+			WallNames.Add("cactus", 72);
+			WallNames.Add("cloud", 73);
+			WallNames.Add("mushroom", 74);
+			WallNames.Add("bone", 75);
+			WallNames.Add("slime", 76);
+			WallNames.Add("flesh", 77);
+			WallNames.Add("disc", 82);
+			WallNames.Add("ice brick", 84);
+			WallNames.Add("shadewood", 85);
+			WallNames.Add("lihzahrd brick", 87);
+			WallNames.Add("purple glass", 88);
+			WallNames.Add("yellow glass", 89);
+			WallNames.Add("blue glass", 90);
+			WallNames.Add("green glass", 91);
+			WallNames.Add("red glass", 92);
+			WallNames.Add("multicolor glass", 93);
+			WallNames.Add("blue slab", 100);
+			WallNames.Add("blue tiled", 101);
+			WallNames.Add("pink slab", 102);
+			WallNames.Add("pink tiled", 103);
+			WallNames.Add("green slab", 104);
+			WallNames.Add("green tiled", 105);
+			WallNames.Add("wooden fence", 106);
+			WallNames.Add("metal fence", 107);
+			WallNames.Add("hive", 108);
+			WallNames.Add("palladium column", 109);
+			WallNames.Add("bubblegum", 110);
+			WallNames.Add("titanstone", 111);
 			#endregion
 			CommandQueueThread = new Thread(QueueCallback);
 			CommandQueueThread.Name = "WorldEdit Callback";
@@ -382,20 +514,7 @@ namespace WorldEdit
 			int y = Math.Min(info.y, info.y2);
 			int x2 = Math.Max(info.x, info.x2);
 			int y2 = Math.Max(info.y, info.y2);
-			CommandQueue.Add(new BiomeCommand(x, y, x2, y2, e.Player, biome1, biome2));
-		}
-		void ClearClipboard(CommandArgs e)
-		{
-			File.Delete(Path.Combine("worldedit", String.Format("clipboard-{0}.dat", e.Player.Index)));
-			e.Player.SendSuccessMessage("Cleared clipboard.");
-		}
-		void ClearHistory(CommandArgs e)
-		{
-			foreach (string fileName in Directory.EnumerateFiles("worldedit", "??do-" + e.Player.Index + "-*.dat"))
-			{
-				File.Delete(fileName);
-			}
-			e.Player.SendSuccessMessage("Cleared history.");
+			CommandQueue.Add(new Biome(x, y, x2, y2, e.Player, biome1, biome2));
 		}
 		void Contract(CommandArgs e)
 		{
@@ -489,22 +608,7 @@ namespace WorldEdit
 			int y = Math.Min(info.y, info.y2);
 			int x2 = Math.Max(info.x, info.x2);
 			int y2 = Math.Max(info.y, info.y2);
-			CommandQueue.Add(new CopyCommand(x, y, x2, y2, e.Player));
-		}
-		void Cut(CommandArgs e)
-		{
-			PlayerInfo info = GetPlayerInfo(e.Player);
-			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
-			{
-				e.Player.SendErrorMessage("Invalid selection.");
-				return;
-			}
-
-			int x = Math.Min(info.x, info.x2);
-			int y = Math.Min(info.y, info.y2);
-			int x2 = Math.Max(info.x, info.x2);
-			int y2 = Math.Max(info.y, info.y2);
-			CommandQueue.Add(new CutCommand(x, y, x2, y2, e.Player));
+			CommandQueue.Add(new Copy(x, y, x2, y2, e.Player));
 		}
 		void Drain(CommandArgs e)
 		{
@@ -524,7 +628,7 @@ namespace WorldEdit
 			int x2 = e.Player.TileX + radius + 2;
 			int y = e.Player.TileY - radius + 1;
 			int y2 = e.Player.TileY + radius + 1;
-			CommandQueue.Add(new DrainCommand(x, y, x2, y2, e.Player));
+			CommandQueue.Add(new Drain(x, y, x2, y2, e.Player));
 		}
 		void Expand(CommandArgs e)
 		{
@@ -623,19 +727,27 @@ namespace WorldEdit
 			int x2 = e.Player.TileX + radius + 2;
 			int y = e.Player.TileY - radius + 1;
 			int y2 = e.Player.TileY + radius + 1;
-			CommandQueue.Add(new FixGrassCommand(x, y, x2, y2, e.Player));
+			CommandQueue.Add(new FixGrass(x, y, x2, y2, e.Player));
 		}
 		void Flood(CommandArgs e)
 		{
 			if (e.Parameters.Count != 2)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //flood <lava|water> <radius>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //flood <liquid> <radius>");
 				return;
 			}
-			string liquid = e.Parameters[0].ToLower();
-			if (liquid != "water" && liquid != "lava")
+			int liquid = 0;
+			if (e.Parameters[0].ToLower() == "lava")
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //flood <lava|water> <radius>");
+				liquid = 1;
+			}
+			else if (e.Parameters[0].ToLower() == "honey")
+			{
+				liquid = 2;
+			}
+			else
+			{
+				e.Player.SendErrorMessage("Invalid liquid type!");
 				return;
 			}
 
@@ -649,7 +761,7 @@ namespace WorldEdit
 			int x2 = e.Player.TileX + radius + 2;
 			int y = e.Player.TileY - radius + 1;
 			int y2 = e.Player.TileY + radius + 1;
-			CommandQueue.Add(new FloodCommand(x, y, x2, y2, e.Player, liquid == "lava"));
+			CommandQueue.Add(new Flood(x, y, x2, y2, e.Player, liquid));
 		}
 		void Flip(CommandArgs e)
 		{
@@ -681,7 +793,7 @@ namespace WorldEdit
 					return;
 				}
 			}
-			CommandQueue.Add(new FlipCommand(e.Player, flip));
+			CommandQueue.Add(new Flip(e.Player, flip));
 		}
 		void Inset(CommandArgs e)
 		{
@@ -767,6 +879,62 @@ namespace WorldEdit
 			}
 			e.Player.SendSuccessMessage(String.Format("Outset selection by {0}.", amount));
 		}
+		void Paint(CommandArgs e)
+		{
+			if (e.Parameters.Count != 1)
+			{
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //paint <color>");
+				return;
+			}
+			PlayerInfo info = GetPlayerInfo(e.Player);
+			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
+			{
+				e.Player.SendErrorMessage("Invalid selection.");
+				return;
+			}
+
+			List<int> values = Tools.GetColorByName(e.Parameters[0].ToLower());
+			if (values.Count == 0)
+			{
+				e.Player.SendErrorMessage("Invalid color.");
+			}
+			else if (values.Count > 1)
+			{
+				e.Player.SendErrorMessage("More than one color matched.");
+			}
+			else
+			{
+				CommandQueue.Add(new Paint(info.x, info.y, info.x2, info.y2, e.Player, values[0]));
+			}
+		}
+		void PaintWall(CommandArgs e)
+		{
+			if (e.Parameters.Count != 1)
+			{
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //paintwall <color>");
+				return;
+			}
+			PlayerInfo info = GetPlayerInfo(e.Player);
+			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
+			{
+				e.Player.SendErrorMessage("Invalid selection.");
+				return;
+			}
+
+			List<int> values = Tools.GetColorByName(e.Parameters[0].ToLower());
+			if (values.Count == 0)
+			{
+				e.Player.SendErrorMessage("Invalid color.");
+			}
+			else if (values.Count > 1)
+			{
+				e.Player.SendErrorMessage("More than one color matched.");
+			}
+			else
+			{
+				CommandQueue.Add(new PaintWall(info.x, info.y, info.x2, info.y2, e.Player, values[0]));
+			}
+		}
 		void Paste(CommandArgs e)
 		{
 			PlayerInfo info = GetPlayerInfo(e.Player);
@@ -781,7 +949,7 @@ namespace WorldEdit
 				return;
 			}
 
-			CommandQueue.Add(new PasteCommand(info.x, info.y, e.Player));
+			CommandQueue.Add(new Paste(info.x, info.y, e.Player));
 		}
 		void Point1(CommandArgs e)
 		{
@@ -860,7 +1028,7 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid number of steps.");
 				return;
 			}
-			CommandQueue.Add(new RedoCommand(e.Player, steps));
+			CommandQueue.Add(new Redo(e.Player, steps));
 		}
 		void RegionCmd(CommandArgs e)
 		{
@@ -962,7 +1130,7 @@ namespace WorldEdit
 			}
 			else
 			{
-				CommandQueue.Add(new ReplaceCommand(info.x, info.y, info.x2, info.y2, e.Player, values1[0], values2[0]));
+				CommandQueue.Add(new Replace(info.x, info.y, info.x2, info.y2, e.Player, values1[0], values2[0]));
 			}
 		}
 		void ReplaceWall(CommandArgs e)
@@ -999,7 +1167,7 @@ namespace WorldEdit
 			}
 			else
 			{
-				CommandQueue.Add(new ReplaceWallCommand(info.x, info.y, info.x2, info.y2, e.Player, values1[0], values2[0]));
+				CommandQueue.Add(new ReplaceWall(info.x, info.y, info.x2, info.y2, e.Player, values1[0], values2[0]));
 			}
 		}
 		void Rotate(CommandArgs e)
@@ -1021,7 +1189,7 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid angle.");
 				return;
 			}
-			CommandQueue.Add(new RotateCommand(e.Player, degrees));
+			CommandQueue.Add(new Rotate(e.Player, degrees));
 		}
 		void Schematic(CommandArgs e)
 		{
@@ -1179,10 +1347,6 @@ namespace WorldEdit
 			}
 
 			List<int> values = Tools.GetTileByName(e.Parameters[0].ToLower());
-			if (e.Parameters[0].ToLower() == "nowire")
-			{
-				values.Add(-6);
-			}
 			if (values.Count == 0)
 			{
 				e.Player.SendErrorMessage("Invalid tile.");
@@ -1193,7 +1357,7 @@ namespace WorldEdit
 			}
 			else
 			{
-				CommandQueue.Add(new SetCommand(info.x, info.y, info.x2, info.y2, e.Player, values[0]));
+				CommandQueue.Add(new Set(info.x, info.y, info.x2, info.y2, e.Player, values[0]));
 			}
 		}
 		void SetWall(CommandArgs e)
@@ -1221,8 +1385,57 @@ namespace WorldEdit
 			}
 			else
 			{
-				CommandQueue.Add(new SetWallCommand(info.x, info.y, info.x2, info.y2, e.Player, values[0]));
+				CommandQueue.Add(new SetWall(info.x, info.y, info.x2, info.y2, e.Player, values[0]));
 			}
+		}
+		void SetWire(CommandArgs e)
+		{
+			if (e.Parameters.Count != 3)
+			{
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //setwire <wire 1 state> <wire 2 state> <wire 3 state>");
+				return;
+			}
+			PlayerInfo info = GetPlayerInfo(e.Player);
+			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
+			{
+				e.Player.SendErrorMessage("Invalid selection.");
+				return;
+			}
+
+			bool wire1 = false;
+			if (e.Parameters[0].ToLower() == "on")
+			{
+				wire1 = true;
+			}
+			else if (e.Parameters[0].ToLower() != "off")
+			{
+				e.Player.SendErrorMessage("Invalid wire 1 state.");
+				return;
+			}
+
+			bool wire2 = false;
+			if (e.Parameters[1].ToLower() == "on")
+			{
+				wire2 = true;
+			}
+			else if (e.Parameters[1].ToLower() != "off")
+			{
+				e.Player.SendErrorMessage("Invalid wire 2 state.");
+				return;
+			}
+
+			bool wire3 = false;
+			if (e.Parameters[2].ToLower() == "on")
+			{
+				wire3 = true;
+			}
+			else if (e.Parameters[2].ToLower() != "off")
+			{
+				e.Player.SendErrorMessage("Invalid wire 3 state.");
+				return;
+			}
+
+			CommandQueue.Add(new SetWire(info.x, info.y, info.x2, info.y2, e.Player, wire1, wire2, wire3));
 		}
 		void Shift(CommandArgs e)
 		{
@@ -1305,7 +1518,7 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid number of steps.");
 				return;
 			}
-			CommandQueue.Add(new UndoCommand(e.Player, steps));
+			CommandQueue.Add(new Undo(e.Player, steps));
 		}
 	}
 }

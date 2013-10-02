@@ -7,14 +7,14 @@ using TShockAPI;
 
 namespace WorldEdit.Commands
 {
-	public class FloodCommand : WECommand
+	public class Paint : WECommand
 	{
-		private bool lava;
+		private int color;
 
-		public FloodCommand(int x, int y, int x2, int y2, TSPlayer plr, bool lava)
+		public Paint(int x, int y, int x2, int y2, TSPlayer plr, int color)
 			: base(x, y, x2, y2, plr)
 		{
-			this.lava = lava;
+			this.color = color;
 		}
 
 		public override void Execute()
@@ -25,16 +25,17 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (!Main.tile[i, j].active() || !Main.tileSolid[Main.tile[i, j].type])
+					if (selectFunc(i, j, plr) && Main.tile[i, j].active() && Main.tileSolid[Main.tile[i, j].type]
+						&& Main.tile[i, j].color() != color)
 					{
-						Main.tile[i, j].lava(lava);
-						Main.tile[i, j].liquid = 255;
+						Main.tile[i, j].color((byte)color);
 						edits++;
 					}
 				}
 			}
 			ResetSection();
-			plr.SendSuccessMessage(String.Format("Flooded nearby area. ({0})", edits));
+
+			plr.SendSuccessMessage("Painted tiles {0}. ({1})", WorldEdit.ColorNames[color], edits);
 		}
 	}
 }

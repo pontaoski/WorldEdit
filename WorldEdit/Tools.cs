@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Terraria;
 using TShockAPI;
+using TShockAPI.Net;
 
 namespace WorldEdit
 {
@@ -12,6 +13,28 @@ namespace WorldEdit
 		{
 			string id = plr.RealPlayer ? plr.Index.ToString() : "server";
 			return Path.Combine("worldedit", String.Format("clipboard-{0}.dat", id));
+		}
+		public static List<int> GetColorByName(string color)
+		{
+			int ID;
+			if (int.TryParse(color, out ID) && ID > 0 && ID < Main.numTileColors)
+			{
+				return new List<int> { ID };
+			}
+
+			List<int> list = new List<int>();
+			for (int i = 0; i < WorldEdit.ColorNames.Count; i++)
+			{
+				if (WorldEdit.ColorNames[i] == color)
+				{
+					return new List<int> { i };
+				}
+				if (WorldEdit.ColorNames[i].StartsWith(color))
+				{
+					list.Add(i);
+				}
+			}
+			return list;
 		}
 		public static List<int> GetTileByName(string tile)
 		{
@@ -91,12 +114,12 @@ namespace WorldEdit
 				int xLen = reader.ReadInt32();
 				int yLen = reader.ReadInt32();
 
-				for (int i = 0; i < xLen; i++)
+				for (int i = x; i < x + xLen; i++)
 				{
-					for (int j = 0; j < yLen; j++)
+					for (int j = y; j < y + yLen; j++)
 					{
-						Main.tile[i + x, j + y] = ReadTile(reader);
-						Main.tile[i + x, j + y].skipLiquid(true);
+						Main.tile[i, j] = reader.ReadTile();
+						Main.tile[i, j].skipLiquid(true);
 					}
 				}
 				ResetSection(x, y, x + xLen, y + yLen);
@@ -115,10 +138,31 @@ namespace WorldEdit
 				File.Delete(fileName);
 			}
 		}
-		public static Tile ReadTile(BinaryReader reader)
+		public static Tile ReadTile(this BinaryReader reader)
 		{
 			Tile tile = new Tile();
 			byte flags = reader.ReadByte();
+			byte flags2 = reader.ReadByte();
+
+			tile.actuator((flags & 64) == 64);
+			tile.halfBrick((flags & 32) == 32);
+			tile.inActive((flags & 128) == 128);
+			tile.slope((byte)((flags2 << 4) & 3));
+			tile.inActive((flags & 128) == 128);
+			tile.wire((flags & 16) == 16);
+			tile.wire2((flags2 & 1) == 1);
+			tile.wire3((flags2 & 2) == 2);
+			// Color
+			if ((flags2 & 4) == 4)
+			{
+				tile.color(reader.ReadByte());
+			}
+			// Wall color
+			if ((flags2 & 8) == 8)
+			{
+				tile.wallColor(reader.ReadByte());
+			}
+			// Tile type
 			if ((flags & 1) == 1)
 			{
 				byte type = reader.ReadByte();
@@ -126,7 +170,6 @@ namespace WorldEdit
 				tile.type = type;
 				if (Main.tileFrameImportant[type])
 				{
-					tile.frameNumber(reader.ReadByte());
 					tile.frameX = reader.ReadInt16();
 					tile.frameY = reader.ReadInt16();
 				}
@@ -136,21 +179,16 @@ namespace WorldEdit
 					tile.frameY = -1;
 				}
 			}
-			if ((flags & 2) == 2)
+			// Wall type
+			if ((flags & 4) == 4)
 			{
 				tile.wall = reader.ReadByte();
 			}
-			if ((flags & 4) == 4)
-			{
-				tile.liquid = reader.ReadByte();
-			}
+			// Liquid
 			if ((flags & 8) == 8)
 			{
-				tile.lava(true);
-			}
-			if ((flags & 16) == 16)
-			{
-				tile.wire(true);
+				tile.liquid = reader.ReadByte();
+				tile.liquidType(reader.ReadByte());
 			}
 			return tile;
 		}
@@ -201,7 +239,7 @@ namespace WorldEdit
 				{
 					for (int j = 0; j < yLen; j++)
 					{
-						WriteTile(writer, tiles[i, j] ?? new Tile());
+						writer.Write(tiles[i, j] ?? new Tile());
 					}
 				}
 			}
@@ -218,27 +256,24 @@ namespace WorldEdit
 				{
 					for (int j = y; j <= y2; j++)
 					{
-						WriteTile(writer, Main.tile[i, j]);
+						writer.Write(Main.tile[i, j]);
 					}
 				}
 			}
 		}
-		public static void WriteTile(BinaryWriter writer, Tile tile)
+		public static void Write(this BinaryWriter writer, Tile tile)
 		{
 			byte flags = 0;
+			byte flags2 = 0;
 			if (tile.active())
 			{
 				flags |= 1;
 			}
 			if (tile.wall != 0)
 			{
-				flags |= 2;
-			}
-			if (tile.liquid > 0)
-			{
 				flags |= 4;
 			}
-			if (tile.lava())
+			if (tile.liquid != 0)
 			{
 				flags |= 8;
 			}
@@ -246,25 +281,63 @@ namespace WorldEdit
 			{
 				flags |= 16;
 			}
+			if (tile.halfBrick())
+			{
+				flags |= 32;
+			}
+			if (tile.actuator())
+			{
+				flags |= 64;
+			}
+			if (tile.inActive())
+			{
+				flags |= 128;
+			}
+			if (tile.wire2())
+			{
+				flags2 |= 1;
+			}
+			if (tile.wire3())
+			{
+				flags2 |= 2;
+			}
+			if (tile.color() != 0)
+			{
+				flags2 |= 4;
+			}
+			if (tile.wallColor() != 0)
+			{
+				flags2 |= 8;
+			}
+			flags2 |= (byte)(tile.slope() << 4);
 
 			writer.Write(flags);
-			if ((flags & 1) == 1)
+			writer.Write(flags2);
+			if (tile.color() != 0)
+			{
+				writer.Write(tile.color());
+			}
+			if (tile.wallColor() != 0)
+			{
+				writer.Write(tile.wallColor());
+			}
+			if (tile.active())
 			{
 				writer.Write(tile.type);
 				if (Main.tileFrameImportant[tile.type])
 				{
-					writer.Write(tile.frameNumber());
 					writer.Write(tile.frameX);
 					writer.Write(tile.frameY);
 				}
 			}
-			if ((flags & 2) == 2)
+			if (tile.wall != 0)
 			{
 				writer.Write(tile.wall);
 			}
-			if ((flags & 4) == 4)
+			if (tile.liquid != 0)
 			{
 				writer.Write(tile.liquid);
+				writer.Write(tile.liquidType());
 			}
 		}
 		public static void Undo(TSPlayer plr)

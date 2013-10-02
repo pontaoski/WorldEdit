@@ -5,11 +5,11 @@ using TShockAPI;
 
 namespace WorldEdit.Commands
 {
-	public class RotateCommand : WECommand
+	public class Rotate : WECommand
 	{
 		private int degrees;
 
-		public RotateCommand(TSPlayer plr, int degrees)
+		public Rotate(TSPlayer plr, int degrees)
 			: base(0, 0, 0, 0, plr)
 		{
 			this.degrees = degrees;
@@ -33,7 +33,7 @@ namespace WorldEdit.Commands
 						{
 							for (int j = 0; j < lenY; j++)
 							{
-								Tools.WriteTile(writer, tiles[i, j]);
+								writer.Write(tiles[i, j]);
 							}
 						}
 						break;
@@ -44,7 +44,7 @@ namespace WorldEdit.Commands
 						{
 							for (int i = 0; i < lenX; i++)
 							{
-								Tools.WriteTile(writer, tiles[i, j]);
+								writer.Write(tiles[i, j]);
 							}
 						}
 						break;
@@ -55,7 +55,7 @@ namespace WorldEdit.Commands
 						{
 							for (int j = lenY - 1; j >= 0; j--)
 							{
-								Tools.WriteTile(writer, tiles[i, j]);
+								writer.Write(tiles[i, j]);
 							}
 						}
 						break;
@@ -66,13 +66,13 @@ namespace WorldEdit.Commands
 						{
 							for (int i = lenX - 1; i >= 0; i--)
 							{
-								Tools.WriteTile(writer, tiles[i, j]);
+								writer.Write(tiles[i, j]);
 							}
 						}
 						break;
 				}
 			}
-			plr.SendSuccessMessage(String.Format("Rotated clipboard {0} degrees.", degrees));
+			plr.SendSuccessMessage("Rotated clipboard {0} degrees.", degrees);
 		}
 	}
 }

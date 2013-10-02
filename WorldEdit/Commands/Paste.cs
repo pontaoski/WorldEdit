@@ -5,9 +5,9 @@ using TShockAPI;
 
 namespace WorldEdit.Commands
 {
-	public class PasteCommand : WECommand
+	public class Paste : WECommand
 	{
-		public PasteCommand(int x, int y, TSPlayer plr)
+		public Paste(int x, int y, TSPlayer plr)
 			: base(x, y, 0, 0, plr)
 		{
 			string clipboardPath = Tools.GetClipboardPath(plr);
@@ -34,7 +34,7 @@ namespace WorldEdit.Commands
 				}
 			}
 			ResetSection();
-			plr.SendSuccessMessage(String.Format("Pasted clipboard to selection."));
+			plr.SendSuccessMessage("Pasted clipboard to selection.");
 		}
 	}
 }

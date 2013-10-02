@@ -7,9 +7,9 @@ using TShockAPI;
 
 namespace WorldEdit.Commands
 {
-	public class FixGrassCommand : WECommand
+	public class FixGrass : WECommand
 	{
-		public FixGrassCommand(int x, int y, int x2, int y2, TSPlayer plr)
+		public FixGrass(int x, int y, int x2, int y2, TSPlayer plr)
 			: base(x, y, x2, y2, plr)
 		{
 		}
@@ -22,7 +22,8 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (Main.tile[i, j].type == 2 || Main.tile[i, j].type == 23 || Main.tile[i, j].type == 60 || Main.tile[i, j].type == 109)
+					if (Main.tile[i, j].type == 2 || Main.tile[i, j].type == 23 || Main.tile[i, j].type == 60
+						|| Main.tile[i, j].type == 109 || Main.tile[i, j].type == 199)
 					{
 						if (TileSolid(i - 1, j - 1) && TileSolid(i - 1, j) && TileSolid(i - 1, j + 1) && TileSolid(i, j - 1)
 							&& TileSolid(i, j + 1) && TileSolid(i + 1, j) && TileSolid(i + 1, j) && TileSolid(i + 1, j + 1))
@@ -34,7 +35,7 @@ namespace WorldEdit.Commands
 				}
 			}
 			ResetSection();
-			plr.SendSuccessMessage(String.Format("Fixed nearby grass. ({0})", edits));
+			plr.SendSuccessMessage("Fixed nearby grass. ({0})", edits);
 		}
 		private bool TileSolid(int x, int y)
 		{
