@@ -745,7 +745,7 @@ namespace WorldEdit
 			{
 				liquid = 2;
 			}
-			else
+			else if (e.Parameters[0].ToLower() != "water")
 			{
 				e.Player.SendErrorMessage("Invalid liquid type!");
 				return;
