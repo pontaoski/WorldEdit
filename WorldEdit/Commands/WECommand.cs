@@ -85,19 +85,19 @@ namespace WorldEdit.Commands
 					Main.tile[i, j].active(false);
 					Main.tile[i, j].frameX = -1;
 					Main.tile[i, j].frameY = -1;
-					Main.tile[i, j].lava(false);
+					Main.tile[i, j].liquidType(0);
 					Main.tile[i, j].liquid = 0;
 					Main.tile[i, j].type = 0;
 					break;
 				case -2:
 					Main.tile[i, j].active(false);
-					Main.tile[i, j].lava(true);
+					Main.tile[i, j].liquidType(1);
 					Main.tile[i, j].liquid = 255;
 					Main.tile[i, j].type = 0;
 					break;
 				case -3:
 					Main.tile[i, j].active(false);
-					Main.tile[i, j].lava(false);
+					Main.tile[i, j].liquidType(2);
 					Main.tile[i, j].liquid = 255;
 					Main.tile[i, j].type = 0;
 					break;
