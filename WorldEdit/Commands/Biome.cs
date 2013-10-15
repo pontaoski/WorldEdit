@@ -30,7 +30,9 @@ namespace WorldEdit.Commands
 						{
 							for (int k = 0; k < WorldEdit.BiomeConversions[biome1].Length; k++)
 							{
-								if (Main.tile[i, j].type == WorldEdit.BiomeConversions[biome1][k])
+								int conv = WorldEdit.BiomeConversions[biome1][k];
+								if ((conv >= 0 && Main.tile[i, j].active() && Main.tile[i, j].type == conv) ||
+									(conv == -1 && !Main.tile[i, j].active()))
 								{
 									SetTile(i, j, WorldEdit.BiomeConversions[biome2][k]);
 									edits++;

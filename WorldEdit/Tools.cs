@@ -147,7 +147,7 @@ namespace WorldEdit
 			tile.actuator((flags & 64) == 64);
 			tile.halfBrick((flags & 32) == 32);
 			tile.inActive((flags & 128) == 128);
-			tile.slope((byte)((flags2 << 4) & 3));
+			tile.slope((byte)((flags2 >> 4) & 3));
 			tile.inActive((flags & 128) == 128);
 			tile.wire((flags & 16) == 16);
 			tile.wire2((flags2 & 1) == 1);
