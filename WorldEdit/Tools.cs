@@ -17,7 +17,7 @@ namespace WorldEdit
 		public static List<int> GetColorByName(string color)
 		{
 			int ID;
-			if (int.TryParse(color, out ID) && ID > 0 && ID < Main.numTileColors)
+			if (int.TryParse(color, out ID) && ID >= 0 && ID < Main.numTileColors)
 			{
 				return new List<int> { ID };
 			}

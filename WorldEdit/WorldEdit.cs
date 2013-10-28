@@ -186,7 +186,7 @@ namespace WorldEdit
 			BiomeNames.Add("snow");
 			#endregion
 			#region Color Names
-			ColorNames.Add("");
+			ColorNames.Add("blank");
 			ColorNames.Add("red");
 			ColorNames.Add("orange");
 			ColorNames.Add("yellow");
@@ -379,6 +379,9 @@ namespace WorldEdit
 			TileNames.Add("palladium column", 248);
 			TileNames.Add("bubblegum", 249);
 			TileNames.Add("titanstone", 250);
+			TileNames.Add("pumpkin", 251);
+			TileNames.Add("hay", 252);
+			TileNames.Add("spooky wood", 253);
 			#endregion
 			#region Wall Names
 			WallNames.Add("air", 0);
@@ -454,6 +457,9 @@ namespace WorldEdit
 			WallNames.Add("palladium column", 109);
 			WallNames.Add("bubblegum", 110);
 			WallNames.Add("titanstone", 111);
+			WallNames.Add("pumpkin", 112);
+			WallNames.Add("hay", 113);
+			WallNames.Add("spooky wood", 114);
 			#endregion
 			CommandQueueThread = new Thread(QueueCallback);
 			CommandQueueThread.Name = "WorldEdit Callback";
