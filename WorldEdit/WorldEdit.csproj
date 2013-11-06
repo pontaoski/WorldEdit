@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\Biome.cs" />
+    <Compile Include="Commands\Cut.cs" />
     <Compile Include="Commands\PaintWall.cs" />
     <Compile Include="Commands\Copy.cs" />
     <Compile Include="Commands\Drain.cs" />

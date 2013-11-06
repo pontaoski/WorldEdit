@@ -140,6 +140,7 @@ namespace WorldEdit
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.biome", Biome, "/biome"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.contract", Contract, "/contract"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.copy", Copy, "/copy"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.cut", Cut, "/cut"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.drain", Drain, "/drain"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.expand", Expand, "/expand"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.fixgrass", FixGrass, "/fixgrass"));
@@ -615,6 +616,21 @@ namespace WorldEdit
 			int x2 = Math.Max(info.x, info.x2);
 			int y2 = Math.Max(info.y, info.y2);
 			CommandQueue.Add(new Copy(x, y, x2, y2, e.Player));
+		}
+		void Cut(CommandArgs e)
+		{
+			PlayerInfo info = GetPlayerInfo(e.Player);
+			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
+			{
+				e.Player.SendErrorMessage("Invalid selection.");
+				return;
+			}
+
+			int x = Math.Min(info.x, info.x2);
+			int y = Math.Min(info.y, info.y2);
+			int x2 = Math.Max(info.x, info.x2);
+			int y2 = Math.Max(info.y, info.y2);
+			CommandQueue.Add(new Cut(x, y, x2, y2, e.Player));
 		}
 		void Drain(CommandArgs e)
 		{
