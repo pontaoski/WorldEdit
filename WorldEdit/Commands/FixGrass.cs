@@ -23,12 +23,12 @@ namespace WorldEdit.Commands
 				for (int j = y; j <= y2; j++)
 				{
 					if (Main.tile[i, j].type == 2 || Main.tile[i, j].type == 23 || Main.tile[i, j].type == 60
-						|| Main.tile[i, j].type == 109 || Main.tile[i, j].type == 199)
+						|| Main.tile[i, j].type == 70 || Main.tile[i, j].type == 109 || Main.tile[i, j].type == 199)
 					{
 						if (TileSolid(i - 1, j - 1) && TileSolid(i - 1, j) && TileSolid(i - 1, j + 1) && TileSolid(i, j - 1)
 							&& TileSolid(i, j + 1) && TileSolid(i + 1, j) && TileSolid(i + 1, j) && TileSolid(i + 1, j + 1))
 						{
-							Main.tile[i, j].type = (Main.tile[i, j].type == 60) ? (byte)59 : (byte)0;
+							Main.tile[i, j].type = (Main.tile[i, j].type == 60 || Main.tile[i, j].type == 70) ? (byte)59 : (byte)0;
 							edits++;
 						}
 					}
