@@ -157,6 +157,8 @@ namespace WorldEdit
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.history.redo", Redo, "/redo"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.region", RegionCmd, "/region"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.replace", Replace, "/replace"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.replacepaint", ReplacePaint, "/replacepaint"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.replacepaintwall", ReplacePaintWall, "/replacepaintwall"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.replacewall", ReplaceWall, "/replacewall"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.rotate", Rotate, "/rotate"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.schematic", Schematic, "/schematic", "/schem"));
@@ -337,8 +339,8 @@ namespace WorldEdit
 			TileNames.Add("rainbow brick", 160);
 			TileNames.Add("ice", 161);
 			TileNames.Add("thin ice", 162);
-			TileNames.Add("corrupted ice", 162);
-			TileNames.Add("hallowed ice", 162);
+			TileNames.Add("purple ice", 162);
+			TileNames.Add("pink ice", 162);
 			TileNames.Add("tin", 166);
 			TileNames.Add("lead", 167);
 			TileNames.Add("tungsten", 168);
@@ -358,7 +360,7 @@ namespace WorldEdit
 			TileNames.Add("frozen slime", 197);
 			TileNames.Add("asphalt", 198);
 			TileNames.Add("crimson dirt", 199);
-			TileNames.Add("crimson ice", 200);
+			TileNames.Add("red ice", 200);
 			TileNames.Add("sunplate", 202);
 			TileNames.Add("crimstone", 203);
 			TileNames.Add("crimtane", 204);
@@ -439,7 +441,6 @@ namespace WorldEdit
 			WallNames.Add("disc", 82);
 			WallNames.Add("ice brick", 84);
 			WallNames.Add("shadewood", 85);
-			WallNames.Add("lihzahrd brick", 87);
 			WallNames.Add("purple glass", 88);
 			WallNames.Add("yellow glass", 89);
 			WallNames.Add("blue glass", 90);
@@ -458,9 +459,10 @@ namespace WorldEdit
 			WallNames.Add("palladium column", 109);
 			WallNames.Add("bubblegum", 110);
 			WallNames.Add("titanstone", 111);
-			WallNames.Add("pumpkin", 112);
-			WallNames.Add("hay", 113);
-			WallNames.Add("spooky wood", 114);
+			WallNames.Add("lihzahrd brick", 112);
+			WallNames.Add("pumpkin", 113);
+			WallNames.Add("hay", 114);
+			WallNames.Add("spooky wood", 115);
 			#endregion
 			CommandQueueThread = new Thread(QueueCallback);
 			CommandQueueThread.Name = "WorldEdit Callback";
@@ -548,53 +550,37 @@ namespace WorldEdit
 				case "d":
 				case "down":
 					if (info.y < info.y2)
-					{
 						info.y += amount;
-					}
 					else
-					{
 						info.y2 += amount;
-					}
-					e.Player.SendSuccessMessage(String.Format("Contracted selection down {0}.", amount));
+					e.Player.SendSuccessMessage("Contracted selection down {0}.", amount);
 					break;
 
 				case "l":
 				case "left":
 					if (info.x < info.x2)
-					{
 						info.x2 -= amount;
-					}
 					else
-					{
 						info.x -= amount;
-					}
-					e.Player.SendSuccessMessage(String.Format("Contracted selection left {0}.", amount));
+					e.Player.SendSuccessMessage("Contracted selection left {0}.", amount);
 					break;
 
 				case "r":
 				case "right":
 					if (info.x < info.x2)
-					{
 						info.x += amount;
-					}
 					else
-					{
 						info.x2 += amount;
-					}
-					e.Player.SendSuccessMessage(String.Format("Contracted selection right {0}.", amount));
+					e.Player.SendSuccessMessage("Contracted selection right {0}.", amount);
 					break;
 
 				case "u":
 				case "up":
 					if (info.y < info.y2)
-					{
 						info.y2 -= amount;
-					}
 					else
-					{
 						info.y -= amount;
-					}
-					e.Player.SendSuccessMessage(String.Format("Contracted selection up {0}.", amount));
+					e.Player.SendSuccessMessage("Contracted selection up {0}.", amount);
 					break;
 
 				default:
@@ -646,6 +632,7 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid radius.");
 				return;
 			}
+
 			int x = e.Player.TileX - radius;
 			int x2 = e.Player.TileX + radius + 2;
 			int y = e.Player.TileY - radius + 1;
@@ -677,53 +664,37 @@ namespace WorldEdit
 				case "d":
 				case "down":
 					if (info.y < info.y2)
-					{
 						info.y2 += amount;
-					}
 					else
-					{
 						info.y += amount;
-					}
-					e.Player.SendSuccessMessage(String.Format("Expanded selection down {0}.", amount));
+					e.Player.SendSuccessMessage("Expanded selection down {0}.", amount);
 					break;
 
 				case "l":
 				case "left":
 					if (info.x < info.x2)
-					{
 						info.x -= amount;
-					}
 					else
-					{
 						info.x2 -= amount;
-					}
-					e.Player.SendSuccessMessage(String.Format("Expanded selection left {0}.", amount));
+					e.Player.SendSuccessMessage("Expanded selection left {0}.", amount);
 					break;
 
 				case "r":
 				case "right":
 					if (info.x < info.x2)
-					{
 						info.x2 += amount;
-					}
 					else
-					{
 						info.x += amount;
-					}
-					e.Player.SendSuccessMessage(String.Format("Expanded selection right {0}.", amount));
+					e.Player.SendSuccessMessage("Expanded selection right {0}.", amount);
 					break;
 
 				case "u":
 				case "up":
 					if (info.y < info.y2)
-					{
 						info.y -= amount;
-					}
 					else
-					{
 						info.y2 -= amount;
-					}
-					e.Player.SendSuccessMessage(String.Format("Expanded selection up {0}.", amount));
+					e.Player.SendSuccessMessage("Expanded selection up {0}.", amount);
 					break;
 
 				default:
@@ -745,6 +716,7 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid radius.");
 				return;
 			}
+
 			int x = e.Player.TileX - radius;
 			int x2 = e.Player.TileX + radius + 2;
 			int y = e.Player.TileY - radius + 1;
@@ -758,15 +730,12 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //flood <liquid> <radius>");
 				return;
 			}
+
 			int liquid = 0;
 			if (e.Parameters[0].ToLower() == "lava")
-			{
 				liquid = 1;
-			}
 			else if (e.Parameters[0].ToLower() == "honey")
-			{
 				liquid = 2;
-			}
 			else if (e.Parameters[0].ToLower() != "water")
 			{
 				e.Player.SendErrorMessage("Invalid liquid type!");
@@ -779,6 +748,7 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid radius.");
 				return;
 			}
+
 			int x = e.Player.TileX - radius;
 			int x2 = e.Player.TileX + radius + 2;
 			int y = e.Player.TileY - radius + 1;
@@ -802,13 +772,9 @@ namespace WorldEdit
 			foreach (char c in e.Parameters[0].ToLower())
 			{
 				if (c == 'x')
-				{
 					flip ^= 1;
-				}
 				else if (c == 'y')
-				{
 					flip ^= 2;
-				}
 				else
 				{
 					e.Player.SendErrorMessage("Invalid direction.");
@@ -857,7 +823,7 @@ namespace WorldEdit
 				info.y -= amount;
 				info.y2 += amount;
 			}
-			e.Player.SendSuccessMessage(String.Format("Inset selection by {0}.", amount));
+			e.Player.SendSuccessMessage("Inset selection by {0}.", amount);
 		}
 		void Outset(CommandArgs e)
 		{
@@ -899,7 +865,7 @@ namespace WorldEdit
 				info.y += amount;
 				info.y2 -= amount;
 			}
-			e.Player.SendSuccessMessage(String.Format("Outset selection by {0}.", amount));
+			e.Player.SendSuccessMessage("Outset selection by {0}.", amount);
 		}
 		void Paint(CommandArgs e)
 		{
@@ -915,19 +881,13 @@ namespace WorldEdit
 				return;
 			}
 
-			List<int> values = Tools.GetColorByName(e.Parameters[0].ToLower());
-			if (values.Count == 0)
-			{
+			List<int> colors = Tools.GetColorByName(e.Parameters[0].ToLower());
+			if (colors.Count == 0)
 				e.Player.SendErrorMessage("Invalid color.");
-			}
-			else if (values.Count > 1)
-			{
+			else if (colors.Count > 1)
 				e.Player.SendErrorMessage("More than one color matched.");
-			}
 			else
-			{
-				CommandQueue.Add(new Paint(info.x, info.y, info.x2, info.y2, e.Player, values[0]));
-			}
+				CommandQueue.Add(new Paint(info.x, info.y, info.x2, info.y2, e.Player, colors[0]));
 		}
 		void PaintWall(CommandArgs e)
 		{
@@ -943,19 +903,13 @@ namespace WorldEdit
 				return;
 			}
 
-			List<int> values = Tools.GetColorByName(e.Parameters[0].ToLower());
-			if (values.Count == 0)
-			{
+			List<int> colors = Tools.GetColorByName(e.Parameters[0].ToLower());
+			if (colors.Count == 0)
 				e.Player.SendErrorMessage("Invalid color.");
-			}
-			else if (values.Count > 1)
-			{
+			else if (colors.Count > 1)
 				e.Player.SendErrorMessage("More than one color matched.");
-			}
 			else
-			{
-				CommandQueue.Add(new PaintWall(info.x, info.y, info.x2, info.y2, e.Player, values[0]));
-			}
+				CommandQueue.Add(new PaintWall(info.x, info.y, info.x2, info.y2, e.Player, colors[0]));
 		}
 		void Paste(CommandArgs e)
 		{
@@ -1017,7 +971,7 @@ namespace WorldEdit
 		{
 			if (e.Parameters.Count != 1)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //point <1|2>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //point <1 | 2>");
 				return;
 			}
 
@@ -1026,14 +980,14 @@ namespace WorldEdit
 				case "1":
 					Players[e.Player.Index].pt = 1;
 					e.Player.SendInfoMessage("Hit a block to set point 1.");
-					break;
+					return;
 				case "2":
 					Players[e.Player.Index].pt = 2;
 					e.Player.SendInfoMessage("Hit a block to set point 2.");
-					break;
+					return;
 				default:
-					e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //point <1|2>");
-					break;
+					e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //point <1 | 2>");
+					return;
 			}
 		}
 		void Redo(CommandArgs e)
@@ -1056,21 +1010,19 @@ namespace WorldEdit
 		{
 			if (e.Parameters.Count > 2)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //region [region name] | [x] [y]");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //region <region name> | //region <x> <y>");
 				return;
 			}
 			else if (e.Parameters.Count == 0)
 			{
 				Players[e.Player.Index].pt = 3;
-				e.Player.SendInfoMessage("Hit a block to use that region.");
+				e.Player.SendInfoMessage("Hit a block to select that region.");
 			}
 			else if (e.Parameters.Count == 1)
 			{
 				Region curReg = TShock.Regions.ZacksGetRegionByName(e.Parameters[0]);
 				if (curReg == null)
-				{
 					e.Player.SendErrorMessage("Invalid region.");
-				}
 				else
 				{
 					PlayerInfo info = GetPlayerInfo(e.Player);
@@ -1095,16 +1047,7 @@ namespace WorldEdit
 				if (regions.Count >= 1)
 				{
 					if (regions.Count > 1)
-					{
 						e.Player.SendInfoMessage("Overlapping regions; using first encountered...");
-						/*int q = 0;
-						foreach (string reg in regions)
-						{
-							e.Player.SendMessage("Region " + q + ": " + reg);
-							q++;
-						}*/
-
-					}
 					Region curReg = TShock.Regions.GetRegionByName(regions[0]);
 
 					info.x = curReg.Area.X;
@@ -1113,9 +1056,7 @@ namespace WorldEdit
 					info.y2 = curReg.Area.Y + curReg.Area.Height;
 				}
 				else
-				{
 					e.Player.SendErrorMessage("Invalid region.");
-				}
 			}
 		}
 		void Replace(CommandArgs e)
@@ -1132,28 +1073,72 @@ namespace WorldEdit
 				return;
 			}
 
-			List<int> values1 = Tools.GetTileByName(e.Parameters[0].ToLower());
-			List<int> values2 = Tools.GetTileByName(e.Parameters[1].ToLower());
-			if (values1.Count == 0)
-			{
+			List<int> tiles1 = Tools.GetTileByName(e.Parameters[0].ToLower());
+			List<int> tiles2 = Tools.GetTileByName(e.Parameters[1].ToLower());
+			if (tiles1.Count == 0)
 				e.Player.SendErrorMessage("Invalid tile.");
-			}
-			else if (values1.Count > 1)
-			{
+			else if (tiles1.Count > 1)
 				e.Player.SendErrorMessage("More than one tile matched.");
-			}
-			else if (values2.Count == 0)
-			{
+			else if (tiles2.Count == 0)
 				e.Player.SendErrorMessage("Invalid tile.");
-			}
-			else if (values2.Count > 1)
-			{
+			else if (tiles2.Count > 1)
 				e.Player.SendErrorMessage("More than one tile matched.");
-			}
 			else
+				CommandQueue.Add(new Replace(info.x, info.y, info.x2, info.y2, e.Player, tiles1[0], tiles2[0]));
+		}
+		void ReplacePaint(CommandArgs e)
+		{
+			if (e.Parameters.Count != 2)
 			{
-				CommandQueue.Add(new Replace(info.x, info.y, info.x2, info.y2, e.Player, values1[0], values2[0]));
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //replacepaint <color 1> <color 2>");
+				return;
 			}
+			PlayerInfo info = GetPlayerInfo(e.Player);
+			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
+			{
+				e.Player.SendErrorMessage("Invalid selection.");
+				return;
+			}
+
+			List<int> colors1 = Tools.GetColorByName(e.Parameters[0].ToLower());
+			List<int> colors2 = Tools.GetColorByName(e.Parameters[1].ToLower());
+			if (colors1.Count == 0)
+				e.Player.SendErrorMessage("Invalid color.");
+			else if (colors1.Count > 1)
+				e.Player.SendErrorMessage("More than one color matched.");
+			else if (colors2.Count == 0)
+				e.Player.SendErrorMessage("Invalid color.");
+			else if (colors2.Count > 1)
+				e.Player.SendErrorMessage("More than one color matched.");
+			else
+				CommandQueue.Add(new ReplacePaint(info.x, info.y, info.x2, info.y2, e.Player, colors1[0], colors2[0]));
+		}
+		void ReplacePaintWall(CommandArgs e)
+		{
+			if (e.Parameters.Count != 2)
+			{
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //replacepaintwall <color 1> <color 2>");
+				return;
+			}
+			PlayerInfo info = GetPlayerInfo(e.Player);
+			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
+			{
+				e.Player.SendErrorMessage("Invalid selection.");
+				return;
+			}
+
+			List<int> colors1 = Tools.GetColorByName(e.Parameters[0].ToLower());
+			List<int> colors2 = Tools.GetColorByName(e.Parameters[1].ToLower());
+			if (colors1.Count == 0)
+				e.Player.SendErrorMessage("Invalid color.");
+			else if (colors1.Count > 1)
+				e.Player.SendErrorMessage("More than one color matched.");
+			else if (colors2.Count == 0)
+				e.Player.SendErrorMessage("Invalid color.");
+			else if (colors2.Count > 1)
+				e.Player.SendErrorMessage("More than one color matched.");
+			else
+				CommandQueue.Add(new ReplacePaintWall(info.x, info.y, info.x2, info.y2, e.Player, colors1[0], colors2[0]));
 		}
 		void ReplaceWall(CommandArgs e)
 		{
@@ -1169,28 +1154,18 @@ namespace WorldEdit
 				return;
 			}
 
-			List<int> values1 = Tools.GetWallByName(e.Parameters[0].ToLower());
-			List<int> values2 = Tools.GetWallByName(e.Parameters[1].ToLower());
-			if (values1.Count == 0)
-			{
+			List<int> walls1 = Tools.GetWallByName(e.Parameters[0].ToLower());
+			List<int> walls2 = Tools.GetWallByName(e.Parameters[1].ToLower());
+			if (walls1.Count == 0)
 				e.Player.SendErrorMessage("Invalid wall.");
-			}
-			else if (values1.Count > 1)
-			{
+			else if (walls1.Count > 1)
 				e.Player.SendErrorMessage("More than one wall matched.");
-			}
-			else if (values2.Count == 0)
-			{
+			else if (walls2.Count == 0)
 				e.Player.SendErrorMessage("Invalid wall.");
-			}
-			else if (values2.Count > 1)
-			{
+			else if (walls2.Count > 1)
 				e.Player.SendErrorMessage("More than one wall matched.");
-			}
 			else
-			{
-				CommandQueue.Add(new ReplaceWall(info.x, info.y, info.x2, info.y2, e.Player, values1[0], values2[0]));
-			}
+				CommandQueue.Add(new ReplaceWall(info.x, info.y, info.x2, info.y2, e.Player, walls1[0], walls2[0]));
 		}
 		void Rotate(CommandArgs e)
 		{
@@ -1251,45 +1226,17 @@ namespace WorldEdit
 							break;
 						}
 
-						List<string> schematics = new List<string>(Directory.EnumerateFiles("worldedit", "schematic-*.dat"));
-						if (schematics.Count == 0)
-						{
-							e.Player.SendErrorMessage("No schematics exist.");
-							break;
-						}
+						int pageNumber;
+						if (!PaginationTools.TryParsePageNumber(e.Parameters, 0, e.Player, out pageNumber))
+							return;
 
-						int maxPages = (int)Math.Ceiling(schematics.Count / 15d);
-						int page = 1;
-						if (e.Parameters.Count == 2)
-						{
-							if (!int.TryParse(e.Parameters[1], out page) || page <= 0 || page > maxPages)
+						var schematics = new List<string>(Directory.EnumerateFiles("worldedit", "schematic-*.dat"));
+						PaginationTools.SendPage(e.Player, pageNumber, PaginationTools.BuildLinesFromTerms(schematics),
+							new PaginationTools.Settings
 							{
-								e.Player.SendErrorMessage("Invalid page.");
-								break;
-							}
-						}
-						page--;
-
-						e.Player.SendSuccessMessage(String.Format("Schematics: (Page {0}/{1})", page + 1, maxPages));
-						StringBuilder line = new StringBuilder();
-						for (int i = page * 15; i < page * 15 + 15 && i < schematics.Count; i++)
-						{
-							string schematic = schematics[i];
-							line.Append(schematic.Substring(20, schematic.Length - 24));
-							if ((i + 1) % 5 == 0)
-							{
-								e.Player.SendInfoMessage(line.ToString());
-								line.Clear();
-							}
-							else if (i != schematics.Count - 1)
-							{
-								line.Append(", ");
-							}
-						}
-						if (line.Length != 0)
-						{
-							e.Player.SendInfoMessage(line.ToString());
-						}
+								HeaderFormat = "Schematics ({0}/{1}):",
+								FooterFormat = "Type /schematic list {0} for more."
+							});
 					}
 					break;
 				case "load":
@@ -1305,6 +1252,7 @@ namespace WorldEdit
 							e.Player.SendErrorMessage("Invalid schematic.");
 							return;
 						}
+
 						string id = e.Player.RealPlayer ? e.Player.Index.ToString() : "server";
 						string clipboardPath = Path.Combine("worldedit", String.Format("clipboard-{0}.dat", id));
 						File.Copy(schematicPath, clipboardPath, true);
@@ -1326,6 +1274,7 @@ namespace WorldEdit
 							e.Player.SendErrorMessage("Invalid clipboard.");
 							break;
 						}
+
 						string schematicPath = Path.Combine("worldedit", String.Format("schematic-{0}.dat", e.Parameters[1]));
 						File.Copy(clipboardPath, schematicPath, true);
 						e.Player.SendSuccessMessage("Saved clipboard to schematic.");
@@ -1352,7 +1301,7 @@ namespace WorldEdit
 				return;
 			}
 			GetPlayerInfo(e.Player).select = ID;
-			e.Player.SendSuccessMessage(String.Format("Set selection type to {0}.", name));
+			e.Player.SendSuccessMessage("Set selection type to {0}.", name);
 		}
 		void Set(CommandArgs e)
 		{
@@ -1368,19 +1317,13 @@ namespace WorldEdit
 				return;
 			}
 
-			List<int> values = Tools.GetTileByName(e.Parameters[0].ToLower());
-			if (values.Count == 0)
-			{
+			List<int> tiles = Tools.GetTileByName(e.Parameters[0].ToLower());
+			if (tiles.Count == 0)
 				e.Player.SendErrorMessage("Invalid tile.");
-			}
-			else if (values.Count > 1)
-			{
+			else if (tiles.Count > 1)
 				e.Player.SendErrorMessage("More than one tile matched.");
-			}
 			else
-			{
-				CommandQueue.Add(new Set(info.x, info.y, info.x2, info.y2, e.Player, values[0]));
-			}
+				CommandQueue.Add(new Set(info.x, info.y, info.x2, info.y2, e.Player, tiles[0]));
 		}
 		void SetWall(CommandArgs e)
 		{
@@ -1396,19 +1339,13 @@ namespace WorldEdit
 				return;
 			}
 
-			List<int> values = Tools.GetWallByName(e.Parameters[0].ToLower());
-			if (values.Count == 0)
-			{
+			List<int> walls = Tools.GetWallByName(e.Parameters[0].ToLower());
+			if (walls.Count == 0)
 				e.Player.SendErrorMessage("Invalid wall.");
-			}
-			else if (values.Count > 1)
-			{
+			else if (walls.Count > 1)
 				e.Player.SendErrorMessage("More than one wall matched.");
-			}
 			else
-			{
-				CommandQueue.Add(new SetWall(info.x, info.y, info.x2, info.y2, e.Player, values[0]));
-			}
+				CommandQueue.Add(new SetWall(info.x, info.y, info.x2, info.y2, e.Player, walls[0]));
 		}
 		void SetWire(CommandArgs e)
 		{
@@ -1426,9 +1363,7 @@ namespace WorldEdit
 
 			bool wire1 = false;
 			if (e.Parameters[0].ToLower() == "on")
-			{
 				wire1 = true;
-			}
 			else if (e.Parameters[0].ToLower() != "off")
 			{
 				e.Player.SendErrorMessage("Invalid wire 1 state.");
@@ -1437,9 +1372,7 @@ namespace WorldEdit
 
 			bool wire2 = false;
 			if (e.Parameters[1].ToLower() == "on")
-			{
 				wire2 = true;
-			}
 			else if (e.Parameters[1].ToLower() != "off")
 			{
 				e.Player.SendErrorMessage("Invalid wire 2 state.");
@@ -1448,9 +1381,7 @@ namespace WorldEdit
 
 			bool wire3 = false;
 			if (e.Parameters[2].ToLower() == "on")
-			{
 				wire3 = true;
-			}
 			else if (e.Parameters[2].ToLower() != "off")
 			{
 				e.Player.SendErrorMessage("Invalid wire 3 state.");
@@ -1485,28 +1416,28 @@ namespace WorldEdit
 				case "down":
 					info.y += amount;
 					info.y2 += amount;
-					e.Player.SendSuccessMessage(String.Format("Shifted selection down {0}.", amount));
+					e.Player.SendSuccessMessage("Shifted selection down {0}.", amount);
 					break;
 
 				case "l":
 				case "left":
 					info.x -= amount;
 					info.x2 -= amount;
-					e.Player.SendSuccessMessage(String.Format("Shifted selection left {0}.", amount));
+					e.Player.SendSuccessMessage("Shifted selection left {0}.", amount);
 					break;
 
 				case "r":
 				case "right":
 					info.x += amount;
 					info.x2 += amount;
-					e.Player.SendSuccessMessage(String.Format("Shifted selection right {0}.", amount));
+					e.Player.SendSuccessMessage("Shifted selection right {0}.", amount);
 					break;
 
 				case "u":
 				case "up":
 					info.y -= amount;
 					info.y2 -= amount;
-					e.Player.SendSuccessMessage(String.Format("Shifted selection up {0}.", amount));
+					e.Player.SendSuccessMessage("Shifted selection up {0}.", amount);
 					break;
 
 				default:
@@ -1522,9 +1453,10 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid selection.");
 				return;
 			}
+
 			int lenX = Math.Abs(info.x - info.x2) + 1;
 			int lenY = Math.Abs(info.y - info.y2) + 1;
-			e.Player.SendInfoMessage(String.Format("Selection size: {0} x {1}", lenX, lenY));
+			e.Player.SendInfoMessage("Selection size: {0} x {1}", lenX, lenY);
 		}
 		void Undo(CommandArgs e)
 		{

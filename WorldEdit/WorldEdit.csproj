@@ -61,6 +61,8 @@
     <Compile Include="Commands\Paste.cs" />
     <Compile Include="Commands\Redo.cs" />
     <Compile Include="Commands\Replace.cs" />
+    <Compile Include="Commands\ReplacePaint.cs" />
+    <Compile Include="Commands\ReplacePaintWall.cs" />
     <Compile Include="Commands\ReplaceWall.cs" />
     <Compile Include="Commands\Rotate.cs" />
     <Compile Include="Commands\SetWall.cs" />

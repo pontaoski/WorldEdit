@@ -32,6 +32,7 @@ namespace WorldEdit.Commands
 					}
 				}
 			}
+			ResetSection();
 			plr.SendSuccessMessage("Cut selection. ({0})", (x2 - x + 1) * (y2 - y + 1));
 		}
 	}
