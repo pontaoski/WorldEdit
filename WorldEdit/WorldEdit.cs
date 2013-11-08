@@ -958,7 +958,7 @@ namespace WorldEdit
 		{
 			if (e.Parameters.Count == 0)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //paint <color> (where clause)");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //paint <color> [where clause]");
 				return;
 			}
 			PlayerInfo info = GetPlayerInfo(e.Player);
@@ -993,7 +993,7 @@ namespace WorldEdit
 		{
 			if (e.Parameters.Count == 0)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //paintwall <color> (where clause)");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //paintwall <color> [where clause]");
 				return;
 			}
 			PlayerInfo info = GetPlayerInfo(e.Player);
@@ -1312,7 +1312,7 @@ namespace WorldEdit
 		{
 			if (e.Parameters.Count == 0)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //set <tile> (where clause)");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //set <tile> [where clause]");
 				return;
 			}
 			PlayerInfo info = GetPlayerInfo(e.Player);
@@ -1347,7 +1347,7 @@ namespace WorldEdit
 		{
 			if (e.Parameters.Count == 1)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //setwall <wall> (where clause)");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //setwall <wall> [where clause]");
 				return;
 			}
 			PlayerInfo info = GetPlayerInfo(e.Player);
