@@ -137,35 +137,123 @@ namespace WorldEdit
 		}
 		void OnInitialize(EventArgs e)
 		{
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.all", All, "/all"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.biome", Biome, "/biome"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.contract", Contract, "/contract"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.copy", Copy, "/copy"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.cut", Cut, "/cut"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.drain", Drain, "/drain"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.expand", Expand, "/expand"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.fixgrass", FixGrass, "/fixgrass"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.flip", Flip, "/flip"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.flood", Flood, "/flood"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.inset", Inset, "/inset"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.outset", Outset, "/outset"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.paint", Paint, "/paint"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.paintwall", PaintWall, "/paintwall"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.paste", Paste, "/paste"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", Point1, "/point1"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", Point2, "/point2"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", PointCmd, "/point") { AllowServer = false });
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.history.redo", Redo, "/redo"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.region", RegionCmd, "/region"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.rotate", Rotate, "/rotate"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.schematic", Schematic, "/schematic", "/schem"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.selecttype", Select, "/select"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.set", Set, "/set"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.setwall", SetWall, "/setwall"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.setwire", SetWire, "/setwire"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.shift", Shift, "/shift"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.size", Size, "/size"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.history.undo", Undo, "/undo"));
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.all", All, "/all")
+				{
+					HelpText = "Sets the worldedit selection to the entire world."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.biome", Biome, "/biome")
+				{
+					HelpText = "Converts biomes in the worldedit selection."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.contract", Contract, "/contract")
+				{
+					HelpText = "Contracts the worldedit selection in a direction."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.copy", Copy, "/copy")
+				{
+					HelpText = "Copies the worldedit selection to the clipboard."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.cut", Cut, "/cut")
+				{
+					HelpText = "Copies the worldedit selection to the clipboard, then deletes it."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.drain", Drain, "/drain")
+				{
+					HelpText = "Drains liquids in an area around you."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.expand", Expand, "/expand")
+				{
+					HelpText = "Expands the worldedit selection in a direction."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.fixgrass", FixGrass, "/fixgrass")
+				{
+					HelpText = "Fixes suffocated grass in an area around you."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.flip", Flip, "/flip")
+				{
+					HelpText = "Flips the clipboard."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.flood", Flood, "/flood")
+				{
+					HelpText = "Floods liquids in an area around you."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.inset", Inset, "/inset")
+				{
+					HelpText = "Expands the worldedit selection on all four sides."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.outset", Outset, "/outset")
+				{
+					HelpText = "Contracts the worldedit selection on all four sides."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.paint", Paint, "/paint")
+				{
+					HelpText = "Paints tiles in the worldedit selection with optional conditions."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.paintwall", PaintWall, "/paintwall")
+				{
+					HelpText = "Paints walls in the worldedit selection with optional conditions."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.paste", Paste, "/paste")
+				{
+					HelpText = "Pastes the clipboard to the worldedit selection."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", Point1, "/point1")
+				{
+					HelpText = "Sets the positions of the worldedit selection's first point."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", Point2, "/point2")
+				{
+					HelpText = "Sets the positions of the worldedit selection's second point."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", PointCmd, "/point")
+				{
+					AllowServer = false,
+					HelpText = "Polls for the positions of the worldedit selection."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.history.redo", Redo, "/redo")
+				{
+					HelpText = "Redoes a number of worldedit actions."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.region", RegionCmd, "/region")
+				{
+					HelpText = "Selects a region as a worldedit selection."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.rotate", Rotate, "/rotate")
+				{
+					HelpText = "Rotates the worldedit clipboard."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.schematic", Schematic, "/schematic", "/schem")
+				{
+					HelpText = "Manages worldedit schematics."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.selecttype", Select, "/select")
+				{
+					HelpText = "Sets the worldedit selection function."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.set", Set, "/set")
+				{
+					HelpText = "Sets tiles in the worldedit selection with optional conditions."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.setwall", SetWall, "/setwall")
+				{
+					HelpText = "Sets walls in the worldedit selectino with optional conditions."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.setwire", SetWire, "/setwire")
+				{
+					HelpText = "Sets wires in the worldedit selection with optional conditions."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.shift", Shift, "/shift")
+				{
+					HelpText = "Shifts the worldedit selection in a direction."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.size", Size, "/size")
+				{
+					HelpText = "Prints the worldedit selection's size."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.history.undo", Undo, "/undo")
+				{
+					HelpText = "Undoes a number of worldedit actions."
+				});
 
 			#region Biomes
 			// Format: dirt, stone, sand, grass, plants, tall plants, vines, thorn
