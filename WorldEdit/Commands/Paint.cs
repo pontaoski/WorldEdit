@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Terraria;
 using TShockAPI;
@@ -9,11 +8,13 @@ namespace WorldEdit.Commands
 {
 	public class Paint : WECommand
 	{
-		private int color;
+		List<Condition> conditions;
+		int color;
 
-		public Paint(int x, int y, int x2, int y2, TSPlayer plr, int color)
+		public Paint(int x, int y, int x2, int y2, TSPlayer plr, int color, List<Condition> conditions)
 			: base(x, y, x2, y2, plr)
 		{
+			this.conditions = conditions;
 			this.color = color;
 		}
 
@@ -25,8 +26,7 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (selectFunc(i, j, plr) && Main.tile[i, j].active() && Main.tileSolid[Main.tile[i, j].type]
-						&& Main.tile[i, j].color() != color)
+					if (selectFunc(i, j, plr) && conditions.TrueForAll(c => c(i, j)))
 					{
 						Main.tile[i, j].color((byte)color);
 						edits++;

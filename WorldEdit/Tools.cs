@@ -125,6 +125,259 @@ namespace WorldEdit
 				ResetSection(x, y, x + xLen, y + yLen);
 			}
 		}
+		public static bool ParseConditions(List<string> parameters, TSPlayer plr, out List<Condition> conditions)
+		{
+			conditions = new List<Condition>();
+			if (!String.Equals(parameters[1], "where"))
+			{
+				plr.SendErrorMessage("Invalid where clause.");
+				return false;
+			}
+
+			parameters.RemoveRange(0, 2);
+			foreach (string expression in String.Join(" ", parameters).Split(','))
+			{
+				bool negated = false;
+				string[] eq = expression.Split('=');
+				string lhs = eq[0].ToLower().Trim();
+				if (lhs[0] == '!')
+				{
+					lhs = lhs.Substring(1).Trim();
+					negated ^= true;
+				}
+				if (lhs[lhs.Length - 1] == '!')
+				{
+					lhs = lhs.Substring(0, lhs.Length - 1).Trim();
+					negated ^= true;
+				}
+				string rhs = eq.Length > 1 ? eq[1].ToLower().Trim() : "";
+
+				switch (lhs)
+				{
+					case "color":
+						#region color (=)
+						{
+							if (rhs == "")
+							{
+								if (negated)
+									conditions.Add((i, j) => Main.tile[i, j].color() == 0);
+								else
+									conditions.Add((i, j) => Main.tile[i, j].color() > 0);
+								break;
+							}
+
+							List<int> colors = GetColorByName(rhs);
+							if (colors.Count == 0)
+							{
+								plr.SendErrorMessage("Invalid color.");
+								return false;
+							}
+							else if (colors.Count > 1)
+							{
+								plr.SendErrorMessage("More than one color matched.");
+								return false;
+							}
+
+							if (negated)
+								conditions.Add((i, j) => Main.tile[i, j].color() != colors[0]);
+							else
+								conditions.Add((i, j) => Main.tile[i, j].color() == colors[0]);
+						}
+						#endregion
+						break;
+					case "colorwall":
+						#region colorwall (=)
+						{
+							if (rhs == "")
+							{
+								if (negated)
+									conditions.Add((i, j) => Main.tile[i, j].wallColor() == 0);
+								else
+									conditions.Add((i, j) => Main.tile[i, j].wallColor() > 0);
+								break;
+							}
+
+							List<int> colors = GetColorByName(rhs);
+							if (colors.Count == 0)
+							{
+								plr.SendErrorMessage("Invalid color.");
+								return false;
+							}
+							else if (colors.Count > 1)
+							{
+								plr.SendErrorMessage("More than one color matched.");
+								return false;
+							}
+
+							if (negated)
+								conditions.Add((i, j) => Main.tile[i, j].wallColor() != colors[0]);
+							else
+								conditions.Add((i, j) => Main.tile[i, j].wallColor() == colors[0]);
+						}
+						#endregion
+						break;
+					case "honey":
+						#region honey (=)
+						{
+							bool b = true;
+							if (rhs != "" && !bool.TryParse(rhs, out b))
+							{
+								plr.SendErrorMessage("Invalid honey state.");
+								return false;
+							}
+							if (b ^ negated)
+								conditions.Add((i, j) => Main.tile[i, j].liquid > 0 && Main.tile[i, j].honey());
+							else
+								conditions.Add((i, j) => Main.tile[i, j].liquid == 0 || !Main.tile[i, j].honey());
+						}
+						#endregion
+						break;
+					case "lava":
+						#region lava (=)
+						{
+							bool b = true;
+							if (rhs != "" && !bool.TryParse(rhs, out b))
+							{
+								plr.SendErrorMessage("Invalid lava state.");
+								return false;
+							}
+							if (b ^ negated)
+								conditions.Add((i, j) => Main.tile[i, j].liquid > 0 && Main.tile[i, j].lava());
+							else
+								conditions.Add((i, j) => Main.tile[i, j].liquid == 0 || !Main.tile[i, j].lava());
+						}
+						#endregion
+						break;
+					case "tile":
+						#region tile (=)
+						{
+							if (rhs == "")
+							{
+								if (negated)
+									conditions.Add((i, j) => !Main.tile[i, j].active());
+								else
+									conditions.Add((i, j) => Main.tile[i, j].active());
+								break;
+							}
+
+							List<int> tiles = GetTileByName(rhs);
+							if (tiles.Count == 0)
+							{
+								plr.SendErrorMessage("Invalid tile.");
+								return false;
+							}
+							else if (tiles.Count > 1)
+							{
+								plr.SendErrorMessage("More than one tile matched.");
+								return false;
+							}
+
+							if (negated)
+								conditions.Add((i, j) => !Main.tile[i, j].active() || Main.tile[i, j].type != tiles[0]);
+							else
+								conditions.Add((i, j) => Main.tile[i, j].active() && Main.tile[i, j].type == tiles[0]);
+						}
+						#endregion
+						break;
+					case "wall":
+						#region wall (=)
+						{
+							if (rhs == "")
+							{
+								if (negated)
+									conditions.Add((i, j) => Main.tile[i, j].wall == 0);
+								else
+									conditions.Add((i, j) => Main.tile[i, j].wall > 0);
+								break;
+							}
+
+							List<int> walls = GetWallByName(rhs);
+							if (walls.Count == 0)
+							{
+								plr.SendErrorMessage("Invalid wall.");
+								return false;
+							}
+							else if (walls.Count > 1)
+							{
+								plr.SendErrorMessage("More than one wall matched.");
+								return false;
+							}
+
+							if (negated)
+								conditions.Add((i, j) => Main.tile[i, j].wall != walls[0]);
+							else
+								conditions.Add((i, j) => Main.tile[i, j].wall == walls[0]);
+						}
+						#endregion
+						break;
+					case "water":
+						#region water (=)
+						{
+							bool b = true;
+							if (rhs != "" && !bool.TryParse(rhs, out b))
+							{
+								plr.SendErrorMessage("Invalid water state.");
+								return false;
+							}
+							if (b ^ negated)
+								conditions.Add((i, j) => Main.tile[i, j].liquid > 0 && Main.tile[i, j].liquidType() == 0);
+							else
+								conditions.Add((i, j) => Main.tile[i, j].liquid == 0 || Main.tile[i, j].liquidType() != 0);
+						}
+						#endregion
+						break;
+					case "wire1":
+						#region wire1 (=)
+						{
+							bool b = true;
+							if (rhs != "" && !bool.TryParse(rhs, out b))
+							{
+								plr.SendErrorMessage("Invalid wire1 state.");
+								return false;
+							}
+							if (b ^ negated)
+								conditions.Add((i, j) => !Main.tile[i, j].wire());
+							else
+								conditions.Add((i, j) => Main.tile[i, j].wire());
+						}
+						#endregion
+						break;
+					case "wire2":
+						#region wire2 (=)
+						{
+							bool b = true;
+							if (rhs != "" && !bool.TryParse(rhs, out b))
+							{
+								plr.SendErrorMessage("Invalid wire2 state.");
+								return false;
+							}
+							if (b ^ negated)
+								conditions.Add((i, j) => !Main.tile[i, j].wire2());
+							else
+								conditions.Add((i, j) => Main.tile[i, j].wire2());
+						}
+						#endregion
+						break;
+					case "wire3":
+						#region wire3 (=)
+						{
+							bool b = true;
+							if (rhs != "" && !bool.TryParse(rhs, out b))
+							{
+								plr.SendErrorMessage("Invalid wire3 state.");
+								return false;
+							}
+							if (b ^ negated)
+								conditions.Add((i, j) => !Main.tile[i, j].wire3());
+							else
+								conditions.Add((i, j) => Main.tile[i, j].wire3());
+						}
+						#endregion
+						break;
+				}
+			}
+			return true;
+		}
 		public static void PrepareUndo(int x, int y, int x2, int y2, TSPlayer plr)
 		{
 			WorldEdit.GetPlayerInfo(plr).redoLevel = -1;

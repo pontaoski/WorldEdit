@@ -9,11 +9,13 @@ namespace WorldEdit.Commands
 {
 	public class PaintWall : WECommand
 	{
-		private int color;
+		List<Condition> conditions;
+		int color;
 
-		public PaintWall(int x, int y, int x2, int y2, TSPlayer plr, int color)
+		public PaintWall(int x, int y, int x2, int y2, TSPlayer plr, int color, List<Condition> conditions)
 			: base(x, y, x2, y2, plr)
 		{
+			this.conditions = conditions;
 			this.color = color;
 		}
 
@@ -25,7 +27,7 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (selectFunc(i, j, plr) && Main.tile[i, j].wall != 0 && Main.tile[i, j].wallColor() != color)
+					if (selectFunc(i, j, plr) && conditions.TrueForAll(c => c(i, j)))
 					{
 						Main.tile[i, j].wallColor((byte)color);
 						edits++;

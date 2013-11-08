@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Terraria;
 using TShockAPI;
 
@@ -6,13 +7,15 @@ namespace WorldEdit.Commands
 {
 	public class SetWire : WECommand
 	{
-		private bool wire1;
-		private bool wire2;
-		private bool wire3;
+		List<Condition> conditions;
+		bool wire1;
+		bool wire2;
+		bool wire3;
 
-		public SetWire(int x, int y, int x2, int y2, TSPlayer plr, bool wire1, bool wire2, bool wire3)
+		public SetWire(int x, int y, int x2, int y2, TSPlayer plr, bool wire1, bool wire2, bool wire3, List<Condition> conditions)
 			: base(x, y, x2, y2, plr)
 		{
+			this.conditions = conditions;
 			this.wire1 = wire1;
 			this.wire2 = wire2;
 			this.wire3 = wire3;
@@ -26,26 +29,12 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (selectFunc(i, j, plr))
+					if (selectFunc(i, j, plr) && conditions.TrueForAll(c => c(i, j)))
 					{
-						if (Main.tile[i, j].wire() != wire1)
-						{
-							Main.tile[i, j].wire(wire1);
-						}
-						if (Main.tile[i, j].wire2() != wire2)
-						{
-							Main.tile[i, j].wire2(wire2);
-						}
-						if (Main.tile[i, j].wire3() != wire3)
-						{
-							Main.tile[i, j].wire3(wire3);
-						}
-
-						if (Main.tile[i, j].wire() != wire1 || Main.tile[i, j].wire2() != wire2
-							|| Main.tile[i, j].wire3() != wire3)
-						{
-							edits++;
-						}
+						Main.tile[i, j].wire(wire1);
+						Main.tile[i, j].wire2(wire2);
+						Main.tile[i, j].wire3(wire3);
+						edits++;
 					}
 				}
 			}

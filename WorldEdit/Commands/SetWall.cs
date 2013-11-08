@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Terraria;
 using TShockAPI;
 
@@ -6,11 +7,13 @@ namespace WorldEdit.Commands
 {
 	public class SetWall : WECommand
 	{
-		private int wall;
+		List<Condition> conditions;
+		int wall;
 
-		public SetWall(int x, int y, int x2, int y2, TSPlayer plr, int wall)
+		public SetWall(int x, int y, int x2, int y2, TSPlayer plr, int wall, List<Condition> conditions)
 			: base(x, y, x2, y2, plr)
 		{
+			this.conditions = conditions;
 			this.wall = wall;
 		}
 
@@ -22,7 +25,7 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (selectFunc(i, j, plr) && Main.tile[i, j].wall != wall)
+					if (selectFunc(i, j, plr) && conditions.TrueForAll(c => c(i, j)))
 					{
 						Main.tile[i, j].wall = (byte)wall;
 						edits++;

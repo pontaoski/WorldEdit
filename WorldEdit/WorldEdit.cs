@@ -14,6 +14,8 @@ using WorldEdit.Commands;
 
 namespace WorldEdit
 {
+	public delegate bool Condition(int i, int j);
+
 	[ApiVersion(1, 14)]
 	public class WorldEdit : TerrariaPlugin
 	{
@@ -31,8 +33,9 @@ namespace WorldEdit
 		{
 			get { return "MarioE"; }
 		}
-		private BlockingCollection<WECommand> CommandQueue = new BlockingCollection<WECommand>();
-		private Thread CommandQueueThread;
+		CancellationTokenSource Cancel = new CancellationTokenSource();
+		BlockingCollection<WECommand> CommandQueue = new BlockingCollection<WECommand>();
+		Thread CommandQueueThread;
 		public override string Description
 		{
 			get { return "Adds commands for mass editing of blocks."; }
@@ -62,12 +65,10 @@ namespace WorldEdit
 				ServerApi.Hooks.NetGetData.Deregister(this, OnGetData);
 				ServerApi.Hooks.ServerLeave.Deregister(this, OnLeave);
 
-				CommandQueueThread.Abort();
+				Cancel.Cancel();
 				File.Delete(Path.Combine("worldedit", "clipboard-server.dat"));
 				foreach (string fileName in Directory.EnumerateFiles("worldedit", "??do-server-*.dat"))
-				{
 					File.Delete(fileName);
-				}
 			}
 		}
 		public override void Initialize()
@@ -156,10 +157,6 @@ namespace WorldEdit
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", PointCmd, "/point") { AllowServer = false });
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.history.redo", Redo, "/redo"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.region", RegionCmd, "/region"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.replace", Replace, "/replace"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.replacepaint", ReplacePaint, "/replacepaint"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.replacepaintwall", ReplacePaintWall, "/replacepaintwall"));
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.replacewall", ReplaceWall, "/replacewall"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.rotate", Rotate, "/rotate"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.schematic", Schematic, "/schematic", "/schem"));
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.selecttype", Select, "/select"));
@@ -483,7 +480,9 @@ namespace WorldEdit
 		{
 			while (!Netplay.disconnect)
 			{
-				WECommand command = CommandQueue.Take();
+				WECommand command;
+				if (!CommandQueue.TryTake(out command, -1, Cancel.Token))
+					break;
 				command.Position();
 				command.Execute();
 			}
@@ -869,9 +868,9 @@ namespace WorldEdit
 		}
 		void Paint(CommandArgs e)
 		{
-			if (e.Parameters.Count != 1)
+			if (e.Parameters.Count == 0)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //paint <color>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //paint <color> (where clause)");
 				return;
 			}
 			PlayerInfo info = GetPlayerInfo(e.Player);
@@ -883,17 +882,30 @@ namespace WorldEdit
 
 			List<int> colors = Tools.GetColorByName(e.Parameters[0].ToLower());
 			if (colors.Count == 0)
+			{
 				e.Player.SendErrorMessage("Invalid color.");
+				return;
+			}
 			else if (colors.Count > 1)
+			{
 				e.Player.SendErrorMessage("More than one color matched.");
-			else
-				CommandQueue.Add(new Paint(info.x, info.y, info.x2, info.y2, e.Player, colors[0]));
+				return;
+			}
+
+			var conditions = new List<Condition>();
+			if (e.Parameters.Count > 1)
+			{
+				if (!Tools.ParseConditions(e.Parameters, e.Player, out conditions))
+					return;
+			}
+
+			CommandQueue.Add(new Paint(info.x, info.y, info.x2, info.y2, e.Player, colors[0], conditions));
 		}
 		void PaintWall(CommandArgs e)
 		{
-			if (e.Parameters.Count != 1)
+			if (e.Parameters.Count == 0)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //paintwall <color>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //paintwall <color> (where clause)");
 				return;
 			}
 			PlayerInfo info = GetPlayerInfo(e.Player);
@@ -905,11 +917,24 @@ namespace WorldEdit
 
 			List<int> colors = Tools.GetColorByName(e.Parameters[0].ToLower());
 			if (colors.Count == 0)
+			{
 				e.Player.SendErrorMessage("Invalid color.");
+				return;
+			}
 			else if (colors.Count > 1)
+			{
 				e.Player.SendErrorMessage("More than one color matched.");
-			else
-				CommandQueue.Add(new PaintWall(info.x, info.y, info.x2, info.y2, e.Player, colors[0]));
+				return;
+			}
+
+			var conditions = new List<Condition>();
+			if (e.Parameters.Count > 1)
+			{
+				if (!Tools.ParseConditions(e.Parameters, e.Player, out conditions))
+					return;
+			}
+
+			CommandQueue.Add(new PaintWall(info.x, info.y, info.x2, info.y2, e.Player, colors[0], conditions));
 		}
 		void Paste(CommandArgs e)
 		{
@@ -1059,114 +1084,6 @@ namespace WorldEdit
 					e.Player.SendErrorMessage("Invalid region.");
 			}
 		}
-		void Replace(CommandArgs e)
-		{
-			if (e.Parameters.Count != 2)
-			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //replace <tile1> <tile2>");
-				return;
-			}
-			PlayerInfo info = GetPlayerInfo(e.Player);
-			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
-			{
-				e.Player.SendErrorMessage("Invalid selection.");
-				return;
-			}
-
-			List<int> tiles1 = Tools.GetTileByName(e.Parameters[0].ToLower());
-			List<int> tiles2 = Tools.GetTileByName(e.Parameters[1].ToLower());
-			if (tiles1.Count == 0)
-				e.Player.SendErrorMessage("Invalid tile.");
-			else if (tiles1.Count > 1)
-				e.Player.SendErrorMessage("More than one tile matched.");
-			else if (tiles2.Count == 0)
-				e.Player.SendErrorMessage("Invalid tile.");
-			else if (tiles2.Count > 1)
-				e.Player.SendErrorMessage("More than one tile matched.");
-			else
-				CommandQueue.Add(new Replace(info.x, info.y, info.x2, info.y2, e.Player, tiles1[0], tiles2[0]));
-		}
-		void ReplacePaint(CommandArgs e)
-		{
-			if (e.Parameters.Count != 2)
-			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //replacepaint <color 1> <color 2>");
-				return;
-			}
-			PlayerInfo info = GetPlayerInfo(e.Player);
-			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
-			{
-				e.Player.SendErrorMessage("Invalid selection.");
-				return;
-			}
-
-			List<int> colors1 = Tools.GetColorByName(e.Parameters[0].ToLower());
-			List<int> colors2 = Tools.GetColorByName(e.Parameters[1].ToLower());
-			if (colors1.Count == 0)
-				e.Player.SendErrorMessage("Invalid color.");
-			else if (colors1.Count > 1)
-				e.Player.SendErrorMessage("More than one color matched.");
-			else if (colors2.Count == 0)
-				e.Player.SendErrorMessage("Invalid color.");
-			else if (colors2.Count > 1)
-				e.Player.SendErrorMessage("More than one color matched.");
-			else
-				CommandQueue.Add(new ReplacePaint(info.x, info.y, info.x2, info.y2, e.Player, colors1[0], colors2[0]));
-		}
-		void ReplacePaintWall(CommandArgs e)
-		{
-			if (e.Parameters.Count != 2)
-			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //replacepaintwall <color 1> <color 2>");
-				return;
-			}
-			PlayerInfo info = GetPlayerInfo(e.Player);
-			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
-			{
-				e.Player.SendErrorMessage("Invalid selection.");
-				return;
-			}
-
-			List<int> colors1 = Tools.GetColorByName(e.Parameters[0].ToLower());
-			List<int> colors2 = Tools.GetColorByName(e.Parameters[1].ToLower());
-			if (colors1.Count == 0)
-				e.Player.SendErrorMessage("Invalid color.");
-			else if (colors1.Count > 1)
-				e.Player.SendErrorMessage("More than one color matched.");
-			else if (colors2.Count == 0)
-				e.Player.SendErrorMessage("Invalid color.");
-			else if (colors2.Count > 1)
-				e.Player.SendErrorMessage("More than one color matched.");
-			else
-				CommandQueue.Add(new ReplacePaintWall(info.x, info.y, info.x2, info.y2, e.Player, colors1[0], colors2[0]));
-		}
-		void ReplaceWall(CommandArgs e)
-		{
-			if (e.Parameters.Count != 2)
-			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //replacewall <wall1> <wall2>");
-				return;
-			}
-			PlayerInfo info = GetPlayerInfo(e.Player);
-			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
-			{
-				e.Player.SendErrorMessage("Invalid selection.");
-				return;
-			}
-
-			List<int> walls1 = Tools.GetWallByName(e.Parameters[0].ToLower());
-			List<int> walls2 = Tools.GetWallByName(e.Parameters[1].ToLower());
-			if (walls1.Count == 0)
-				e.Player.SendErrorMessage("Invalid wall.");
-			else if (walls1.Count > 1)
-				e.Player.SendErrorMessage("More than one wall matched.");
-			else if (walls2.Count == 0)
-				e.Player.SendErrorMessage("Invalid wall.");
-			else if (walls2.Count > 1)
-				e.Player.SendErrorMessage("More than one wall matched.");
-			else
-				CommandQueue.Add(new ReplaceWall(info.x, info.y, info.x2, info.y2, e.Player, walls1[0], walls2[0]));
-		}
 		void Rotate(CommandArgs e)
 		{
 			if (e.Parameters.Count != 1)
@@ -1305,9 +1222,9 @@ namespace WorldEdit
 		}
 		void Set(CommandArgs e)
 		{
-			if (e.Parameters.Count != 1)
+			if (e.Parameters.Count == 0)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //set <tile>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //set <tile> (where clause)");
 				return;
 			}
 			PlayerInfo info = GetPlayerInfo(e.Player);
@@ -1319,17 +1236,30 @@ namespace WorldEdit
 
 			List<int> tiles = Tools.GetTileByName(e.Parameters[0].ToLower());
 			if (tiles.Count == 0)
+			{
 				e.Player.SendErrorMessage("Invalid tile.");
+				return;
+			}
 			else if (tiles.Count > 1)
+			{
 				e.Player.SendErrorMessage("More than one tile matched.");
-			else
-				CommandQueue.Add(new Set(info.x, info.y, info.x2, info.y2, e.Player, tiles[0]));
+				return;
+			}
+
+			var conditions = new List<Condition>();
+			if (e.Parameters.Count > 1)
+			{
+				if (!Tools.ParseConditions(e.Parameters, e.Player, out conditions))
+					return;
+			}
+
+			CommandQueue.Add(new Set(info.x, info.y, info.x2, info.y2, e.Player, tiles[0], conditions));
 		}
 		void SetWall(CommandArgs e)
 		{
-			if (e.Parameters.Count != 1)
+			if (e.Parameters.Count == 1)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //setwall <wall>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //setwall <wall> (where clause)");
 				return;
 			}
 			PlayerInfo info = GetPlayerInfo(e.Player);
@@ -1341,15 +1271,28 @@ namespace WorldEdit
 
 			List<int> walls = Tools.GetWallByName(e.Parameters[0].ToLower());
 			if (walls.Count == 0)
+			{
 				e.Player.SendErrorMessage("Invalid wall.");
+				return;
+			}
 			else if (walls.Count > 1)
+			{
 				e.Player.SendErrorMessage("More than one wall matched.");
-			else
-				CommandQueue.Add(new SetWall(info.x, info.y, info.x2, info.y2, e.Player, walls[0]));
+				return;
+			}
+
+			var conditions = new List<Condition>();
+			if (e.Parameters.Count > 1)
+			{
+				if (!Tools.ParseConditions(e.Parameters, e.Player, out conditions))
+					return;
+			}
+
+			CommandQueue.Add(new SetWall(info.x, info.y, info.x2, info.y2, e.Player, walls[0], conditions));
 		}
 		void SetWire(CommandArgs e)
 		{
-			if (e.Parameters.Count != 3)
+			if (e.Parameters.Count < 3)
 			{
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //setwire <wire 1 state> <wire 2 state> <wire 3 state>");
 				return;
@@ -1388,7 +1331,14 @@ namespace WorldEdit
 				return;
 			}
 
-			CommandQueue.Add(new SetWire(info.x, info.y, info.x2, info.y2, e.Player, wire1, wire2, wire3));
+			var conditions = new List<Condition>();
+			if (e.Parameters.Count > 3)
+			{
+				if (!Tools.ParseConditions(e.Parameters, e.Player, out conditions))
+					return;
+			}
+
+			CommandQueue.Add(new SetWire(info.x, info.y, info.x2, info.y2, e.Player, wire1, wire2, wire3, conditions));
 		}
 		void Shift(CommandArgs e)
 		{

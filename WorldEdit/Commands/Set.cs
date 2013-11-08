@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Terraria;
 using TShockAPI;
 
@@ -6,13 +7,15 @@ namespace WorldEdit.Commands
 {
 	public class Set : WECommand
 	{
-		private static string[] SpecialTileNames = { "air", "lava", "honey", "water" };
+		static string[] SpecialTileNames = { "air", "lava", "honey", "water" };
 
-		private int tile;
+		List<Condition> conditions;
+		int tile;
 
-		public Set(int x, int y, int x2, int y2, TSPlayer plr, int tile)
+		public Set(int x, int y, int x2, int y2, TSPlayer plr, int tile, List<Condition> conditions)
 			: base(x, y, x2, y2, plr)
 		{
+			this.conditions = conditions;
 			this.tile = tile;
 		}
 
@@ -24,12 +27,7 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (selectFunc(i, j, plr) &&
-						((tile >= 0 && (!Main.tile[i, j].active() || Main.tile[i, j].type != tile))
-						|| (tile == -1 && (Main.tile[i, j].active() || Main.tile[i, j].liquid != 0))
-						|| (tile == -2)
-						|| (tile == -3)
-						|| (tile == -4)))
+					if (selectFunc(i, j, plr) && conditions.TrueForAll(c => c(i, j)))
 					{
 						SetTile(i, j, tile);
 						edits++;
