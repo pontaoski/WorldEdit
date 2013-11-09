@@ -272,8 +272,8 @@ namespace WorldEdit
 				Database.GetSqlType() == SqlType.Sqlite ? (IQueryBuilder)new SqliteQueryCreator() : new MysqlQueryCreator());
 			sqlcreator.EnsureExists(new SqlTable("WorldEdit",
 				new SqlColumn("Account", MySqlDbType.VarChar) { Primary = true, Length = 50 },
-				new SqlColumn("RedoLevel", MySqlDbType.Int32),
-				new SqlColumn("UndoLevel", MySqlDbType.Int32)));
+				new SqlColumn("Redo", MySqlDbType.Int32),
+				new SqlColumn("Undo", MySqlDbType.Int32)));
 			#endregion
 
 			#region Biomes
@@ -572,14 +572,14 @@ namespace WorldEdit
 			WallNames.Add("spooky wood", 115);
 			#endregion
 
-			Task.Factory.StartNew(() => QueueCallback());
+			ThreadPool.QueueUserWorkItem(QueueCallback);
 		}
 		void OnLeave(LeaveEventArgs e)
 		{
 			Players[e.Who] = new PlayerInfo();
 		}
 
-		void QueueCallback()
+		void QueueCallback(object context)
 		{
 			Main.rand = new Random();
 			WorldGen.genRand = new Random();
@@ -1159,19 +1159,26 @@ namespace WorldEdit
 		}
 		void Redo(CommandArgs e)
 		{
-			if (e.Parameters.Count > 1)
+			if (e.Parameters.Count != 1 && e.Parameters.Count != 2)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //redo [steps]");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //redo [account] <steps>");
 				return;
 			}
 
+			int stepIndex = e.Parameters.Count - 1;
+
 			int steps = 1;
-			if (e.Parameters.Count == 1 && (!int.TryParse(e.Parameters[0], out steps) || steps <= 0))
+			if ((!int.TryParse(e.Parameters[stepIndex], out steps) || steps <= 0))
 			{
-				e.Player.SendErrorMessage("Invalid number of steps.");
+				e.Player.SendErrorMessage("Invalid number of redo steps.");
 				return;
 			}
-			CommandQueue.Add(new Redo(e.Player, e.Player.UserAccountName, steps));
+
+			string accountName = e.Player.UserAccountName;
+			if (e.Parameters.Count == 2)
+				accountName = e.Parameters[0];
+
+			CommandQueue.Add(new Redo(e.Player, accountName, steps));
 		}
 		void RegionCmd(CommandArgs e)
 		{
@@ -1552,19 +1559,26 @@ namespace WorldEdit
 		}
 		void Undo(CommandArgs e)
 		{
-			if (e.Parameters.Count > 1)
+			if (e.Parameters.Count != 1 && e.Parameters.Count != 2)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //undo [steps]");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //undo [account] <steps>");
 				return;
 			}
 
+			int stepIndex = e.Parameters.Count - 1;
+
 			int steps = 1;
-			if (e.Parameters.Count == 1 && (!int.TryParse(e.Parameters[0], out steps) || steps <= 0))
+			if ((!int.TryParse(e.Parameters[stepIndex], out steps) || steps <= 0))
 			{
-				e.Player.SendErrorMessage("Invalid number of steps.");
+				e.Player.SendErrorMessage("Invalid number of undo steps.");
 				return;
 			}
-			CommandQueue.Add(new Undo(e.Player, e.Player.UserAccountName, steps));
+
+			string accountName = e.Player.UserAccountName;
+			if (e.Parameters.Count == 2)
+				accountName = e.Parameters[0];
+
+			CommandQueue.Add(new Undo(e.Player, accountName, steps));
 		}
 	}
 }

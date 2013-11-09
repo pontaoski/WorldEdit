@@ -21,7 +21,7 @@ namespace WorldEdit.Commands
 			for (; i < steps && Tools.Undo(accountName); i++)
 			{
 			}
-			plr.SendSuccessMessage("Undid last {0}action{1}.", i == 1 ? "" : i + " ", i == 1 ? "" : "s");
+			plr.SendSuccessMessage("Undid {0}'s last {1}action{2}.", accountName, i == 1 ? "" : i + " ", i == 1 ? "" : "s");
 		}
 	}
 }
