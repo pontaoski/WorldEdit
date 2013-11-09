@@ -1239,7 +1239,7 @@ namespace WorldEdit
 						}
 
 						int pageNumber;
-						if (!PaginationTools.TryParsePageNumber(e.Parameters, 0, e.Player, out pageNumber))
+						if (!PaginationTools.TryParsePageNumber(e.Parameters, 1, e.Player, out pageNumber))
 							return;
 
 						var schematics = new List<string>(Directory.EnumerateFiles("worldedit", "schematic-*.dat"));
@@ -1352,7 +1352,7 @@ namespace WorldEdit
 		}
 		void SetWall(CommandArgs e)
 		{
-			if (e.Parameters.Count == 1)
+			if (e.Parameters.Count == 0)
 			{
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //setwall <wall> [where conditions]");
 				return;
