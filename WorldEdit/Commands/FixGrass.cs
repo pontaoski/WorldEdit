@@ -37,7 +37,8 @@ namespace WorldEdit.Commands
 			ResetSection();
 			plr.SendSuccessMessage("Fixed nearby grass. ({0})", edits);
 		}
-		private bool TileSolid(int x, int y)
+
+		bool TileSolid(int x, int y)
 		{
 			if (x < 0 || y < 0 || x >= Main.maxTilesX || y >= Main.maxTilesY)
 			{

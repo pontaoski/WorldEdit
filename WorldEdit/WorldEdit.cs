@@ -162,6 +162,14 @@ namespace WorldEdit
 				{
 					HelpText = "Fixes suffocated grass in an area around you."
 				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.fixhalves", FixHalves, "/fixhalves")
+				{
+					HelpText = "Fixes half blocks in an area around you."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.fixslopes", FixSlopes, "/fixslopes")
+				{
+					HelpText = "Fixes covered slopes in an area around you."
+				});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.flip", Flip, "/flip")
 				{
 					HelpText = "Flips the clipboard."
@@ -264,16 +272,17 @@ namespace WorldEdit
 					};
 					break;
 				case "sqlite":
-					string sql = Path.Combine(TShock.SavePath, "history.sqlite");
+					string sql = Path.Combine(TShock.SavePath, "worldedit.sqlite");
 					Database = new SqliteConnection(string.Format("uri=file://{0},Version=3", sql));
 					break;
 			}
-			SqlTableCreator sqlcreator = new SqlTableCreator(Database,
+
+			var sqlcreator = new SqlTableCreator(Database,
 				Database.GetSqlType() == SqlType.Sqlite ? (IQueryBuilder)new SqliteQueryCreator() : new MysqlQueryCreator());
 			sqlcreator.EnsureExists(new SqlTable("WorldEdit",
 				new SqlColumn("Account", MySqlDbType.VarChar) { Primary = true, Length = 50 },
-				new SqlColumn("Redo", MySqlDbType.Int32),
-				new SqlColumn("Undo", MySqlDbType.Int32)));
+				new SqlColumn("RedoLevel", MySqlDbType.Int32),
+				new SqlColumn("UndoLevel", MySqlDbType.Int32)));
 			#endregion
 
 			#region Biomes
@@ -818,7 +827,7 @@ namespace WorldEdit
 		{
 			if (e.Parameters.Count != 1)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: /fixgrass <radius>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //fixgrass <radius>");
 				return;
 			}
 
@@ -834,6 +843,48 @@ namespace WorldEdit
 			int y = e.Player.TileY - radius + 1;
 			int y2 = e.Player.TileY + radius + 1;
 			CommandQueue.Add(new FixGrass(x, y, x2, y2, e.Player));
+		}
+		void FixHalves(CommandArgs e)
+		{
+			if (e.Parameters.Count != 1)
+			{
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //fixhalves <radius>");
+				return;
+			}
+
+			int radius;
+			if (!int.TryParse(e.Parameters[0], out radius) || radius <= 0)
+			{
+				e.Player.SendErrorMessage("Invalid radius.");
+				return;
+			}
+
+			int x = e.Player.TileX - radius;
+			int x2 = e.Player.TileX + radius + 2;
+			int y = e.Player.TileY - radius + 1;
+			int y2 = e.Player.TileY + radius + 1;
+			CommandQueue.Add(new FixHalves(x, y, x2, y2, e.Player));
+		}
+		void FixSlopes(CommandArgs e)
+		{
+			if (e.Parameters.Count != 1)
+			{
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //fixslopes <radius>");
+				return;
+			}
+
+			int radius;
+			if (!int.TryParse(e.Parameters[0], out radius) || radius <= 0)
+			{
+				e.Player.SendErrorMessage("Invalid radius.");
+				return;
+			}
+
+			int x = e.Player.TileX - radius;
+			int x2 = e.Player.TileX + radius + 2;
+			int y = e.Player.TileY - radius + 1;
+			int y2 = e.Player.TileY + radius + 1;
+			CommandQueue.Add(new FixSlopes(x, y, x2, y2, e.Player));
 		}
 		void Flood(CommandArgs e)
 		{

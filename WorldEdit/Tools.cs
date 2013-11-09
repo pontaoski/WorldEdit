@@ -364,14 +364,14 @@ namespace WorldEdit
 				WorldEdit.Database.Query("INSERT IGNORE INTO WorldEdit VALUES (@0, -1, -1)", plr.UserAccountName);
 			else
 				WorldEdit.Database.Query("INSERT OR IGNORE INTO WorldEdit VALUES (@0, 0, 0)", plr.UserAccountName);
-			WorldEdit.Database.Query("UPDATE WorldEdit SET Redo = -1 WHERE Account = @0", plr.UserAccountName);
-			WorldEdit.Database.Query("UPDATE WorldEdit SET Undo = Undo + 1 WHERE Account = @0", plr.UserAccountName);
+			WorldEdit.Database.Query("UPDATE WorldEdit SET RedoLevel = -1 WHERE Account = @0", plr.UserAccountName);
+			WorldEdit.Database.Query("UPDATE WorldEdit SET UndoLevel = UndoLevel + 1 WHERE Account = @0", plr.UserAccountName);
 
 			int undoLevel = 0;
-			using (var reader = WorldEdit.Database.QueryReader("SELECT Undo FROM WorldEdit WHERE Account = @0", plr.UserAccountName))
+			using (var reader = WorldEdit.Database.QueryReader("SELECT UndoLevel FROM WorldEdit WHERE Account = @0", plr.UserAccountName))
 			{
 				if (reader.Read())
-					undoLevel = reader.Get<int>("Undo");
+					undoLevel = reader.Get<int>("UndoLevel");
 			}
 
 			string path = Path.Combine("worldedit", String.Format("undo-{0}-{1}.dat", plr.UserAccountName, undoLevel));
@@ -432,12 +432,12 @@ namespace WorldEdit
 		{
 			int redoLevel = 0;
 			int undoLevel = 0;
-			using (var reader = WorldEdit.Database.QueryReader("SELECT Redo, Undo FROM WorldEdit WHERE Account = @0", accountName))
+			using (var reader = WorldEdit.Database.QueryReader("SELECT RedoLevel, UndoLevel FROM WorldEdit WHERE Account = @0", accountName))
 			{
 				if (reader.Read())
 				{
-					redoLevel = reader.Get<int>("Redo") - 1;
-					undoLevel = reader.Get<int>("Undo") + 1;
+					redoLevel = reader.Get<int>("RedoLevel") - 1;
+					undoLevel = reader.Get<int>("UndoLevel") + 1;
 				}
 				else
 					return false;
@@ -446,8 +446,8 @@ namespace WorldEdit
 			if (redoLevel < -1)
 				return false;
 
-			WorldEdit.Database.Query("UPDATE WorldEdit SET Redo = @0 WHERE Account = @1", redoLevel, accountName);
-			WorldEdit.Database.Query("UPDATE WorldEdit SET Undo = @0 WHERE Account = @1", undoLevel, accountName);
+			WorldEdit.Database.Query("UPDATE WorldEdit SET RedoLevel = @0 WHERE Account = @1", redoLevel, accountName);
+			WorldEdit.Database.Query("UPDATE WorldEdit SET UndoLevel = @0 WHERE Account = @1", undoLevel, accountName);
 
 			string redoPath = Path.Combine("worldedit", String.Format("redo-{0}-{1}.dat", accountName, redoLevel + 1));
 			string undoPath = Path.Combine("worldedit", String.Format("undo-{0}-{1}.dat", accountName, undoLevel));
@@ -574,12 +574,12 @@ namespace WorldEdit
 		{
 			int redoLevel = 0;
 			int undoLevel = 0;
-			using (var reader = WorldEdit.Database.QueryReader("SELECT Redo, Undo FROM WorldEdit WHERE Account = @0", accountName))
+			using (var reader = WorldEdit.Database.QueryReader("SELECT RedoLevel, UndoLevel FROM WorldEdit WHERE Account = @0", accountName))
 			{
 				if (reader.Read())
 				{
-					redoLevel = reader.Get<int>("Redo") + 1;
-					undoLevel = reader.Get<int>("Undo") - 1;
+					redoLevel = reader.Get<int>("RedoLevel") + 1;
+					undoLevel = reader.Get<int>("UndoLevel") - 1;
 				}
 				else
 					return false;
@@ -588,8 +588,8 @@ namespace WorldEdit
 			if (undoLevel < -1)
 				return false;
 
-			WorldEdit.Database.Query("UPDATE WorldEdit SET Redo = @0 WHERE Account = @1", redoLevel, accountName);
-			WorldEdit.Database.Query("UPDATE WorldEdit SET Undo = @0 WHERE Account = @1", undoLevel, accountName);
+			WorldEdit.Database.Query("UPDATE WorldEdit SET RedoLevel = @0 WHERE Account = @1", redoLevel, accountName);
+			WorldEdit.Database.Query("UPDATE WorldEdit SET UndoLevel = @0 WHERE Account = @1", undoLevel, accountName);
 
 			string redoPath = Path.Combine("worldedit", String.Format("redo-{0}-{1}.dat", accountName, redoLevel));
 			string undoPath = Path.Combine("worldedit", String.Format("undo-{0}-{1}.dat", accountName, undoLevel + 1));
