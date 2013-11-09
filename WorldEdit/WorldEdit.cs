@@ -569,10 +569,17 @@ namespace WorldEdit
 			while (!Netplay.disconnect)
 			{
 				WECommand command;
-				if (!CommandQueue.TryTake(out command, -1, Cancel.Token))
-					break;
-				command.Position();
-				command.Execute();
+				try
+				{
+					if (!CommandQueue.TryTake(out command, -1, Cancel.Token))
+						return;
+					command.Position();
+					command.Execute();
+				}
+				catch (OperationCanceledException)
+				{
+					return;
+				}
 			}
 		}
 
