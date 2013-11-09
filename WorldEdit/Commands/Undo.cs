@@ -5,20 +5,21 @@ namespace WorldEdit.Commands
 {
 	public class Undo : WECommand
 	{
-		private int steps;
+		string accountName;
+		int steps;
 
-		public Undo(TSPlayer plr, int steps)
+		public Undo(TSPlayer plr, string accountName, int steps)
 			: base(0, 0, 0, 0, plr)
 		{
+			this.accountName = accountName;
 			this.steps = steps;
 		}
 
 		public override void Execute()
 		{
 			int i = 0;
-			for (; WorldEdit.GetPlayerInfo(plr).undoLevel != -1 && i < steps; i++)
+			for (; i < steps && Tools.Undo(accountName); i++)
 			{
-				Tools.Undo(plr);
 			}
 			plr.SendSuccessMessage("Undid last {0}action{1}.", i == 1 ? "" : i + " ", i == 1 ? "" : "s");
 		}

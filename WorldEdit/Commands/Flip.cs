@@ -17,7 +17,7 @@ namespace WorldEdit.Commands
 
 		public override void Execute()
 		{
-			string clipboardPath = Tools.GetClipboardPath(plr);
+			string clipboardPath = Tools.GetClipboardPath(plr.UserAccountName);
 			Tile[,] tiles = Tools.LoadWorldData(clipboardPath);
 			int lenX = tiles.GetLength(0);
 			int lenY = tiles.GetLength(1);

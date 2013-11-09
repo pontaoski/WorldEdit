@@ -14,19 +14,8 @@ namespace WorldEdit.Commands
 
 		public override void Execute()
 		{
-			string clipboardPath = Tools.GetClipboardPath(plr);
-			using (BinaryWriter writer = new BinaryWriter(new FileStream(clipboardPath, FileMode.Create)))
-			{
-				writer.Write(x2 - x + 1);
-				writer.Write(y2 - y + 1);
-				for (int i = x; i <= x2; i++)
-				{
-					for (int j = y; j <= y2; j++)
-					{
-						writer.Write(Main.tile[i, j]);
-					}
-				}
-			}
+			string clipboardPath = Tools.GetClipboardPath(plr.UserAccountName);
+			Tools.SaveWorldSection(x, y, x2, y2, clipboardPath);
 			plr.SendSuccessMessage("Copied selection to clipboard.");
 		}
 	}

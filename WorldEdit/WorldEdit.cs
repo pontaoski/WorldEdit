@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using System.Threading;
-using System.Data;
+using System.Threading.Tasks;
+using Mono.Data.Sqlite;
+using MySql.Data.MySqlClient;
 using Terraria;
 using TerrariaApi.Server;
 using TShockAPI;
@@ -22,6 +24,7 @@ namespace WorldEdit
 		public static List<int[]> BiomeConversions = new List<int[]>();
 		public static List<string> BiomeNames = new List<string>();
 		public static List<string> ColorNames = new List<string>();
+		public static IDbConnection Database;
 		public static List<int> InvalidTiles = new List<int>();
 		public static PlayerInfo[] Players = new PlayerInfo[257];
 		public static List<Func<int, int, TSPlayer, bool>> Selections = new List<Func<int, int, TSPlayer, bool>>();
@@ -35,7 +38,6 @@ namespace WorldEdit
 		}
 		CancellationTokenSource Cancel = new CancellationTokenSource();
 		BlockingCollection<WECommand> CommandQueue = new BlockingCollection<WECommand>();
-		Thread CommandQueueThread;
 		public override string Description
 		{
 			get { return "Adds commands for mass editing of blocks."; }
@@ -52,10 +54,8 @@ namespace WorldEdit
 		public WorldEdit(Main game)
 			: base(game)
 		{
-			for (int i = 0; i < 257; i++)
-			{
+			for (int i = 0; i < Players.Length; i++)
 				Players[i] = new PlayerInfo();
-			}
 		}
 		protected override void Dispose(bool disposing)
 		{
@@ -66,9 +66,6 @@ namespace WorldEdit
 				ServerApi.Hooks.ServerLeave.Deregister(this, OnLeave);
 
 				Cancel.Cancel();
-				File.Delete(Path.Combine("worldedit", "clipboard-server.dat"));
-				foreach (string fileName in Directory.EnumerateFiles("worldedit", "??do-server-*.dat"))
-					File.Delete(fileName);
 			}
 		}
 		public override void Initialize()
@@ -80,14 +77,7 @@ namespace WorldEdit
 
 		public static PlayerInfo GetPlayerInfo(TSPlayer player)
 		{
-			if (player.RealPlayer)
-			{
-				return Players[player.Index];
-			}
-			else
-			{
-				return Players[256];
-			}
+			return player.RealPlayer ? Players[player.Index] : Players[256];
 		}
 
 		void OnGetData(GetDataEventArgs e)
@@ -109,13 +99,13 @@ namespace WorldEdit
 						}
 						else if (info.pt == 3)
 						{
-							List<string> Reg = TShock.Regions.InAreaRegionName(X, Y);
-							if (Reg.Count == 0)
+							List<string> regions = TShock.Regions.InAreaRegionName(X, Y);
+							if (regions.Count == 0)
 							{
 								TShock.Players[e.Msg.whoAmI].SendErrorMessage("No region exists there.");
 								return;
 							}
-							Region curReg = TShock.Regions.GetRegionByName(Reg[0]);
+							Region curReg = TShock.Regions.GetRegionByName(regions[0]);
 							info.x = curReg.Area.X;
 							info.y = curReg.Area.Y;
 							info.x2 = curReg.Area.X + curReg.Area.Width;
@@ -137,6 +127,9 @@ namespace WorldEdit
 		}
 		void OnInitialize(EventArgs e)
 		{
+			Directory.CreateDirectory("worldedit");
+
+			#region Commands
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.all", All, "/all")
 				{
 					HelpText = "Sets the worldedit selection to the entire world."
@@ -254,6 +247,34 @@ namespace WorldEdit
 				{
 					HelpText = "Undoes a number of worldedit actions."
 				});
+			#endregion
+			#region Database
+			switch (TShock.Config.StorageType.ToLower())
+			{
+				case "mysql":
+					string[] host = TShock.Config.MySqlHost.Split(':');
+					Database = new MySqlConnection()
+					{
+						ConnectionString = string.Format("Server={0}; Port={1}; Database={2}; Uid={3}; Pwd={4};",
+							host[0],
+							host.Length == 1 ? "3306" : host[1],
+							TShock.Config.MySqlDbName,
+							TShock.Config.MySqlUsername,
+							TShock.Config.MySqlPassword)
+					};
+					break;
+				case "sqlite":
+					string sql = Path.Combine(TShock.SavePath, "history.sqlite");
+					Database = new SqliteConnection(string.Format("uri=file://{0},Version=3", sql));
+					break;
+			}
+			SqlTableCreator sqlcreator = new SqlTableCreator(Database,
+				Database.GetSqlType() == SqlType.Sqlite ? (IQueryBuilder)new SqliteQueryCreator() : new MysqlQueryCreator());
+			sqlcreator.EnsureExists(new SqlTable("WorldEdit",
+				new SqlColumn("Account", MySqlDbType.VarChar) { Primary = true, Length = 50 },
+				new SqlColumn("RedoLevel", MySqlDbType.Int32),
+				new SqlColumn("UndoLevel", MySqlDbType.Int32)));
+			#endregion
 
 			#region Biomes
 			// Format: dirt, stone, sand, grass, plants, tall plants, vines, thorn
@@ -349,17 +370,18 @@ namespace WorldEdit
 			TileNames.Add("honey", -3);
 			TileNames.Add("water", -4);
 
-			TileNames.Add("dirt", 0);
-			TileNames.Add("stone", 1);
+			TileNames.Add("dirt block", 0);
+			TileNames.Add("stone block", 1);
 			TileNames.Add("grass", 2);
-			TileNames.Add("iron", 6);
-			TileNames.Add("copper", 7);
-			TileNames.Add("gold", 8);
-			TileNames.Add("silver", 9);
+			TileNames.Add("torch", 4);
+			TileNames.Add("iron ore", 6);
+			TileNames.Add("copper ore", 7);
+			TileNames.Add("gold ore", 8);
+			TileNames.Add("silver ore", 9);
 			TileNames.Add("platform", 19);
-			TileNames.Add("demonite", 22);
+			TileNames.Add("demonite ore", 22);
 			TileNames.Add("corrupt grass", 23);
-			TileNames.Add("ebonstone", 25);
+			TileNames.Add("ebonstone block", 25);
 			TileNames.Add("wood", 30);
 			TileNames.Add("meteorite", 37);
 			TileNames.Add("gray brick", 38);
@@ -372,11 +394,12 @@ namespace WorldEdit
 			TileNames.Add("silver brick", 46);
 			TileNames.Add("copper brick", 47);
 			TileNames.Add("spike", 48);
+			TileNames.Add("book", 50);
 			TileNames.Add("cobweb", 51);
-			TileNames.Add("sand", 53);
+			TileNames.Add("sand block", 53);
 			TileNames.Add("glass", 54);
 			TileNames.Add("obsidian", 56);
-			TileNames.Add("ash", 57);
+			TileNames.Add("ash block", 57);
 			TileNames.Add("hellstone", 58);
 			TileNames.Add("mud", 59);
 			TileNames.Add("jungle grass", 60);
@@ -389,27 +412,28 @@ namespace WorldEdit
 			TileNames.Add("mushroom grass", 70);
 			TileNames.Add("obsidian brick", 75);
 			TileNames.Add("hellstone brick", 76);
-			TileNames.Add("cobalt", 107);
-			TileNames.Add("mythril", 108);
+			TileNames.Add("clay pot", 78);
+			TileNames.Add("cobalt ore", 107);
+			TileNames.Add("mythril ore", 108);
 			TileNames.Add("hallowed grass", 109);
-			TileNames.Add("adamantite", 111);
-			TileNames.Add("ebonsand", 112);
-			TileNames.Add("pearlsand", 116);
-			TileNames.Add("pearlstone", 117);
+			TileNames.Add("adamantite ore", 111);
+			TileNames.Add("ebonsand block", 112);
+			TileNames.Add("pearlsand block", 116);
+			TileNames.Add("pearlstone block", 117);
 			TileNames.Add("pearlstone brick", 118);
 			TileNames.Add("iridescent brick", 119);
 			TileNames.Add("mudstone block", 120);
 			TileNames.Add("cobalt brick", 121);
 			TileNames.Add("mythril brick", 122);
-			TileNames.Add("silt", 123);
+			TileNames.Add("silt block", 123);
 			TileNames.Add("wooden beam", 124);
-			TileNames.Add("icerod", 127);
-			TileNames.Add("active stone", 130);
-			TileNames.Add("inactive stone", 131);
+			TileNames.Add("ice rod", 127);
+			TileNames.Add("active stone block", 130);
+			TileNames.Add("inactive stone block", 131);
 			TileNames.Add("demonite brick", 140);
-			TileNames.Add("candy cane", 145);
-			TileNames.Add("green candy cane", 146);
-			TileNames.Add("snow", 147);
+			TileNames.Add("candy cane block", 145);
+			TileNames.Add("green candy cane block", 146);
+			TileNames.Add("sno blockw", 147);
 			TileNames.Add("snow brick", 148);
 			TileNames.Add("adamantite beam", 150);
 			TileNames.Add("sandstone brick", 151);
@@ -422,51 +446,49 @@ namespace WorldEdit
 			TileNames.Add("rich mahogany", 158);
 			TileNames.Add("pearlwood", 159);
 			TileNames.Add("rainbow brick", 160);
-			TileNames.Add("ice", 161);
+			TileNames.Add("ice block", 161);
 			TileNames.Add("thin ice", 162);
-			TileNames.Add("purple ice", 162);
-			TileNames.Add("pink ice", 162);
-			TileNames.Add("tin", 166);
-			TileNames.Add("lead", 167);
-			TileNames.Add("tungsten", 168);
-			TileNames.Add("platinum", 169);
+			TileNames.Add("purple ice block", 162);
+			TileNames.Add("pink ice block", 162);
+			TileNames.Add("tin ore", 166);
+			TileNames.Add("lead ore", 167);
+			TileNames.Add("tungsten ore", 168);
+			TileNames.Add("platinum ore", 169);
 			TileNames.Add("tin brick", 175);
 			TileNames.Add("tungsten brick", 176);
 			TileNames.Add("platinum brick", 177);
 			TileNames.Add("cactus", 188);
 			TileNames.Add("cloud", 189);
 			TileNames.Add("glowing mushroom", 190);
-			TileNames.Add("tree", 191);
+			TileNames.Add("living wood", 191);
 			TileNames.Add("leaf", 192);
-			TileNames.Add("slime", 193);
-			TileNames.Add("bone", 194);
-			TileNames.Add("flesh", 195);
+			TileNames.Add("slime block", 193);
+			TileNames.Add("bone block", 194);
+			TileNames.Add("flesh block", 195);
 			TileNames.Add("rain cloud", 196);
-			TileNames.Add("frozen slime", 197);
-			TileNames.Add("asphalt", 198);
-			TileNames.Add("crimson dirt", 199);
-			TileNames.Add("red ice", 200);
-			TileNames.Add("sunplate", 202);
+			TileNames.Add("frozen slime block", 197);
+			TileNames.Add("asphalt block", 198);
+			TileNames.Add("crimson grass", 199);
+			TileNames.Add("red ice block", 200);
+			TileNames.Add("sunplate block", 202);
 			TileNames.Add("crimstone", 203);
-			TileNames.Add("crimtane", 204);
+			TileNames.Add("crimtane ore", 204);
 			TileNames.Add("ice brick", 206);
 			TileNames.Add("shadewood", 208);
-			TileNames.Add("chlorophyte", 211);
-			TileNames.Add("palladium", 221);
-			TileNames.Add("orichalcum", 222);
-			TileNames.Add("titanium", 223);
-			TileNames.Add("slush", 224);
-			TileNames.Add("hive", 225);
+			TileNames.Add("chlorophyte ore", 211);
+			TileNames.Add("palladium ore", 221);
+			TileNames.Add("orichalcum ore", 222);
+			TileNames.Add("titanium ore", 223);
+			TileNames.Add("slush block", 224);
+			TileNames.Add("hive block", 225);
 			TileNames.Add("lihzahrd brick", 226);
 			TileNames.Add("honey block", 229);
 			TileNames.Add("crispy honey block", 230);
 			TileNames.Add("wooden spike", 232);
-			TileNames.Add("crimsand", 234);
-			TileNames.Add("teleporter", 235);
-			TileNames.Add("metal bar", 239);
+			TileNames.Add("crimsand block", 234);
 			TileNames.Add("palladium column", 248);
-			TileNames.Add("bubblegum", 249);
-			TileNames.Add("titanstone", 250);
+			TileNames.Add("bubblegum block", 249);
+			TileNames.Add("titanstone block", 250);
 			TileNames.Add("pumpkin", 251);
 			TileNames.Add("hay", 252);
 			TileNames.Add("spooky wood", 253);
@@ -520,9 +542,9 @@ namespace WorldEdit
 			WallNames.Add("cactus", 72);
 			WallNames.Add("cloud", 73);
 			WallNames.Add("mushroom", 74);
-			WallNames.Add("bone", 75);
-			WallNames.Add("slime", 76);
-			WallNames.Add("flesh", 77);
+			WallNames.Add("bone block", 75);
+			WallNames.Add("slime block", 76);
+			WallNames.Add("flesh block", 77);
 			WallNames.Add("disc", 82);
 			WallNames.Add("ice brick", 84);
 			WallNames.Add("shadewood", 85);
@@ -542,30 +564,26 @@ namespace WorldEdit
 			WallNames.Add("metal fence", 107);
 			WallNames.Add("hive", 108);
 			WallNames.Add("palladium column", 109);
-			WallNames.Add("bubblegum", 110);
-			WallNames.Add("titanstone", 111);
+			WallNames.Add("bubblegum block", 110);
+			WallNames.Add("titanstone block", 111);
 			WallNames.Add("lihzahrd brick", 112);
 			WallNames.Add("pumpkin", 113);
 			WallNames.Add("hay", 114);
 			WallNames.Add("spooky wood", 115);
 			#endregion
-			CommandQueueThread = new Thread(QueueCallback);
-			CommandQueueThread.Name = "WorldEdit Callback";
-			CommandQueueThread.Start();
-			Directory.CreateDirectory("worldedit");
+
+			Task.Factory.StartNew(() => QueueCallback());
 		}
 		void OnLeave(LeaveEventArgs e)
 		{
-			File.Delete(Path.Combine("worldedit", String.Format("clipboard-{0}.dat", e.Who)));
-			foreach (string fileName in Directory.EnumerateFiles("worldedit", String.Format("??do-{0}-*.dat", e.Who)))
-			{
-				File.Delete(fileName);
-			}
 			Players[e.Who] = new PlayerInfo();
 		}
 
-		void QueueCallback(object t)
+		void QueueCallback()
 		{
+			Main.rand = new Random();
+			WorldGen.genRand = new Random();
+
 			while (!Netplay.disconnect)
 			{
 				WECommand command;
@@ -856,7 +874,7 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //flip <direction>");
 				return;
 			}
-			if (!Tools.HasClipboard(e.Player))
+			if (!Tools.HasClipboard(e.Player.UserAccountName))
 			{
 				e.Player.SendErrorMessage("Invalid clipboard.");
 				return;
@@ -1039,13 +1057,42 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid first point.");
 				return;
 			}
-			if (!Tools.HasClipboard(e.Player))
+			if (!Tools.HasClipboard(e.Player.UserAccountName))
 			{
 				e.Player.SendErrorMessage("Invalid clipboard.");
 				return;
 			}
 
-			CommandQueue.Add(new Paste(info.x, info.y, e.Player));
+			if (e.Parameters.Count > 1)
+			{
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //paste [alignment]");
+				return;
+			}
+
+			int alignment = 0;
+			if (e.Parameters.Count == 1)
+			{
+				foreach (char c in e.Parameters[0].ToLower())
+				{
+					switch (c)
+					{
+						case 'l':
+							alignment = alignment & 2;
+							break;
+						case 'r':
+							alignment = alignment | 1;
+							break;
+						case 't':
+							alignment = alignment & 1;
+							break;
+						case 'b':
+							alignment = alignment | 2;
+							break;
+					}
+				}
+			}
+
+			CommandQueue.Add(new Paste(info.x, info.y, e.Player, alignment));
 		}
 		void Point1(CommandArgs e)
 		{
@@ -1056,8 +1103,8 @@ namespace WorldEdit
 			}
 
 			int x, y;
-			if (!int.TryParse(e.Parameters[0], out x) || x < 0 || x > Main.maxTilesX
-				|| !int.TryParse(e.Parameters[1], out y) || y < 0 || y > Main.maxTilesY)
+			if (!int.TryParse(e.Parameters[0], out x) || x < 0 || x >= Main.maxTilesX
+				|| !int.TryParse(e.Parameters[1], out y) || y < 0 || y >= Main.maxTilesY)
 			{
 				e.Player.SendErrorMessage("Invalid coordinates.");
 				return;
@@ -1076,8 +1123,8 @@ namespace WorldEdit
 			}
 
 			int x, y;
-			if (!int.TryParse(e.Parameters[0], out x) || x < 0 || x > Main.maxTilesX
-				|| !int.TryParse(e.Parameters[1], out y) || y < 0 || y > Main.maxTilesY)
+			if (!int.TryParse(e.Parameters[0], out x) || x < 0 || x >= Main.maxTilesX
+				|| !int.TryParse(e.Parameters[1], out y) || y < 0 || y >= Main.maxTilesY)
 			{
 				e.Player.SendErrorMessage("Invalid coordinates.");
 				return;
@@ -1124,7 +1171,7 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid number of steps.");
 				return;
 			}
-			CommandQueue.Add(new Redo(e.Player, steps));
+			CommandQueue.Add(new Redo(e.Player, e.Player.UserAccountName, steps));
 		}
 		void RegionCmd(CommandArgs e)
 		{
@@ -1186,7 +1233,7 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //rotate <angle>");
 				return;
 			}
-			if (!Tools.HasClipboard(e.Player))
+			if (!Tools.HasClipboard(e.Player.UserAccountName))
 			{
 				e.Player.SendErrorMessage("Invalid clipboard.");
 				return;
@@ -1517,7 +1564,7 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid number of steps.");
 				return;
 			}
-			CommandQueue.Add(new Undo(e.Player, steps));
+			CommandQueue.Add(new Undo(e.Player, e.Player.UserAccountName, steps));
 		}
 	}
 }

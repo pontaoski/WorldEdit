@@ -18,7 +18,7 @@ namespace WorldEdit.Commands
 		public override void Execute()
 		{
 			Tools.PrepareUndo(x, y, x2, y2, plr);
-			string clipboardPath = Tools.GetClipboardPath(plr);
+			string clipboardPath = Tools.GetClipboardPath(plr.UserAccountName);
 			using (BinaryWriter writer = new BinaryWriter(new FileStream(clipboardPath, FileMode.Create)))
 			{
 				writer.Write(x2 - x + 1);

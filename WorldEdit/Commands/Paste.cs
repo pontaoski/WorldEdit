@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.IO.Compression;
 using Terraria;
 using TShockAPI;
 
@@ -7,29 +8,48 @@ namespace WorldEdit.Commands
 {
 	public class Paste : WECommand
 	{
-		public Paste(int x, int y, TSPlayer plr)
-			: base(x, y, 0, 0, plr)
+		int alignment;
+
+		public Paste(int x, int y, TSPlayer plr, int alignment)
+			: base(x, y, Int32.MaxValue, Int32.MaxValue, plr)
 		{
-			string clipboardPath = Tools.GetClipboardPath(plr);
-			using (BinaryReader reader = new BinaryReader(new FileStream(clipboardPath, FileMode.Open)))
-			{
-				x2 = x + reader.ReadInt32() - 1;
-				y2 = y + reader.ReadInt32() - 1;
-			}
+			this.alignment = alignment;
 		}
 
 		public override void Execute()
 		{
-			string clipboardPath = Tools.GetClipboardPath(plr);
-			using (BinaryReader reader = new BinaryReader(new FileStream(clipboardPath, FileMode.Open)))
+			string clipboardPath = Tools.GetClipboardPath(plr.UserAccountName);
+			using (var reader = new BinaryReader(new GZipStream(new FileStream(clipboardPath, FileMode.Open), CompressionMode.Decompress)))
 			{
-				reader.ReadInt64();
+				reader.ReadInt32();
+				reader.ReadInt32();
+
+				int width = reader.ReadInt32() - 1;
+				int height = reader.ReadInt32() - 1;
+
+				if ((alignment & 1) == 0)
+					x2 = x + width;
+				else
+				{
+					x2 = x;
+					x -= width;
+				}
+				if ((alignment & 2) == 0)
+					y2 = y + height;
+				else
+				{
+					y2 = y;
+					y -= height;
+				}
+				
 				Tools.PrepareUndo(x, y, x2, y2, plr);
 				for (int i = x; i <= x2; i++)
 				{
 					for (int j = y; j <= y2; j++)
 					{
-						Main.tile[i, j] = Tools.ReadTile(reader);
+						Tile tile = reader.ReadTile();
+						if (i >= 0 && j >= 0 && i < Main.maxTilesX && j < Main.maxTilesY)
+							Main.tile[i, j] = tile;
 					}
 				}
 			}
