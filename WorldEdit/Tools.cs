@@ -485,22 +485,16 @@ namespace WorldEdit
 		}
 		public static void SaveWorldData(Tile[,] tiles, string path)
 		{
-			using (var fs = new FileStream(path, FileMode.Create))
+			using (var writer = new BinaryWriter(new GZipStream(new FileStream(path, FileMode.Create), CompressionMode.Compress)))
 			{
-				using (var gz = new GZipStream(fs, CompressionMode.Compress))
+				int xLen = tiles.GetLength(0);
+				int yLen = tiles.GetLength(1);
+				writer.Write(xLen);
+				writer.Write(yLen);
+				for (int i = 0; i < xLen; i++)
 				{
-					using (var writer = new BinaryWriter(gz))
-					{
-						int xLen = tiles.GetLength(0);
-						int yLen = tiles.GetLength(1);
-						writer.Write(xLen);
-						writer.Write(yLen);
-						for (int i = 0; i < xLen; i++)
-						{
-							for (int j = 0; j < yLen; j++)
-								writer.Write(tiles[i, j] ?? new Tile());
-						}
-					}
+					for (int j = 0; j < yLen; j++)
+						writer.Write(tiles[i, j] ?? new Tile());
 				}
 			}
 		}

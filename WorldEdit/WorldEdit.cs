@@ -1493,8 +1493,7 @@ namespace WorldEdit
 							e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //schematic save <name>");
 							break;
 						}
-						string id = e.Player.RealPlayer ? e.Player.Index.ToString() : "server";
-						string clipboardPath = Path.Combine("worldedit", String.Format("clipboard-{0}.dat", id));
+						string clipboardPath = Path.Combine("worldedit", String.Format("clipboard-{0}.dat", e.Player.UserAccountName));
 						if (!File.Exists(clipboardPath))
 						{
 							e.Player.SendErrorMessage("Invalid clipboard.");
