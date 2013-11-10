@@ -152,7 +152,7 @@ namespace WorldEdit
 				});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.drain", Drain, "/drain")
 				{
-					HelpText = "Drains liquids in an area around you."
+					HelpText = "Drains liquids in the worldedit selection or an area around you."
 				});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.expand", Expand, "/expand")
 				{
@@ -160,27 +160,31 @@ namespace WorldEdit
 				});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.fixgrass", FixGrass, "/fixgrass")
 				{
-					HelpText = "Fixes suffocated grass in an area around you."
+					HelpText = "Fixes suffocated grass in the worldedit selection or an area around you."
 				});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.fixhalves", FixHalves, "/fixhalves")
 				{
-					HelpText = "Fixes half blocks in an area around you."
+					HelpText = "Fixes half blocks in the worldedit selection or an area around you."
 				});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.fixslopes", FixSlopes, "/fixslopes")
 				{
-					HelpText = "Fixes covered slopes in an area around you."
+					HelpText = "Fixes covered slopes in the worldedit selection or an area around you."
 				});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.flip", Flip, "/flip")
 				{
-					HelpText = "Flips the clipboard."
+					HelpText = "Flips the worldedit clipboard."
 				});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.flood", Flood, "/flood")
 				{
-					HelpText = "Floods liquids in an area around you."
+					HelpText = "Floods liquids in the worldedit selection or an area around you."
 				});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.inset", Inset, "/inset")
 				{
 					HelpText = "Expands the worldedit selection on all four sides."
+				});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.mow", Mow, "/mow")
+				{
+					HelpText = "Mows grass, thorns, and vines in the worldedit selection or an area around you."
 				});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.outset", Outset, "/outset")
 				{
@@ -741,24 +745,38 @@ namespace WorldEdit
 		}
 		void Drain(CommandArgs e)
 		{
-			if (e.Parameters.Count != 1)
+			if (e.Parameters.Count > 1)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //drain <radius>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //drain [radius]");
 				return;
 			}
 
-			int radius;
-			if (!int.TryParse(e.Parameters[0], out radius) || radius <= 0)
+			if (e.Parameters.Count == 0)
 			{
-				e.Player.SendErrorMessage("Invalid radius.");
-				return;
-			}
+				PlayerInfo info = GetPlayerInfo(e.Player);
+				if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
+				{
+					e.Player.SendErrorMessage("Invalid selection.");
+					return;
+				}
 
-			int x = e.Player.TileX - radius;
-			int x2 = e.Player.TileX + radius + 2;
-			int y = e.Player.TileY - radius + 1;
-			int y2 = e.Player.TileY + radius + 1;
-			CommandQueue.Add(new Drain(x, y, x2, y2, e.Player));
+				CommandQueue.Add(new Drain(info.x, info.y, info.x2, info.y2, e.Player));
+			}
+			else
+			{
+				int radius;
+				if (!int.TryParse(e.Parameters[0], out radius) || radius <= 0)
+				{
+					e.Player.SendErrorMessage("Invalid radius.");
+					return;
+				}
+
+				int x = e.Player.TileX - radius;
+				int x2 = e.Player.TileX + radius + 2;
+				int y = e.Player.TileY - radius + 1;
+				int y2 = e.Player.TileY + radius + 1;
+				CommandQueue.Add(new Drain(x, y, x2, y2, e.Player));
+			}
 		}
 		void Expand(CommandArgs e)
 		{
@@ -825,72 +843,114 @@ namespace WorldEdit
 		}
 		void FixGrass(CommandArgs e)
 		{
-			if (e.Parameters.Count != 1)
+			if (e.Parameters.Count > 1)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //fixgrass <radius>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //fixgrass [radius]");
 				return;
 			}
 
-			int radius;
-			if (!int.TryParse(e.Parameters[0], out radius) || radius <= 0)
+			if (e.Parameters.Count == 0)
 			{
-				e.Player.SendErrorMessage("Invalid radius.");
-				return;
-			}
+				PlayerInfo info = GetPlayerInfo(e.Player);
+				if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
+				{
+					e.Player.SendErrorMessage("Invalid selection.");
+					return;
+				}
 
-			int x = e.Player.TileX - radius;
-			int x2 = e.Player.TileX + radius + 2;
-			int y = e.Player.TileY - radius + 1;
-			int y2 = e.Player.TileY + radius + 1;
-			CommandQueue.Add(new FixGrass(x, y, x2, y2, e.Player));
+				CommandQueue.Add(new FixGrass(info.x, info.y, info.x2, info.y2, e.Player));
+			}
+			else
+			{
+				int radius;
+				if (!int.TryParse(e.Parameters[0], out radius) || radius <= 0)
+				{
+					e.Player.SendErrorMessage("Invalid radius.");
+					return;
+				}
+
+				int x = e.Player.TileX - radius;
+				int x2 = e.Player.TileX + radius + 2;
+				int y = e.Player.TileY - radius + 1;
+				int y2 = e.Player.TileY + radius + 1;
+				CommandQueue.Add(new FixGrass(x, y, x2, y2, e.Player));
+			}
 		}
 		void FixHalves(CommandArgs e)
 		{
-			if (e.Parameters.Count != 1)
+			if (e.Parameters.Count > 1)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //fixhalves <radius>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //fixhalves [radius]");
 				return;
 			}
 
-			int radius;
-			if (!int.TryParse(e.Parameters[0], out radius) || radius <= 0)
+			if (e.Parameters.Count == 0)
 			{
-				e.Player.SendErrorMessage("Invalid radius.");
-				return;
-			}
+				PlayerInfo info = GetPlayerInfo(e.Player);
+				if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
+				{
+					e.Player.SendErrorMessage("Invalid selection.");
+					return;
+				}
 
-			int x = e.Player.TileX - radius;
-			int x2 = e.Player.TileX + radius + 2;
-			int y = e.Player.TileY - radius + 1;
-			int y2 = e.Player.TileY + radius + 1;
-			CommandQueue.Add(new FixHalves(x, y, x2, y2, e.Player));
+				CommandQueue.Add(new FixHalves(info.x, info.y, info.x2, info.y2, e.Player));
+			}
+			else
+			{
+				int radius;
+				if (!int.TryParse(e.Parameters[0], out radius) || radius <= 0)
+				{
+					e.Player.SendErrorMessage("Invalid radius.");
+					return;
+				}
+
+				int x = e.Player.TileX - radius;
+				int x2 = e.Player.TileX + radius + 2;
+				int y = e.Player.TileY - radius + 1;
+				int y2 = e.Player.TileY + radius + 1;
+				CommandQueue.Add(new FixHalves(x, y, x2, y2, e.Player));
+			}
 		}
 		void FixSlopes(CommandArgs e)
 		{
-			if (e.Parameters.Count != 1)
+			if (e.Parameters.Count > 1)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //fixslopes <radius>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //fixslopes [radius]");
 				return;
 			}
 
-			int radius;
-			if (!int.TryParse(e.Parameters[0], out radius) || radius <= 0)
+			if (e.Parameters.Count == 0)
 			{
-				e.Player.SendErrorMessage("Invalid radius.");
-				return;
-			}
+				PlayerInfo info = GetPlayerInfo(e.Player);
+				if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
+				{
+					e.Player.SendErrorMessage("Invalid selection.");
+					return;
+				}
 
-			int x = e.Player.TileX - radius;
-			int x2 = e.Player.TileX + radius + 2;
-			int y = e.Player.TileY - radius + 1;
-			int y2 = e.Player.TileY + radius + 1;
-			CommandQueue.Add(new FixSlopes(x, y, x2, y2, e.Player));
+				CommandQueue.Add(new FixSlopes(info.x, info.y, info.x2, info.y2, e.Player));
+			}
+			else
+			{
+				int radius;
+				if (!int.TryParse(e.Parameters[0], out radius) || radius <= 0)
+				{
+					e.Player.SendErrorMessage("Invalid radius.");
+					return;
+				}
+
+				int x = e.Player.TileX - radius;
+				int x2 = e.Player.TileX + radius + 2;
+				int y = e.Player.TileY - radius + 1;
+				int y2 = e.Player.TileY + radius + 1;
+				CommandQueue.Add(new FixSlopes(x, y, x2, y2, e.Player));
+			}
 		}
 		void Flood(CommandArgs e)
 		{
-			if (e.Parameters.Count != 2)
+			if (e.Parameters.Count != 1 && e.Parameters.Count != 2)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //flood <liquid> <radius>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //flood <liquid> [radius]");
 				return;
 			}
 
@@ -905,18 +965,32 @@ namespace WorldEdit
 				return;
 			}
 
-			int radius;
-			if (!int.TryParse(e.Parameters[1], out radius) || radius <= 0)
+			if (e.Parameters.Count == 1)
 			{
-				e.Player.SendErrorMessage("Invalid radius.");
-				return;
-			}
+				PlayerInfo info = GetPlayerInfo(e.Player);
+				if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
+				{
+					e.Player.SendErrorMessage("Invalid selection.");
+					return;
+				}
 
-			int x = e.Player.TileX - radius;
-			int x2 = e.Player.TileX + radius + 2;
-			int y = e.Player.TileY - radius + 1;
-			int y2 = e.Player.TileY + radius + 1;
-			CommandQueue.Add(new Flood(x, y, x2, y2, e.Player, liquid));
+				CommandQueue.Add(new Flood(info.x, info.y, info.x2, info.y2, e.Player, liquid));
+			}
+			else
+			{
+				int radius;
+				if (!int.TryParse(e.Parameters[1], out radius) || radius <= 0)
+				{
+					e.Player.SendErrorMessage("Invalid radius.");
+					return;
+				}
+
+				int x = e.Player.TileX - radius;
+				int x2 = e.Player.TileX + radius + 2;
+				int y = e.Player.TileY - radius + 1;
+				int y2 = e.Player.TileY + radius + 1;
+				CommandQueue.Add(new Flood(x, y, x2, y2, e.Player, liquid));
+			}
 		}
 		void Flip(CommandArgs e)
 		{
@@ -987,6 +1061,41 @@ namespace WorldEdit
 				info.y2 += amount;
 			}
 			e.Player.SendSuccessMessage("Inset selection by {0}.", amount);
+		}
+		void Mow(CommandArgs e)
+		{
+			if (e.Parameters.Count > 1)
+			{
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //mow [radius]");
+				return;
+			}
+
+			if (e.Parameters.Count == 0)
+			{
+				PlayerInfo info = GetPlayerInfo(e.Player);
+				if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
+				{
+					e.Player.SendErrorMessage("Invalid selection.");
+					return;
+				}
+
+				CommandQueue.Add(new Mow(info.x, info.y, info.x2, info.y2, e.Player));
+			}
+			else
+			{
+				int radius;
+				if (!int.TryParse(e.Parameters[0], out radius) || radius <= 0)
+				{
+					e.Player.SendErrorMessage("Invalid radius.");
+					return;
+				}
+
+				int x = e.Player.TileX - radius;
+				int x2 = e.Player.TileX + radius + 2;
+				int y = e.Player.TileY - radius + 1;
+				int y2 = e.Player.TileY + radius + 1;
+				CommandQueue.Add(new Mow(x, y, x2, y2, e.Player));
+			}
 		}
 		void Outset(CommandArgs e)
 		{

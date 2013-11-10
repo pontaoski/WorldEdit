@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("MarioE")]
 [assembly: AssemblyProduct("WorldEdit")]
-[assembly: AssemblyCopyright("Copyright © MarioE 2012")]
+[assembly: AssemblyCopyright("Copyright © MarioE 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

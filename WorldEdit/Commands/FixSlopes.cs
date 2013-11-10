@@ -30,7 +30,7 @@ namespace WorldEdit.Commands
 				}
 			}
 			ResetSection();
-			plr.SendSuccessMessage("Fixed nearby slopes. ({0})", edits);
+			plr.SendSuccessMessage("Fixed slopes. ({0})", edits);
 		}
 
 		bool TileSolid(int x, int y)

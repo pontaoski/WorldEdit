@@ -35,7 +35,7 @@ namespace WorldEdit.Commands
 				}
 			}
 			ResetSection();
-			plr.SendSuccessMessage("Fixed nearby grass. ({0})", edits);
+			plr.SendSuccessMessage("Fixed grass. ({0})", edits);
 		}
 
 		bool TileSolid(int x, int y)
