@@ -13,7 +13,7 @@ namespace WorldEdit
 {
 	public static class Tools
 	{
-		const int buffer = 2097152;
+		const int buffer = 1048576;
 
 		public static string GetClipboardPath(string accountName)
 		{
@@ -74,7 +74,7 @@ namespace WorldEdit
 		public static Tile[,] LoadWorldData(string path)
 		{
 			Tile[,] tile;
-			// GZipStream is already buffered, but it's much faster to have a 2 MB buffer.
+			// GZipStream is already buffered, but it's much faster to have a 1 MB buffer.
 			using (var reader =
 				new BinaryReader(
 					new BufferedStream(
@@ -96,7 +96,7 @@ namespace WorldEdit
 		}
 		public static void LoadWorldSection(string path)
 		{
-			// GZipStream is already buffered, but it's much faster to have a 2 MB buffer.
+			// GZipStream is already buffered, but it's much faster to have a 1 MB buffer.
 			using (var reader =
 				new BinaryReader(
 					new BufferedStream(
@@ -485,7 +485,7 @@ namespace WorldEdit
 		}
 		public static void SaveWorldSection(int x, int y, int x2, int y2, string path)
 		{
-			// GZipStream is already buffered, but it's much faster to have a 2 MB buffer.
+			// GZipStream is already buffered, but it's much faster to have a 1 MB buffer.
 			using (var writer =
 				new BinaryWriter(
 					new BufferedStream(
