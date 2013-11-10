@@ -8,7 +8,7 @@ namespace WorldEdit.Commands
 {
 	public class Flip : WECommand
 	{
-		const int buffer = 2097152;
+		const int buffer = 1048576;
 		byte direction;
 
 		public Flip(TSPlayer plr, byte direction)
@@ -31,7 +31,7 @@ namespace WorldEdit.Commands
 			int incX = flipX ? -1 : 1;
 			int incY = flipY ? -1 : 1;
 
-			// GZipStream is already buffered, but it's much faster to have a 2 MB buffer.
+			// GZipStream is already buffered, but it's much faster to have a 1 MB buffer.
 			using (var writer =
 				new BinaryWriter(
 					new BufferedStream(

@@ -6,7 +6,7 @@ namespace WorldEdit.Commands
 	public class Redo : WECommand
 	{
 		string accountName;
-		private int steps;
+		int steps;
 
 		public Redo(TSPlayer plr, string accountName, int steps)
 			: base(0, 0, 0, 0, plr)

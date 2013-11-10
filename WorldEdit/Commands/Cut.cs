@@ -12,7 +12,7 @@ namespace WorldEdit.Commands
 {
 	public class Cut : WECommand
 	{
-		const int buffer = 2097152;
+		const int buffer = 1048576;
 
 		public Cut(int x, int y, int x2, int y2, TSPlayer plr)
 			: base(x, y, x2, y2, plr)
@@ -40,7 +40,7 @@ namespace WorldEdit.Commands
 
 			string clipboardPath = Tools.GetClipboardPath(plr.UserAccountName);
 			string undoPath = Path.Combine("worldedit", String.Format("undo-{0}-{1}.dat", plr.UserAccountName, undoLevel));
-			// GZipStream is already buffered, but it's much faster to have a 2 MB buffer.
+			// GZipStream is already buffered, but it's much faster to have a 1 MB buffer.
 			using (var writer =
 				new BinaryWriter(
 					new BufferedStream(

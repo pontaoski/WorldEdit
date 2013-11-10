@@ -9,7 +9,7 @@ namespace WorldEdit.Commands
 {
 	public class Flood : WECommand
 	{
-		private int liquid;
+		int liquid;
 
 		public Flood(int x, int y, int x2, int y2, TSPlayer plr, int liquid)
 			: base(x, y, x2, y2, plr)
