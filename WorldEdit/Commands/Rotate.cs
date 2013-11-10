@@ -8,7 +8,7 @@ namespace WorldEdit.Commands
 {
 	public class Rotate : WECommand
 	{
-		const int buffer = 1048576;
+		const int buffer = 2097152;
 		int degrees;
 
 		public Rotate(TSPlayer plr, int degrees)

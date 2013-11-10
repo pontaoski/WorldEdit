@@ -13,7 +13,7 @@ namespace WorldEdit
 {
 	public static class Tools
 	{
-		const int buffer = 1048576;
+		const int buffer = 2097152;
 
 		public static string GetClipboardPath(string accountName)
 		{
@@ -74,7 +74,7 @@ namespace WorldEdit
 		public static Tile[,] LoadWorldData(string path)
 		{
 			Tile[,] tile;
-			// GZipStream is already buffered, but it's much faster to have a 1 MB buffer.
+			// GZipStream is already buffered, but it's much faster to have a 2 MB buffer.
 			using (var reader =
 				new BinaryReader(
 					new BufferedStream(
@@ -96,7 +96,7 @@ namespace WorldEdit
 		}
 		public static void LoadWorldSection(string path)
 		{
-			// GZipStream is already buffered, but it's much faster to have a 1 MB buffer.
+			// GZipStream is already buffered, but it's much faster to have a 2 MB buffer.
 			using (var reader =
 				new BinaryReader(
 					new BufferedStream(
@@ -398,43 +398,31 @@ namespace WorldEdit
 			Tile tile = new Tile();
 			byte flags = reader.ReadByte();
 			byte flags2 = reader.ReadByte();
-
-			tile.actuator((flags & 64) == 64);
-			tile.halfBrick((flags & 32) == 32);
-			tile.inActive((flags & 128) == 128);
-			tile.slope((byte)((flags2 >> 4) & 3));
-			tile.inActive((flags & 128) == 128);
-			tile.wire((flags & 16) == 16);
-			tile.wire2((flags2 & 1) == 1);
-			tile.wire3((flags2 & 2) == 2);
+			tile.tileHeader = (byte)(flags & 0xf1);
+			tile.tileHeader2 = (byte)(flags2 & 0x03);
+			tile.tileHeader3 = (byte)(flags2 & 0x30);
+			
 			// Color
-			if ((flags2 & 4) == 4)
+			if ((flags2 & 4) != 0)
 				tile.color(reader.ReadByte());
 			// Wall color
-			if ((flags2 & 8) == 8)
+			if ((flags2 & 8) != 0)
 				tile.wallColor(reader.ReadByte());
 			// Tile type
-			if ((flags & 1) == 1)
+			if ((flags & 1) != 0)
 			{
-				byte type = reader.ReadByte();
-				tile.active(true);
-				tile.type = type;
-				if (Main.tileFrameImportant[type])
+				tile.type = reader.ReadByte();
+				if (Main.tileFrameImportant[tile.type])
 				{
 					tile.frameX = reader.ReadInt16();
 					tile.frameY = reader.ReadInt16();
 				}
-				else
-				{
-					tile.frameX = -1;
-					tile.frameY = -1;
-				}
 			}
 			// Wall type
-			if ((flags & 4) == 4)
+			if ((flags & 4) != 0)
 				tile.wall = reader.ReadByte();
 			// Liquid
-			if ((flags & 8) == 8)
+			if ((flags & 8) != 0)
 			{
 				tile.liquid = reader.ReadByte();
 				tile.liquidType(reader.ReadByte());
@@ -497,7 +485,7 @@ namespace WorldEdit
 		}
 		public static void SaveWorldSection(int x, int y, int x2, int y2, string path)
 		{
-			// GZipStream is already buffered, but it's much faster to have a 1 MB buffer.
+			// GZipStream is already buffered, but it's much faster to have a 2 MB buffer.
 			using (var writer =
 				new BinaryWriter(
 					new BufferedStream(
@@ -517,39 +505,30 @@ namespace WorldEdit
 		}
 		public static void Write(this BinaryWriter writer, Tile tile)
 		{
-			byte flags = 0;
-			byte flags2 = 0;
-			if (tile.active())
-				flags |= 1;
+			byte flags = (byte)(tile.tileHeader & 0xf1);
 			if (tile.wall != 0)
 				flags |= 4;
 			if (tile.liquid != 0)
 				flags |= 8;
-			if (tile.wire())
-				flags |= 16;
-			if (tile.halfBrick())
-				flags |= 32;
-			if (tile.actuator())
-				flags |= 64;
-			if (tile.inActive())
-				flags |= 128;
-			if (tile.wire2())
-				flags2 |= 1;
-			if (tile.wire3())
-				flags2 |= 2;
-			if (tile.color() != 0)
-				flags2 |= 4;
-			if (tile.wallColor() != 0)
-				flags2 |= 8;
-			flags2 |= (byte)(tile.slope() << 4);
-
 			writer.Write(flags);
+
+			byte flags2 = (byte)((tile.tileHeader2 & 0x3) | (tile.tileHeader3 & 0x30));
+			
+			byte color = (byte)((tile.tileHeader2 >> 2) & 0x1f);
+			byte wallColor = (byte)(((tile.tileHeader3 & 0x0f) << 1) | (tile.tileHeader2 >> 7));
+
+			if (color != 0)
+				flags2 |= 4;
+			if (wallColor != 0)
+				flags2 |= 8;
 			writer.Write(flags2);
-			if (tile.color() != 0)
-				writer.Write(tile.color());
-			if (tile.wallColor() != 0)
-				writer.Write(tile.wallColor());
-			if (tile.active())
+
+			if (color != 0)
+				writer.Write(color);
+			if (wallColor != 0)
+				writer.Write(wallColor);
+
+			if ((flags & 1) != 0)
 			{
 				writer.Write(tile.type);
 				if (Main.tileFrameImportant[tile.type])
