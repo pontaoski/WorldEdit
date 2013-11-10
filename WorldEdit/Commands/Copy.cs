@@ -16,6 +16,7 @@ namespace WorldEdit.Commands
 		{
 			string clipboardPath = Tools.GetClipboardPath(plr.UserAccountName);
 			Tools.SaveWorldSection(x, y, x2, y2, clipboardPath);
+
 			plr.SendSuccessMessage("Copied selection to clipboard.");
 		}
 	}

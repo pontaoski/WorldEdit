@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using Terraria;
@@ -12,6 +13,8 @@ namespace WorldEdit
 {
 	public static class Tools
 	{
+		const int buffer = 1048576;
+
 		public static string GetClipboardPath(string accountName)
 		{
 			return Path.Combine("worldedit", String.Format("clipboard-{0}.dat", accountName));
@@ -71,15 +74,21 @@ namespace WorldEdit
 		public static Tile[,] LoadWorldData(string path)
 		{
 			Tile[,] tile;
-			using (var reader = new BinaryReader(new GZipStream(new FileStream(path, FileMode.Open), CompressionMode.Decompress)))
+			// GZipStream is already buffered, but it's much faster to have a 1 MB buffer.
+			using (var reader =
+				new BinaryReader(
+					new BufferedStream(
+						new GZipStream(File.Open(path, FileMode.Open), CompressionMode.Decompress), buffer)))
 			{
-				int xLen = reader.ReadInt32();
-				int yLen = reader.ReadInt32();
-				tile = new Tile[xLen, yLen];
+				reader.ReadInt32();
+				reader.ReadInt32();
+				int width = reader.ReadInt32();
+				int height = reader.ReadInt32();
+				tile = new Tile[width, height];
 
-				for (int i = 0; i < xLen; i++)
+				for (int i = 0; i < width; i++)
 				{
-					for (int j = 0; j < yLen; j++)
+					for (int j = 0; j < height; j++)
 						tile[i, j] = ReadTile(reader);
 				}
 				return tile;
@@ -87,22 +96,26 @@ namespace WorldEdit
 		}
 		public static void LoadWorldSection(string path)
 		{
-			using (var reader = new BinaryReader(new GZipStream(new FileStream(path, FileMode.Open), CompressionMode.Decompress)))
+			// GZipStream is already buffered, but it's much faster to have a 1 MB buffer.
+			using (var reader =
+				new BinaryReader(
+					new BufferedStream(
+						new GZipStream(File.Open(path, FileMode.Open), CompressionMode.Decompress), buffer)))
 			{
 				int x = reader.ReadInt32();
 				int y = reader.ReadInt32();
-				int xLen = reader.ReadInt32();
-				int yLen = reader.ReadInt32();
+				int width = reader.ReadInt32();
+				int height = reader.ReadInt32();
 
-				for (int i = x; i < x + xLen; i++)
+				for (int i = x; i < x + width; i++)
 				{
-					for (int j = y; j < y + yLen; j++)
+					for (int j = y; j < y + height; j++)
 					{
 						Main.tile[i, j] = reader.ReadTile();
 						Main.tile[i, j].skipLiquid(true);
 					}
 				}
-				ResetSection(x, y, x + xLen, y + yLen);
+				ResetSection(x, y, x + width, y + height);
 			}
 		}
 		public static bool ParseConditions(List<string> parameters, TSPlayer plr, out List<Condition> conditions)
@@ -462,7 +475,6 @@ namespace WorldEdit
 			}
 			LoadWorldSection(redoPath);
 			File.Delete(redoPath);
-
 			return true;
 		}
 		public static void ResetSection(int x, int y, int x2, int y2)
@@ -483,29 +495,19 @@ namespace WorldEdit
 				}
 			}
 		}
-		public static void SaveWorldData(Tile[,] tiles, string path)
-		{
-			using (var writer = new BinaryWriter(new GZipStream(new FileStream(path, FileMode.Create), CompressionMode.Compress)))
-			{
-				int xLen = tiles.GetLength(0);
-				int yLen = tiles.GetLength(1);
-				writer.Write(xLen);
-				writer.Write(yLen);
-				for (int i = 0; i < xLen; i++)
-				{
-					for (int j = 0; j < yLen; j++)
-						writer.Write(tiles[i, j] ?? new Tile());
-				}
-			}
-		}
 		public static void SaveWorldSection(int x, int y, int x2, int y2, string path)
 		{
-			using (var writer = new BinaryWriter(new GZipStream(new FileStream(path, FileMode.Create), CompressionMode.Compress)))
+			// GZipStream is already buffered, but it's much faster to have a 1 MB buffer.
+			using (var writer =
+				new BinaryWriter(
+					new BufferedStream(
+						new GZipStream(File.Open(path, FileMode.Create), CompressionMode.Compress), buffer)))
 			{
 				writer.Write(x);
 				writer.Write(y);
 				writer.Write(x2 - x + 1);
 				writer.Write(y2 - y + 1);
+
 				for (int i = x; i <= x2; i++)
 				{
 					for (int j = y; j <= y2; j++)
@@ -598,7 +600,6 @@ namespace WorldEdit
 			}
 			LoadWorldSection(undoPath);
 			File.Delete(undoPath);
-
 			return true;
 		}
 	}
