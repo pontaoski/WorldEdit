@@ -1479,8 +1479,7 @@ namespace WorldEdit
 							return;
 						}
 
-						string id = e.Player.RealPlayer ? e.Player.Index.ToString() : "server";
-						string clipboardPath = Path.Combine("worldedit", String.Format("clipboard-{0}.dat", id));
+						string clipboardPath = Path.Combine("worldedit", String.Format("clipboard-{0}.dat", e.Player.UserAccountName));
 						File.Copy(schematicPath, clipboardPath, true);
 						e.Player.SendSuccessMessage("Loaded schematic to clipboard.");
 					}
