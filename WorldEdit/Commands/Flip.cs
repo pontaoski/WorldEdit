@@ -8,7 +8,7 @@ namespace WorldEdit.Commands
 {
 	public class Flip : WECommand
 	{
-		const int buffer = 1048576;
+		const int BUFFER_SIZE = 1048576;
 		byte direction;
 
 		public Flip(TSPlayer plr, byte direction)
@@ -35,7 +35,7 @@ namespace WorldEdit.Commands
 			using (var writer =
 				new BinaryWriter(
 					new BufferedStream(
-						new GZipStream(File.Open(clipboardPath, FileMode.Create), CompressionMode.Compress), buffer)))
+						new GZipStream(File.Open(clipboardPath, FileMode.Create), CompressionMode.Compress), BUFFER_SIZE)))
 			{
 				writer.Write(0);
 				writer.Write(0);

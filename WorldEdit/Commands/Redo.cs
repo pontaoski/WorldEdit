@@ -21,7 +21,10 @@ namespace WorldEdit.Commands
 			for (; i < steps && Tools.Redo(accountName); i++)
 			{
 			}
-			plr.SendSuccessMessage("Redid {0}'s last {1}action{2}.", accountName, i == 1 ? "" : i + " ", i == 1 ? "" : "s");
+			if (i == 0)
+				plr.SendErrorMessage("Failed to redo any actions.");
+			else
+				plr.SendSuccessMessage("Redid {0}'s last {1}action{2}.", accountName, i == 1 ? "" : i + " ", i == 1 ? "" : "s");
 		}
 	}
 }

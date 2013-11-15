@@ -13,7 +13,8 @@ namespace WorldEdit
 {
 	public static class Tools
 	{
-		const int buffer = 1048576;
+		const int BUFFER_SIZE = 1048576;
+		const int MAX_UNDOS = 50;
 
 		public static string GetClipboardPath(string accountName)
 		{
@@ -78,7 +79,7 @@ namespace WorldEdit
 			using (var reader =
 				new BinaryReader(
 					new BufferedStream(
-						new GZipStream(File.Open(path, FileMode.Open), CompressionMode.Decompress), buffer)))
+						new GZipStream(File.Open(path, FileMode.Open), CompressionMode.Decompress), BUFFER_SIZE)))
 			{
 				reader.ReadInt32();
 				reader.ReadInt32();
@@ -100,7 +101,7 @@ namespace WorldEdit
 			using (var reader =
 				new BinaryReader(
 					new BufferedStream(
-						new GZipStream(File.Open(path, FileMode.Open), CompressionMode.Decompress), buffer)))
+						new GZipStream(File.Open(path, FileMode.Open), CompressionMode.Decompress), BUFFER_SIZE)))
 			{
 				int x = reader.ReadInt32();
 				int y = reader.ReadInt32();
@@ -392,6 +393,7 @@ namespace WorldEdit
 
 			foreach (string fileName in Directory.EnumerateFiles("worldedit", String.Format("redo-{0}-*.dat", plr.UserAccountName)))
 				File.Delete(fileName);
+			File.Delete(Path.Combine("worldedit", String.Format("undo-{0}-{1}.dat", plr.UserAccountName, undoLevel - MAX_UNDOS)));
 		}
 		public static Tile ReadTile(this BinaryReader reader)
 		{
@@ -447,11 +449,14 @@ namespace WorldEdit
 			if (redoLevel < -1)
 				return false;
 
-			WorldEdit.Database.Query("UPDATE WorldEdit SET RedoLevel = @0 WHERE Account = @1", redoLevel, accountName);
-			WorldEdit.Database.Query("UPDATE WorldEdit SET UndoLevel = @0 WHERE Account = @1", undoLevel, accountName);
-
 			string redoPath = Path.Combine("worldedit", String.Format("redo-{0}-{1}.dat", accountName, redoLevel + 1));
+			WorldEdit.Database.Query("UPDATE WorldEdit SET RedoLevel = @0 WHERE Account = @1", redoLevel, accountName);
+
+			if (!File.Exists(redoPath))
+				return false;
+
 			string undoPath = Path.Combine("worldedit", String.Format("undo-{0}-{1}.dat", accountName, undoLevel));
+			WorldEdit.Database.Query("UPDATE WorldEdit SET UndoLevel = @0 WHERE Account = @1", undoLevel, accountName);
 
 			using (var reader = new BinaryReader(new GZipStream(new FileStream(redoPath, FileMode.Open), CompressionMode.Decompress)))
 			{
@@ -489,7 +494,7 @@ namespace WorldEdit
 			using (var writer =
 				new BinaryWriter(
 					new BufferedStream(
-						new GZipStream(File.Open(path, FileMode.Create), CompressionMode.Compress), buffer)))
+						new GZipStream(File.Open(path, FileMode.Create), CompressionMode.Compress), BUFFER_SIZE)))
 			{
 				writer.Write(x);
 				writer.Write(y);
@@ -563,11 +568,14 @@ namespace WorldEdit
 			if (undoLevel < -1)
 				return false;
 
-			WorldEdit.Database.Query("UPDATE WorldEdit SET RedoLevel = @0 WHERE Account = @1", redoLevel, accountName);
+			string undoPath = Path.Combine("worldedit", String.Format("undo-{0}-{1}.dat", accountName, undoLevel + 1));
 			WorldEdit.Database.Query("UPDATE WorldEdit SET UndoLevel = @0 WHERE Account = @1", undoLevel, accountName);
 
+			if (!File.Exists(undoPath))
+				return false;
+
 			string redoPath = Path.Combine("worldedit", String.Format("redo-{0}-{1}.dat", accountName, redoLevel));
-			string undoPath = Path.Combine("worldedit", String.Format("undo-{0}-{1}.dat", accountName, undoLevel + 1));
+			WorldEdit.Database.Query("UPDATE WorldEdit SET RedoLevel = @0 WHERE Account = @1", redoLevel, accountName);
 
 			using (var reader = new BinaryReader(new GZipStream(new FileStream(undoPath, FileMode.Open), CompressionMode.Decompress)))
 			{
