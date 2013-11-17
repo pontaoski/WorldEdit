@@ -124,7 +124,7 @@ namespace WorldEdit
 			conditions = new List<Condition>();
 			if (!String.Equals(parameters[1], "where"))
 			{
-				plr.SendErrorMessage("Invalid where clause.");
+				plr.SendErrorMessage("Invalid where conditional.");
 				return false;
 			}
 
@@ -368,6 +368,9 @@ namespace WorldEdit
 						}
 						#endregion
 						break;
+					default:
+						plr.SendErrorMessage("Invalid conditional.");
+						return false;
 				}
 			}
 			return true;
