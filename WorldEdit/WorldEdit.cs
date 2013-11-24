@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -446,7 +447,7 @@ namespace WorldEdit
 			TileNames.Add("demonite brick", 140);
 			TileNames.Add("candy cane block", 145);
 			TileNames.Add("green candy cane block", 146);
-			TileNames.Add("sno blockw", 147);
+			TileNames.Add("snow block", 147);
 			TileNames.Add("snow brick", 148);
 			TileNames.Add("adamantite beam", 150);
 			TileNames.Add("sandstone brick", 151);
@@ -1456,7 +1457,8 @@ namespace WorldEdit
 						if (!PaginationTools.TryParsePageNumber(e.Parameters, 1, e.Player, out pageNumber))
 							return;
 
-						var schematics = new List<string>(Directory.EnumerateFiles("worldedit", "schematic-*.dat"));
+						var schematics = from s in Directory.EnumerateFiles("worldedit", "schematic-*.dat")
+										 select s.Substring(20);
 						PaginationTools.SendPage(e.Player, pageNumber, PaginationTools.BuildLinesFromTerms(schematics),
 							new PaginationTools.Settings
 							{
@@ -1641,6 +1643,7 @@ namespace WorldEdit
 			var conditions = new List<Condition>();
 			if (e.Parameters.Count > 3)
 			{
+				e.Parameters.RemoveRange(0, 2);
 				if (!Tools.ParseConditions(e.Parameters, e.Player, out conditions))
 					return;
 			}
