@@ -462,8 +462,8 @@ namespace WorldEdit
 			TileNames.Add("rainbow brick", 160);
 			TileNames.Add("ice block", 161);
 			TileNames.Add("thin ice", 162);
-			TileNames.Add("purple ice block", 162);
-			TileNames.Add("pink ice block", 162);
+			TileNames.Add("purple ice block", 163);
+			TileNames.Add("pink ice block", 164);
 			TileNames.Add("tin ore", 166);
 			TileNames.Add("lead ore", 167);
 			TileNames.Add("tungsten ore", 168);
