@@ -46,8 +46,8 @@ namespace WorldEdit.Commands
 					new BufferedStream(
 						new GZipStream(File.Open(undoPath, FileMode.Create), CompressionMode.Compress), BUFFER_SIZE)))
 			{
-				writer.Write(0);
-				writer.Write(0);
+				writer.Write(x);
+				writer.Write(y);
 				writer.Write(x2 - x + 1);
 				writer.Write(y2 - y + 1);
 

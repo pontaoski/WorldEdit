@@ -291,15 +291,15 @@ namespace WorldEdit
 			#endregion
 
 			#region Biomes
-			// Format: dirt, stone, sand, grass, plants, tall plants, vines, thorn
+			// Format: dirt, stone, ice, sand, grass, plants, tall plants, vines, thorn
 
-			BiomeConversions.Add(new[] { 0, 203, 234, 199, -1, -1, 205, 32 });
-			BiomeConversions.Add(new[] { 0, 25, 112, 23, 24, -1, -1, 32 });
-			BiomeConversions.Add(new[] { 0, 117, 116, 109, 110, 113, 52, -1 });
-			BiomeConversions.Add(new[] { 59, 1, 53, 60, 61, 74, 62, 69 });
-			BiomeConversions.Add(new[] { 59, 1, 53, 70, 71, -1, -1, -1 });
-			BiomeConversions.Add(new[] { 0, 1, 53, 2, 3, 73, 52, -1 });
-			BiomeConversions.Add(new[] { 147, 161, 53, 147, -1, -1, -1, -1 });
+			BiomeConversions.Add(new[] { 0, 203, 200, 234, 199, -1, -1, 205, 32 });
+			BiomeConversions.Add(new[] { 0, 25, 163, 112, 23, 24, -1, -1, 32 });
+			BiomeConversions.Add(new[] { 0, 117, 164, 116, 109, 110, 113, 52, -1 });
+			BiomeConversions.Add(new[] { 59, 1, 161, 53, 60, 61, 74, 62, 69 });
+			BiomeConversions.Add(new[] { 59, 1, 161, 53, 70, 71, -1, -1, -1 });
+			BiomeConversions.Add(new[] { 0, 1, 161, 53, 2, 3, 73, 52, -1 });
+			BiomeConversions.Add(new[] { 147, 161, 161, 53, 147, -1, -1, -1, -1 });
 			BiomeNames.Add("crimson");
 			BiomeNames.Add("corruption");
 			BiomeNames.Add("hallow");
