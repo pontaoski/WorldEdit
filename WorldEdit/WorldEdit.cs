@@ -1144,7 +1144,7 @@ namespace WorldEdit
 		{
 			if (e.Parameters.Count == 0)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //paint <color> [where conditions]");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //paint <color> [where] [conditions...]");
 				return;
 			}
 			PlayerInfo info = GetPlayerInfo(e.Player);
@@ -1179,7 +1179,7 @@ namespace WorldEdit
 		{
 			if (e.Parameters.Count == 0)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //paintwall <color> [where conditions]");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //paintwall <color> [where] [conditions...]");
 				return;
 			}
 			PlayerInfo info = GetPlayerInfo(e.Player);
@@ -1224,12 +1224,6 @@ namespace WorldEdit
 				return;
 			}
 
-			if (e.Parameters.Count > 1)
-			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //paste [alignment]");
-				return;
-			}
-
 			int alignment = 0;
 			if (e.Parameters.Count == 1)
 			{
@@ -1253,7 +1247,14 @@ namespace WorldEdit
 				}
 			}
 
-			CommandQueue.Add(new Paste(info.x, info.y, e.Player, alignment));
+            var conditions = new List<Condition>();
+            if (e.Parameters.Count > 1)
+            {
+                if (!Tools.ParseConditions(e.Parameters, e.Player, out conditions))
+                    return;
+            }
+
+			CommandQueue.Add(new Paste(info.x, info.y, e.Player, alignment, conditions));
 		}
 		void Point1(CommandArgs e)
 		{
@@ -1533,7 +1534,7 @@ namespace WorldEdit
 		{
 			if (e.Parameters.Count == 0)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //set <tile> [where conditions]");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //set <tile> [where] [conditions...]");
 				return;
 			}
 			PlayerInfo info = GetPlayerInfo(e.Player);
@@ -1568,7 +1569,7 @@ namespace WorldEdit
 		{
 			if (e.Parameters.Count == 0)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //setwall <wall> [where conditions]");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //setwall <wall> [where] [conditions...]");
 				return;
 			}
 			PlayerInfo info = GetPlayerInfo(e.Player);

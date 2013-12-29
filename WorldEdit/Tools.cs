@@ -122,7 +122,7 @@ namespace WorldEdit
 		public static bool ParseConditions(List<string> parameters, TSPlayer plr, out List<Condition> conditions)
 		{
 			conditions = new List<Condition>();
-			if (!String.Equals(parameters[1], "where"))
+			if (!String.Equals(parameters[1], "where", StringComparison.OrdinalIgnoreCase))
 			{
 				plr.SendErrorMessage("Invalid where conditional.");
 				return false;
