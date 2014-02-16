@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Terraria;
 using TShockAPI;
 
@@ -56,15 +57,12 @@ namespace WorldEdit.Commands
 			int highX = Netplay.GetSectionX(x2);
 			int lowY = Netplay.GetSectionY(y);
 			int highY = Netplay.GetSectionY(y2);
-			foreach (ServerSock sock in Netplay.serverSock)
+			foreach (ServerSock sock in Netplay.serverSock.Where(s => s.active))
 			{
-				if (sock.active)
+				for (int i = lowX; i <= highX; i++)
 				{
-					for (int i = lowX; i <= highX; i++)
-					{
-						for (int j = lowY; j <= highY; j++)
-							sock.tileSection[i, j] = false;
-					}
+					for (int j = lowY; j <= highY; j++)
+						sock.tileSection[i, j] = false;
 				}
 			}
 		}

@@ -19,7 +19,7 @@ namespace WorldEdit
 {
 	public delegate bool Condition(int i, int j);
 
-	[ApiVersion(1, 14)]
+	[ApiVersion(1, 15)]
 	public class WorldEdit : TerrariaPlugin
 	{
 		public static List<int[]> BiomeConversions = new List<int[]>();
@@ -506,6 +506,16 @@ namespace WorldEdit
 			TileNames.Add("pumpkin", 251);
 			TileNames.Add("hay", 252);
 			TileNames.Add("spooky wood", 253);
+			TileNames.Add("amethyst gemspark block", 262);
+			TileNames.Add("topaz gemspark block", 263);
+			TileNames.Add("sapphire gemspark block", 264);
+			TileNames.Add("emerald gemspark block", 265);
+			TileNames.Add("ruby gemspark block", 266);
+			TileNames.Add("diamond gemspark block", 267);
+			TileNames.Add("amber gemspark block", 268);
+			TileNames.Add("stone slab", 273);
+			TileNames.Add("sandstone slab", 274);
+			TileNames.Add("dynasty wood", 311);
 			#endregion
 			#region Wall Names
 			WallNames.Add("air", 0);
@@ -584,6 +594,35 @@ namespace WorldEdit
 			WallNames.Add("pumpkin", 113);
 			WallNames.Add("hay", 114);
 			WallNames.Add("spooky wood", 115);
+			WallNames.Add("christmas tree wallpaper", 116);
+			WallNames.Add("ornament wallpaper", 117);
+			WallNames.Add("candy cane wallpaper", 118);
+			WallNames.Add("festive wallpaper", 119);
+			WallNames.Add("stars wallpaper", 120);
+			WallNames.Add("squiggles wallpaper", 121);
+			WallNames.Add("snowflake wallpaper", 122);
+			WallNames.Add("krampus horn wallpaper", 123);
+			WallNames.Add("blue green wallpaper", 124);
+			WallNames.Add("grinch finger wallpaper", 125);
+			WallNames.Add("fancy grey wallpaper", 126);
+			WallNames.Add("ice floe wallpaper", 127);
+			WallNames.Add("music wallpaper", 128);
+			WallNames.Add("purple rain wallpaper", 129);
+			WallNames.Add("rainbow wallpaper", 130);
+			WallNames.Add("sparkle stone wallpaper", 131);
+			WallNames.Add("starlit heaven wallpaper", 132);
+			WallNames.Add("bubble wallpaper", 133);
+			WallNames.Add("copper pipe wallpaper", 134);
+			WallNames.Add("ducky wallpaper", 135);
+			WallNames.Add("waterfall", 136);
+			WallNames.Add("lavafall", 137);
+			WallNames.Add("ebonwood fence", 138);
+			WallNames.Add("rich mahogany fence", 139);
+			WallNames.Add("pearlwood fence", 140);
+			WallNames.Add("shadewood fence", 141);
+			WallNames.Add("white dynasty", 142);
+			WallNames.Add("blue dynasty", 143);
+			WallNames.Add("arcane rune", 144);
 			#endregion
 
 			ThreadPool.QueueUserWorkItem(QueueCallback);
@@ -595,9 +634,6 @@ namespace WorldEdit
 
 		void QueueCallback(object context)
 		{
-			Main.rand = new Random();
-			WorldGen.genRand = new Random();
-
 			while (!Netplay.disconnect)
 			{
 				WECommand command;
@@ -605,6 +641,10 @@ namespace WorldEdit
 				{
 					if (!CommandQueue.TryTake(out command, -1, Cancel.Token))
 						return;
+					if (Main.rand == null)
+						Main.rand = new Random();
+					if (WorldGen.genRand == null)
+						WorldGen.genRand = new Random();
 					command.Position();
 					command.Execute();
 				}
@@ -1232,17 +1272,20 @@ namespace WorldEdit
 					switch (c)
 					{
 						case 'l':
-							alignment = alignment & 2;
+                            alignment &= 2;
 							break;
 						case 'r':
-							alignment = alignment | 1;
+                            alignment |= 1;
 							break;
 						case 't':
-							alignment = alignment & 1;
+                            alignment &= 1;
 							break;
 						case 'b':
-							alignment = alignment | 2;
+                            alignment |= 2;
 							break;
+                        default:
+                            e.Player.SendErrorMessage("Invalid paste direction!");
+                            break;
 					}
 				}
 			}

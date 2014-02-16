@@ -401,37 +401,22 @@ namespace WorldEdit
 		public static Tile ReadTile(this BinaryReader reader)
 		{
 			Tile tile = new Tile();
-			byte flags = reader.ReadByte();
-			byte flags2 = reader.ReadByte();
-			tile.tileHeader = (byte)(flags & 0xf1);
-			tile.tileHeader2 = (byte)(flags2 & 0x03);
-			tile.tileHeader3 = (byte)(flags2 & 0x30);
-			
-			// Color
-			if ((flags2 & 4) != 0)
-				tile.color(reader.ReadByte());
-			// Wall color
-			if ((flags2 & 8) != 0)
-				tile.wallColor(reader.ReadByte());
+			tile.sTileHeader = reader.ReadInt16();
+			tile.bTileHeader = reader.ReadByte();
+			tile.bTileHeader2 = reader.ReadByte();
+
 			// Tile type
-			if ((flags & 1) != 0)
+			if (tile.active())
 			{
-				tile.type = reader.ReadByte();
+				tile.type = reader.ReadUInt16();
 				if (Main.tileFrameImportant[tile.type])
 				{
 					tile.frameX = reader.ReadInt16();
 					tile.frameY = reader.ReadInt16();
 				}
 			}
-			// Wall type
-			if ((flags & 4) != 0)
-				tile.wall = reader.ReadByte();
-			// Liquid
-			if ((flags & 8) != 0)
-			{
-				tile.liquid = reader.ReadByte();
-				tile.liquidType(reader.ReadByte());
-			}
+			tile.wall = reader.ReadByte();
+			tile.liquid = reader.ReadByte();
 			return tile;
 		}
 		public static bool Redo(string accountName)
@@ -513,30 +498,11 @@ namespace WorldEdit
 		}
 		public static void Write(this BinaryWriter writer, Tile tile)
 		{
-			byte flags = (byte)(tile.tileHeader & 0xf1);
-			if (tile.wall != 0)
-				flags |= 4;
-			if (tile.liquid != 0)
-				flags |= 8;
-			writer.Write(flags);
-
-			byte flags2 = (byte)((tile.tileHeader2 & 0x3) | (tile.tileHeader3 & 0x30));
+			writer.Write(tile.sTileHeader);
+			writer.Write(tile.bTileHeader);
+			writer.Write(tile.bTileHeader2);
 			
-			byte color = (byte)((tile.tileHeader2 >> 2) & 0x1f);
-			byte wallColor = (byte)(((tile.tileHeader3 & 0x0f) << 1) | (tile.tileHeader2 >> 7));
-
-			if (color != 0)
-				flags2 |= 4;
-			if (wallColor != 0)
-				flags2 |= 8;
-			writer.Write(flags2);
-
-			if (color != 0)
-				writer.Write(color);
-			if (wallColor != 0)
-				writer.Write(wallColor);
-
-			if ((flags & 1) != 0)
+			if (tile.active())
 			{
 				writer.Write(tile.type);
 				if (Main.tileFrameImportant[tile.type])
@@ -545,13 +511,8 @@ namespace WorldEdit
 					writer.Write(tile.frameY);
 				}
 			}
-			if (tile.wall != 0)
-				writer.Write(tile.wall);
-			if (tile.liquid != 0)
-			{
-				writer.Write(tile.liquid);
-				writer.Write(tile.liquidType());
-			}
+			writer.Write(tile.wall);
+			writer.Write(tile.liquid);
 		}
 		public static bool Undo(string accountName)
 		{
