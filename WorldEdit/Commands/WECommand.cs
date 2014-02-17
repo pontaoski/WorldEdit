@@ -106,7 +106,7 @@ namespace WorldEdit.Commands
 						Main.tile[i, j].frameY = -1;
 						Main.tile[i, j].liquidType(0);
 						Main.tile[i, j].liquid = 0;
-						Main.tile[i, j].type = (byte)tile;
+						Main.tile[i, j].type = (ushort)tile;
 					}
 					return;
 			}
