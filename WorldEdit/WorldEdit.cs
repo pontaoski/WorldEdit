@@ -19,7 +19,7 @@ namespace WorldEdit
 {
 	public delegate bool Condition(int i, int j);
 
-	[ApiVersion(1, 15)]
+	[ApiVersion(1, 16)]
 	public class WorldEdit : TerrariaPlugin
 	{
 		public static List<int[]> BiomeConversions = new List<int[]>();
@@ -88,40 +88,44 @@ namespace WorldEdit
 				PlayerInfo info = Players[e.Msg.whoAmI];
 				if (info.pt != 0)
 				{
-					int X = BitConverter.ToInt32(e.Msg.readBuffer, e.Index + 1);
-					int Y = BitConverter.ToInt32(e.Msg.readBuffer, e.Index + 5);
-					if (X >= 0 && Y >= 0 && X < Main.maxTilesX && Y < Main.maxTilesY)
+					using (var reader = new BinaryReader(new MemoryStream(e.Msg.readBuffer, e.Index, e.Length)))
 					{
-						if (info.pt == 1)
+						reader.ReadByte();
+						int x = reader.ReadInt16();
+						int y = reader.ReadInt16();
+						if (x >= 0 && y >= 0 && x < Main.maxTilesX && y < Main.maxTilesY)
 						{
-							info.x = X;
-							info.y = Y;
-							TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set point 1.");
-						}
-						else if (info.pt == 3)
-						{
-							List<string> regions = TShock.Regions.InAreaRegionName(X, Y);
-							if (regions.Count == 0)
+							if (info.pt == 1)
 							{
-								TShock.Players[e.Msg.whoAmI].SendErrorMessage("No region exists there.");
-								return;
+								info.x = x;
+								info.y = y;
+								TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set point 1.");
 							}
-							Region curReg = TShock.Regions.GetRegionByName(regions[0]);
-							info.x = curReg.Area.X;
-							info.y = curReg.Area.Y;
-							info.x2 = curReg.Area.X + curReg.Area.Width;
-							info.y2 = curReg.Area.Y + curReg.Area.Height;
-							TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set region.");
+							else if (info.pt == 2)
+							{
+								info.x2 = x;
+								info.y2 = y;
+								TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set point 2.");
+							}
+							else if (info.pt == 3)
+							{
+								List<string> regions = TShock.Regions.InAreaRegionName(x, y);
+								if (regions.Count == 0)
+								{
+									TShock.Players[e.Msg.whoAmI].SendErrorMessage("No region exists there.");
+									return;
+								}
+								Region curReg = TShock.Regions.GetRegionByName(regions[0]);
+								info.x = curReg.Area.X;
+								info.y = curReg.Area.Y;
+								info.x2 = curReg.Area.X + curReg.Area.Width;
+								info.y2 = curReg.Area.Y + curReg.Area.Height;
+								TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set region.");
+							}
+							info.pt = 0;
+							e.Handled = true;
+							TShock.Players[e.Msg.whoAmI].SendTileSquare(x, y, 3);
 						}
-						else
-						{
-							info.x2 = X;
-							info.y2 = Y;
-							TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set point 2.");
-						}
-						info.pt = 0;
-						e.Handled = true;
-						TShock.Players[e.Msg.whoAmI].SendTileSquare(X, Y, 3);
 					}
 				}
 			}
