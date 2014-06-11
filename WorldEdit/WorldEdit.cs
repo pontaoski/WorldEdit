@@ -5,11 +5,13 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using Terraria;
+using Terraria.ID;
 using TerrariaApi.Server;
 using TShockAPI;
 using TShockAPI.DB;
@@ -341,6 +343,9 @@ namespace WorldEdit
 			ColorNames.Add("black");
 			ColorNames.Add("white");
 			ColorNames.Add("gray");
+			ColorNames.Add("brown");
+			ColorNames.Add("shadow");
+			ColorNames.Add("negative");
 			#endregion
 			#region Invalid Tiles
 			InvalidTiles.Add(33);
@@ -388,245 +393,36 @@ namespace WorldEdit
 			TileNames.Add("honey", -3);
 			TileNames.Add("water", -4);
 
-			TileNames.Add("dirt block", 0);
-			TileNames.Add("stone block", 1);
-			TileNames.Add("grass", 2);
-			TileNames.Add("torch", 4);
-			TileNames.Add("iron ore", 6);
-			TileNames.Add("copper ore", 7);
-			TileNames.Add("gold ore", 8);
-			TileNames.Add("silver ore", 9);
-			TileNames.Add("platform", 19);
-			TileNames.Add("demonite ore", 22);
-			TileNames.Add("corrupt grass", 23);
-			TileNames.Add("ebonstone block", 25);
-			TileNames.Add("wood", 30);
-			TileNames.Add("meteorite", 37);
-			TileNames.Add("gray brick", 38);
-			TileNames.Add("red brick", 39);
-			TileNames.Add("clay", 40);
-			TileNames.Add("blue brick", 41);
-			TileNames.Add("green brick", 43);
-			TileNames.Add("pink brick", 44);
-			TileNames.Add("gold brick", 45);
-			TileNames.Add("silver brick", 46);
-			TileNames.Add("copper brick", 47);
-			TileNames.Add("spike", 48);
-			TileNames.Add("book", 50);
-			TileNames.Add("cobweb", 51);
-			TileNames.Add("sand block", 53);
-			TileNames.Add("glass", 54);
-			TileNames.Add("obsidian", 56);
-			TileNames.Add("ash block", 57);
-			TileNames.Add("hellstone", 58);
-			TileNames.Add("mud", 59);
-			TileNames.Add("jungle grass", 60);
-			TileNames.Add("sapphire", 63);
-			TileNames.Add("ruby", 64);
-			TileNames.Add("emerald", 65);
-			TileNames.Add("topaz", 66);
-			TileNames.Add("amethyst", 67);
-			TileNames.Add("diamond", 68);
-			TileNames.Add("mushroom grass", 70);
-			TileNames.Add("obsidian brick", 75);
-			TileNames.Add("hellstone brick", 76);
-			TileNames.Add("clay pot", 78);
-			TileNames.Add("cobalt ore", 107);
-			TileNames.Add("mythril ore", 108);
-			TileNames.Add("hallowed grass", 109);
-			TileNames.Add("adamantite ore", 111);
-			TileNames.Add("ebonsand block", 112);
-			TileNames.Add("pearlsand block", 116);
-			TileNames.Add("pearlstone block", 117);
-			TileNames.Add("pearlstone brick", 118);
-			TileNames.Add("iridescent brick", 119);
-			TileNames.Add("mudstone block", 120);
-			TileNames.Add("cobalt brick", 121);
-			TileNames.Add("mythril brick", 122);
-			TileNames.Add("silt block", 123);
-			TileNames.Add("wooden beam", 124);
-			TileNames.Add("ice rod", 127);
-			TileNames.Add("active stone block", 130);
-			TileNames.Add("inactive stone block", 131);
-			TileNames.Add("demonite brick", 140);
-			TileNames.Add("candy cane block", 145);
-			TileNames.Add("green candy cane block", 146);
-			TileNames.Add("snow block", 147);
-			TileNames.Add("snow brick", 148);
-			TileNames.Add("adamantite beam", 150);
-			TileNames.Add("sandstone brick", 151);
-			TileNames.Add("ebonstone brick", 152);
-			TileNames.Add("red stucco", 153);
-			TileNames.Add("yellow stucco", 154);
-			TileNames.Add("green stucco", 155);
-			TileNames.Add("gray stucco", 156);
-			TileNames.Add("ebonwood", 157);
-			TileNames.Add("rich mahogany", 158);
-			TileNames.Add("pearlwood", 159);
-			TileNames.Add("rainbow brick", 160);
-			TileNames.Add("ice block", 161);
-			TileNames.Add("thin ice", 162);
-			TileNames.Add("purple ice block", 163);
-			TileNames.Add("pink ice block", 164);
-			TileNames.Add("tin ore", 166);
-			TileNames.Add("lead ore", 167);
-			TileNames.Add("tungsten ore", 168);
-			TileNames.Add("platinum ore", 169);
-			TileNames.Add("tin brick", 175);
-			TileNames.Add("tungsten brick", 176);
-			TileNames.Add("platinum brick", 177);
-			TileNames.Add("cactus", 188);
-			TileNames.Add("cloud", 189);
-			TileNames.Add("glowing mushroom", 190);
-			TileNames.Add("living wood", 191);
-			TileNames.Add("leaf", 192);
-			TileNames.Add("slime block", 193);
-			TileNames.Add("bone block", 194);
-			TileNames.Add("flesh block", 195);
-			TileNames.Add("rain cloud", 196);
-			TileNames.Add("frozen slime block", 197);
-			TileNames.Add("asphalt block", 198);
-			TileNames.Add("crimson grass", 199);
-			TileNames.Add("red ice block", 200);
-			TileNames.Add("sunplate block", 202);
-			TileNames.Add("crimstone", 203);
-			TileNames.Add("crimtane ore", 204);
-			TileNames.Add("ice brick", 206);
-			TileNames.Add("shadewood", 208);
-			TileNames.Add("chlorophyte ore", 211);
-			TileNames.Add("palladium ore", 221);
-			TileNames.Add("orichalcum ore", 222);
-			TileNames.Add("titanium ore", 223);
-			TileNames.Add("slush block", 224);
-			TileNames.Add("hive block", 225);
-			TileNames.Add("lihzahrd brick", 226);
-			TileNames.Add("honey block", 229);
-			TileNames.Add("crispy honey block", 230);
-			TileNames.Add("wooden spike", 232);
-			TileNames.Add("crimsand block", 234);
-			TileNames.Add("palladium column", 248);
-			TileNames.Add("bubblegum block", 249);
-			TileNames.Add("titanstone block", 250);
-			TileNames.Add("pumpkin", 251);
-			TileNames.Add("hay", 252);
-			TileNames.Add("spooky wood", 253);
-			TileNames.Add("amethyst gemspark block", 262);
-			TileNames.Add("topaz gemspark block", 263);
-			TileNames.Add("sapphire gemspark block", 264);
-			TileNames.Add("emerald gemspark block", 265);
-			TileNames.Add("ruby gemspark block", 266);
-			TileNames.Add("diamond gemspark block", 267);
-			TileNames.Add("amber gemspark block", 268);
-			TileNames.Add("stone slab", 273);
-			TileNames.Add("sandstone slab", 274);
-			TileNames.Add("dynasty wood", 311);
+			foreach (var fi in typeof(TileID).GetFields())
+			{
+				string name = fi.Name;
+				var sb = new StringBuilder();
+				for (int i = 0; i < name.Length; i++)
+				{
+					if (Char.IsUpper(name[i]))
+						sb.Append(" ").Append(Char.ToLower(name[i]));
+					else
+						sb.Append(name[i]);
+				}
+				TileNames.Add(sb.ToString(1, sb.Length - 1), (ushort)fi.GetValue(null));
+			}
 			#endregion
 			#region Wall Names
 			WallNames.Add("air", 0);
-			WallNames.Add("stone", 1);
-			WallNames.Add("ebonstone", 3);
-			WallNames.Add("wood", 4);
-			WallNames.Add("gray brick", 5);
-			WallNames.Add("red brick", 6);
-			WallNames.Add("gold brick", 10);
-			WallNames.Add("silver brick", 11);
-			WallNames.Add("copper brick", 12);
-			WallNames.Add("hellstone brick", 13);
-			WallNames.Add("mud", 15);
-			WallNames.Add("dirt", 16);
-			WallNames.Add("blue brick", 17);
-			WallNames.Add("green brick", 18);
-			WallNames.Add("pink brick", 19);
-			WallNames.Add("obsidian brick", 20);
-			WallNames.Add("glass", 21);
-			WallNames.Add("pearlstone brick", 22);
-			WallNames.Add("iridescent brick", 23);
-			WallNames.Add("mudstone brick", 24);
-			WallNames.Add("cobalt brick", 25);
-			WallNames.Add("mythril brick", 26);
-			WallNames.Add("planked", 27);
-			WallNames.Add("pearlstone", 28);
-			WallNames.Add("candy cane", 29);
-			WallNames.Add("green candy cane", 30);
-			WallNames.Add("snow brick", 31);
-			WallNames.Add("adamantite beam", 32);
-			WallNames.Add("demonite brick", 33);
-			WallNames.Add("sandstone brick", 34);
-			WallNames.Add("ebonstone brick", 35);
-			WallNames.Add("red stucco", 36);
-			WallNames.Add("yellow stucco", 37);
-			WallNames.Add("green stucco", 38);
-			WallNames.Add("gray stucco", 39);
-			WallNames.Add("ebonwood", 41);
-			WallNames.Add("rich mahogany", 42);
-			WallNames.Add("pearlwood", 43);
-			WallNames.Add("rainbow brick", 44);
-			WallNames.Add("tin brick", 45);
-			WallNames.Add("tungsten brick", 46);
-			WallNames.Add("platinum brick", 47);
-			WallNames.Add("grass", 66);
-			WallNames.Add("jungle", 67);
-			WallNames.Add("flower", 68);
-			WallNames.Add("cactus", 72);
-			WallNames.Add("cloud", 73);
-			WallNames.Add("mushroom", 74);
-			WallNames.Add("bone block", 75);
-			WallNames.Add("slime block", 76);
-			WallNames.Add("flesh block", 77);
-			WallNames.Add("disc", 82);
-			WallNames.Add("ice brick", 84);
-			WallNames.Add("shadewood", 85);
-			WallNames.Add("purple glass", 88);
-			WallNames.Add("yellow glass", 89);
-			WallNames.Add("blue glass", 90);
-			WallNames.Add("green glass", 91);
-			WallNames.Add("red glass", 92);
-			WallNames.Add("multicolor glass", 93);
-			WallNames.Add("blue slab", 100);
-			WallNames.Add("blue tiled", 101);
-			WallNames.Add("pink slab", 102);
-			WallNames.Add("pink tiled", 103);
-			WallNames.Add("green slab", 104);
-			WallNames.Add("green tiled", 105);
-			WallNames.Add("wooden fence", 106);
-			WallNames.Add("metal fence", 107);
-			WallNames.Add("hive", 108);
-			WallNames.Add("palladium column", 109);
-			WallNames.Add("bubblegum block", 110);
-			WallNames.Add("titanstone block", 111);
-			WallNames.Add("lihzahrd brick", 112);
-			WallNames.Add("pumpkin", 113);
-			WallNames.Add("hay", 114);
-			WallNames.Add("spooky wood", 115);
-			WallNames.Add("christmas tree wallpaper", 116);
-			WallNames.Add("ornament wallpaper", 117);
-			WallNames.Add("candy cane wallpaper", 118);
-			WallNames.Add("festive wallpaper", 119);
-			WallNames.Add("stars wallpaper", 120);
-			WallNames.Add("squiggles wallpaper", 121);
-			WallNames.Add("snowflake wallpaper", 122);
-			WallNames.Add("krampus horn wallpaper", 123);
-			WallNames.Add("blue green wallpaper", 124);
-			WallNames.Add("grinch finger wallpaper", 125);
-			WallNames.Add("fancy grey wallpaper", 126);
-			WallNames.Add("ice floe wallpaper", 127);
-			WallNames.Add("music wallpaper", 128);
-			WallNames.Add("purple rain wallpaper", 129);
-			WallNames.Add("rainbow wallpaper", 130);
-			WallNames.Add("sparkle stone wallpaper", 131);
-			WallNames.Add("starlit heaven wallpaper", 132);
-			WallNames.Add("bubble wallpaper", 133);
-			WallNames.Add("copper pipe wallpaper", 134);
-			WallNames.Add("ducky wallpaper", 135);
-			WallNames.Add("waterfall", 136);
-			WallNames.Add("lavafall", 137);
-			WallNames.Add("ebonwood fence", 138);
-			WallNames.Add("rich mahogany fence", 139);
-			WallNames.Add("pearlwood fence", 140);
-			WallNames.Add("shadewood fence", 141);
-			WallNames.Add("white dynasty", 142);
-			WallNames.Add("blue dynasty", 143);
-			WallNames.Add("arcane rune", 144);
+
+			foreach (var fi in typeof(WallID).GetFields())
+			{
+				string name = fi.Name;
+				var sb = new StringBuilder();
+				for (int i = 0; i < name.Length; i++)
+				{
+					if (Char.IsUpper(name[i]))
+						sb.Append(" ").Append(Char.ToLower(name[i]));
+					else
+						sb.Append(name[i]);
+				}
+				WallNames.Add(sb.ToString(1, sb.Length - 1), (byte)fi.GetValue(null));
+			}
 			#endregion
 
 			ThreadPool.QueueUserWorkItem(QueueCallback);
@@ -1289,7 +1085,7 @@ namespace WorldEdit
 							break;
                         default:
                             e.Player.SendErrorMessage("Invalid paste direction!");
-                            break;
+                            return;
 					}
 				}
 			}
