@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using Terraria;
 using TShockAPI;
 using TShockAPI.DB;
@@ -448,10 +449,10 @@ namespace WorldEdit
 
 			using (var reader = new BinaryReader(new GZipStream(new FileStream(redoPath, FileMode.Open), CompressionMode.Decompress)))
 			{
-				int x = reader.ReadInt32();
-				int y = reader.ReadInt32();
-				int x2 = x + reader.ReadInt32() - 1;
-				int y2 = y + reader.ReadInt32() - 1;
+				int x = Math.Max(0, reader.ReadInt32());
+				int y = Math.Max(0, reader.ReadInt32());
+				int x2 = Math.Min(x + reader.ReadInt32() - 1, Main.maxTilesX - 1);
+				int y2 = Math.Min(y + reader.ReadInt32() - 1, Main.maxTilesY - 1);
 				SaveWorldSection(x, y, x2, y2, undoPath);
 			}
 			LoadWorldSection(redoPath);
@@ -464,15 +465,12 @@ namespace WorldEdit
 			int highX = Netplay.GetSectionX(x2);
 			int lowY = Netplay.GetSectionY(y);
 			int highY = Netplay.GetSectionY(y2);
-			foreach (ServerSock sock in Netplay.serverSock)
+			foreach (ServerSock sock in Netplay.serverSock.Where(s => s.active))
 			{
-				if (sock.active)
+				for (int i = lowX; i <= highX; i++)
 				{
-					for (int i = lowX; i <= highX; i++)
-					{
-						for (int j = lowY; j <= highY; j++)
-							sock.tileSection[i, j] = false;
-					}
+					for (int j = lowY; j <= highY; j++)
+						sock.tileSection[i, j] = false;
 				}
 			}
 		}
@@ -492,7 +490,7 @@ namespace WorldEdit
 				for (int i = x; i <= x2; i++)
 				{
 					for (int j = y; j <= y2; j++)
-						writer.Write(Main.tile[i, j]);
+						writer.Write(Main.tile[i, j] ?? new Tile());
 				}
 			}
 		}
@@ -543,10 +541,10 @@ namespace WorldEdit
 
 			using (var reader = new BinaryReader(new GZipStream(new FileStream(undoPath, FileMode.Open), CompressionMode.Decompress)))
 			{
-				int x = reader.ReadInt32();
-				int y = reader.ReadInt32();
-				int x2 = x + reader.ReadInt32() - 1;
-				int y2 = y + reader.ReadInt32() - 1;
+				int x = Math.Max(0, reader.ReadInt32());
+				int y = Math.Max(0, reader.ReadInt32());
+				int x2 = Math.Min(x + reader.ReadInt32() - 1, Main.maxTilesX - 1);
+				int y2 = Math.Min(y + reader.ReadInt32() - 1, Main.maxTilesY - 1);
 				SaveWorldSection(x, y, x2, y2, redoPath);
 			}
 			LoadWorldSection(undoPath);
