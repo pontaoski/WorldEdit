@@ -1302,7 +1302,7 @@ namespace WorldEdit
 							return;
 
 						var schematics = from s in Directory.EnumerateFiles("worldedit", "schematic-*.dat")
-										 select s.Substring(20);
+										 select s.Substring(20, s.Length - 24);
 						PaginationTools.SendPage(e.Player, pageNumber, PaginationTools.BuildLinesFromTerms(schematics),
 							new PaginationTools.Settings
 							{
