@@ -211,11 +211,10 @@ namespace WorldEdit.Expressions
 				expression = ParseExpression(ParsePostfix(ParseInfix(String.Join(" ", parameters.Skip(1)))));
 				return true;
 			}
-			catch (Exception ex)
+			catch
 			{
-				Log.ConsoleError(ex.ToString());
+				return false;
 			}
-			return false;
 		}
 	}
 }
