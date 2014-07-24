@@ -16,31 +16,34 @@ using TerrariaApi.Server;
 using TShockAPI;
 using TShockAPI.DB;
 using WorldEdit.Commands;
+using WorldEdit.Expressions;
 
 namespace WorldEdit
 {
-	public delegate bool Condition(int i, int j);
+	public delegate bool Selection(int i, int j, TSPlayer player);
 
 	[ApiVersion(1, 16)]
 	public class WorldEdit : TerrariaPlugin
 	{
-		public static List<int[]> BiomeConversions = new List<int[]>();
-		public static List<string> BiomeNames = new List<string>();
-		public static List<string> ColorNames = new List<string>();
+		public static Dictionary<string, int[]> Biomes = new Dictionary<string, int[]>();
+		public static Dictionary<string, int> Colors = new Dictionary<string, int>();
 		public static IDbConnection Database;
-		public static List<int> InvalidTiles = new List<int>();
 		public static PlayerInfo[] Players = new PlayerInfo[257];
-		public static List<Func<int, int, TSPlayer, bool>> Selections = new List<Func<int, int, TSPlayer, bool>>();
-		public static List<string> SelectionNames = new List<string>();
-		public static Dictionary<string, int> TileNames = new Dictionary<string, int>();
-		public static Dictionary<string, int> WallNames = new Dictionary<string, int>();
+		public static Dictionary<string, Selection> Selections = new Dictionary<string, Selection>();
+		public static Dictionary<string, int> Tiles = new Dictionary<string, int>();
+		public static Dictionary<string, int> Walls = new Dictionary<string, int>();
+
+		public static PlayerInfo GetPlayerInfo(TSPlayer player)
+		{
+			return player.RealPlayer ? Players[player.Index] : Players[256];
+		}
 
 		public override string Author
 		{
 			get { return "MarioE"; }
 		}
-		CancellationTokenSource Cancel = new CancellationTokenSource();
-		BlockingCollection<WECommand> CommandQueue = new BlockingCollection<WECommand>();
+		private CancellationTokenSource Cancel = new CancellationTokenSource();
+		private BlockingCollection<WECommand> CommandQueue = new BlockingCollection<WECommand>();
 		public override string Description
 		{
 			get { return "Adds commands for mass editing of blocks."; }
@@ -60,6 +63,7 @@ namespace WorldEdit
 			for (int i = 0; i < Players.Length; i++)
 				Players[i] = new PlayerInfo();
 		}
+
 		protected override void Dispose(bool disposing)
 		{
 			if (disposing)
@@ -76,11 +80,6 @@ namespace WorldEdit
 			ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
 			ServerApi.Hooks.NetGetData.Register(this, OnGetData);
 			ServerApi.Hooks.ServerLeave.Register(this, OnLeave);
-		}
-
-		public static PlayerInfo GetPlayerInfo(TSPlayer player)
-		{
-			return player.RealPlayer ? Players[player.Index] : Players[256];
 		}
 
 		void OnGetData(GetDataEventArgs e)
@@ -299,63 +298,30 @@ namespace WorldEdit
 			#region Biomes
 			// Format: dirt, stone, ice, sand, grass, plants, tall plants, vines, thorn
 
-			BiomeConversions.Add(new[] { 0, 203, 200, 234, 199, -1, -1, 205, 32 });
-			BiomeConversions.Add(new[] { 0, 25, 163, 112, 23, 24, -1, -1, 32 });
-			BiomeConversions.Add(new[] { 0, 117, 164, 116, 109, 110, 113, 52, -1 });
-			BiomeConversions.Add(new[] { 59, 1, 161, 53, 60, 61, 74, 62, 69 });
-			BiomeConversions.Add(new[] { 59, 1, 161, 53, 70, 71, -1, -1, -1 });
-			BiomeConversions.Add(new[] { 0, 1, 161, 53, 2, 3, 73, 52, -1 });
-			BiomeConversions.Add(new[] { 147, 161, 161, 53, 147, -1, -1, -1, -1 });
-			BiomeNames.Add("crimson");
-			BiomeNames.Add("corruption");
-			BiomeNames.Add("hallow");
-			BiomeNames.Add("jungle");
-			BiomeNames.Add("mushroom");
-			BiomeNames.Add("normal");
-			BiomeNames.Add("snow");
+			Biomes.Add("crimson", new[] { 0, 203, 200, 234, 199, -1, -1, 205, 32 });
+			Biomes.Add("corruption", new[] { 0, 25, 163, 112, 23, 24, -1, -1, 32 });
+			Biomes.Add("hallow", new[] { 0, 117, 164, 116, 109, 110, 113, 52, -1 });
+			Biomes.Add("jungle", new[] { 59, 1, 161, 53, 60, 61, 74, 62, 69 });
+			Biomes.Add("mushroom", new[] { 59, 1, 161, 53, 70, 71, -1, -1, -1 });
+			Biomes.Add("normal", new[] { 0, 1, 161, 53, 2, 3, 73, 52, -1 });
+			Biomes.Add("snow", new[] { 147, 161, 161, 53, 147, -1, -1, -1, -1 });
 			#endregion
-			#region Color Names
-			ColorNames.Add("blank");
-			ColorNames.Add("red");
-			ColorNames.Add("orange");
-			ColorNames.Add("yellow");
-			ColorNames.Add("lime");
-			ColorNames.Add("green");
-			ColorNames.Add("teal");
-			ColorNames.Add("cyan");
-			ColorNames.Add("sky blue");
-			ColorNames.Add("blue");
-			ColorNames.Add("purple");
-			ColorNames.Add("violet");
-			ColorNames.Add("pink");
-			ColorNames.Add("deep red");
-			ColorNames.Add("deep orange");
-			ColorNames.Add("deep yellow");
-			ColorNames.Add("deep lime");
-			ColorNames.Add("deep green");
-			ColorNames.Add("deep teal");
-			ColorNames.Add("deep cyan");
-			ColorNames.Add("deep sky blue");
-			ColorNames.Add("deep blue");
-			ColorNames.Add("deep purple");
-			ColorNames.Add("deep violet");
-			ColorNames.Add("deep pink");
-			ColorNames.Add("black");
-			ColorNames.Add("white");
-			ColorNames.Add("gray");
-			ColorNames.Add("brown");
-			ColorNames.Add("shadow");
-			ColorNames.Add("negative");
-			#endregion
-			#region Invalid Tiles
-			InvalidTiles.Add(33);
-			InvalidTiles.Add(49);
-			InvalidTiles.Add(78);
+			#region Colors
+			Colors.Add("blank", 0);
+
+			Main.player[Main.myPlayer] = new Player();
+			var item = new Item();
+			for (int i = -48; i < Main.maxItemTypes; i++)
+			{
+				item.netDefaults(i);
+				if (item.paint > 0)
+					Colors.Add(item.name.Substring(0, item.name.Length - 6).ToLower(), item.paint);
+			}
 			#endregion
 			#region Selections
-			Selections.Add((i, j, plr) => ((i + j) & 1) == 0);
-			Selections.Add((i, j, plr) => ((i + j) & 1) == 1);
-			Selections.Add((i, j, plr) =>
+			Selections.Add("altcheckers", (i, j, plr) => ((i + j) & 1) == 0);
+			Selections.Add("checkers", (i, j, plr) => ((i + j) & 1) == 1);
+			Selections.Add("ellipse", (i, j, plr) =>
 			{
 				PlayerInfo info = GetPlayerInfo(plr);
 
@@ -375,23 +341,18 @@ namespace WorldEdit
 				}
 				return (i - center.X - X) * (i - center.X - X) / (major * major) + (j - center.Y - Y) * (j - center.Y - Y) / (minor * minor) <= 1;
 			});
-			Selections.Add((i, j, plr) => true);
-			Selections.Add((i, j, plr) =>
+			Selections.Add("normal", (i, j, plr) => true);
+			Selections.Add("outline", (i, j, plr) =>
 			{
 				PlayerInfo info = GetPlayerInfo(plr);
 				return i == info.x || i == info.x2 || j == info.y || j == info.y2;
 			});
-			SelectionNames.Add("altcheckers");
-			SelectionNames.Add("checkers");
-			SelectionNames.Add("ellipse");
-			SelectionNames.Add("normal");
-			SelectionNames.Add("outline");
 			#endregion
-			#region Tile Names
-			TileNames.Add("air", -1);
-			TileNames.Add("lava", -2);
-			TileNames.Add("honey", -3);
-			TileNames.Add("water", -4);
+			#region Tiles
+			Tiles.Add("air", -1);
+			Tiles.Add("lava", -2);
+			Tiles.Add("honey", -3);
+			Tiles.Add("water", -4);
 
 			foreach (var fi in typeof(TileID).GetFields())
 			{
@@ -404,11 +365,11 @@ namespace WorldEdit
 					else
 						sb.Append(name[i]);
 				}
-				TileNames.Add(sb.ToString(1, sb.Length - 1), (ushort)fi.GetValue(null));
+				Tiles.Add(sb.ToString(1, sb.Length - 1), (ushort)fi.GetValue(null));
 			}
 			#endregion
-			#region Wall Names
-			WallNames.Add("air", 0);
+			#region Walls
+			Walls.Add("air", 0);
 
 			foreach (var fi in typeof(WallID).GetFields())
 			{
@@ -421,7 +382,7 @@ namespace WorldEdit
 					else
 						sb.Append(name[i]);
 				}
-				WallNames.Add(sb.ToString(1, sb.Length - 1), (byte)fi.GetValue(null));
+				Walls.Add(sb.ToString(1, sb.Length - 1), (byte)fi.GetValue(null));
 			}
 			#endregion
 
@@ -467,7 +428,7 @@ namespace WorldEdit
 		{
 			if (e.Parameters.Count != 2)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //biome <biome1> <biome2>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //biome <biome 1> <biome 2>");
 				return;
 			}
 			PlayerInfo info = GetPlayerInfo(e.Player);
@@ -477,9 +438,9 @@ namespace WorldEdit
 				return;
 			}
 
-			byte biome1 = (byte)BiomeNames.IndexOf(e.Parameters[0].ToLower());
-			byte biome2 = (byte)BiomeNames.IndexOf(e.Parameters[1].ToLower());
-			if (biome1 == 255 || biome2 == 255)
+			string biome1 = e.Parameters[0].ToLower();
+			string biome2 = e.Parameters[1].ToLower();
+			if (!Biomes.ContainsKey(biome1) || !Biomes.ContainsKey(biome2))
 			{
 				e.Player.SendErrorMessage("Invalid biome.");
 				return;
@@ -994,7 +955,7 @@ namespace WorldEdit
 				return;
 			}
 
-			List<int> colors = Tools.GetColorByName(e.Parameters[0].ToLower());
+			List<int> colors = Tools.GetColorID(e.Parameters[0].ToLower());
 			if (colors.Count == 0)
 			{
 				e.Player.SendErrorMessage("Invalid color.");
@@ -1006,14 +967,16 @@ namespace WorldEdit
 				return;
 			}
 
-			var conditions = new List<Condition>();
+			Expression expression = null;
 			if (e.Parameters.Count > 1)
 			{
-				if (!Tools.ParseConditions(e.Parameters, e.Player, out conditions))
+				if (!Parser.TryCreateExpression(e.Parameters.Skip(1), out expression))
+				{
+					e.Player.SendErrorMessage("Invalid expression.");
 					return;
+				}
 			}
-
-			CommandQueue.Add(new Paint(info.x, info.y, info.x2, info.y2, e.Player, colors[0], conditions));
+			CommandQueue.Add(new Paint(info.x, info.y, info.x2, info.y2, e.Player, colors[0], expression));
 		}
 		void PaintWall(CommandArgs e)
 		{
@@ -1029,7 +992,7 @@ namespace WorldEdit
 				return;
 			}
 
-			List<int> colors = Tools.GetColorByName(e.Parameters[0].ToLower());
+			List<int> colors = Tools.GetColorID(e.Parameters[0].ToLower());
 			if (colors.Count == 0)
 			{
 				e.Player.SendErrorMessage("Invalid color.");
@@ -1041,14 +1004,16 @@ namespace WorldEdit
 				return;
 			}
 
-			var conditions = new List<Condition>();
+			Expression expression = null;
 			if (e.Parameters.Count > 1)
 			{
-				if (!Tools.ParseConditions(e.Parameters, e.Player, out conditions))
+				if (!Parser.TryCreateExpression(e.Parameters.Skip(1), out expression))
+				{
+					e.Player.SendErrorMessage("Invalid expression.");
 					return;
+				}
 			}
-
-			CommandQueue.Add(new PaintWall(info.x, info.y, info.x2, info.y2, e.Player, colors[0], conditions));
+			CommandQueue.Add(new PaintWall(info.x, info.y, info.x2, info.y2, e.Player, colors[0], expression));
 		}
 		void Paste(CommandArgs e)
 		{
@@ -1090,14 +1055,16 @@ namespace WorldEdit
 				}
 			}
 
-            var conditions = new List<Condition>();
-            if (e.Parameters.Count > 1)
-            {
-                if (!Tools.ParseConditions(e.Parameters, e.Player, out conditions))
-                    return;
-            }
-
-			CommandQueue.Add(new Paste(info.x, info.y, e.Player, alignment, conditions));
+			Expression expression = null;
+			if (e.Parameters.Count > 1)
+			{
+				if (!Parser.TryCreateExpression(e.Parameters.Skip(1), out expression))
+				{
+					e.Player.SendErrorMessage("Invalid expression.");
+					return;
+				}
+			}
+			CommandQueue.Add(new Paste(info.x, info.y, e.Player, alignment, expression));
 		}
 		void Point1(CommandArgs e)
 		{
@@ -1164,24 +1131,22 @@ namespace WorldEdit
 		}
 		void Redo(CommandArgs e)
 		{
-			if (e.Parameters.Count != 1 && e.Parameters.Count != 2)
+			if (e.Parameters.Count > 2)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //redo [account] <steps>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //redo [steps] [account]");
 				return;
 			}
 
-			int stepIndex = e.Parameters.Count - 1;
-
 			int steps = 1;
-			if ((!int.TryParse(e.Parameters[stepIndex], out steps) || steps <= 0))
+			if (e.Parameters.Count > 0 && (!int.TryParse(e.Parameters[0], out steps) || steps <= 0))
 			{
 				e.Player.SendErrorMessage("Invalid number of redo steps.");
 				return;
 			}
 
 			string accountName = e.Player.UserAccountName;
-			if (e.Parameters.Count == 2)
-				accountName = e.Parameters[0];
+			if (e.Parameters.Count > 1)
+				accountName = e.Parameters[1];
 
 			CommandQueue.Add(new Redo(e.Player, accountName, steps));
 		}
@@ -1363,15 +1328,14 @@ namespace WorldEdit
 				return;
 			}
 
-			string name = e.Parameters[0].ToLower();
-			int ID = SelectionNames.IndexOf(name);
-			if (ID < 0)
+			string selection = e.Parameters[0].ToLower();
+			if (!Selections.ContainsKey(selection))
 			{
 				e.Player.SendErrorMessage("Invalid selection type.");
 				return;
 			}
-			GetPlayerInfo(e.Player).select = ID;
-			e.Player.SendSuccessMessage("Set selection type to {0}.", name);
+			GetPlayerInfo(e.Player).select = Selections[selection];
+			e.Player.SendSuccessMessage("Set selection type to {0}.", selection);
 		}
 		void Set(CommandArgs e)
 		{
@@ -1387,7 +1351,7 @@ namespace WorldEdit
 				return;
 			}
 
-			List<int> tiles = Tools.GetTileByName(e.Parameters[0].ToLower());
+			List<int> tiles = Tools.GetTileID(e.Parameters[0].ToLower());
 			if (tiles.Count == 0)
 			{
 				e.Player.SendErrorMessage("Invalid tile.");
@@ -1399,14 +1363,16 @@ namespace WorldEdit
 				return;
 			}
 
-			var conditions = new List<Condition>();
+			Expression expression = null;
 			if (e.Parameters.Count > 1)
 			{
-				if (!Tools.ParseConditions(e.Parameters, e.Player, out conditions))
+				if (!Parser.TryCreateExpression(e.Parameters.Skip(1), out expression))
+				{
+					e.Player.SendErrorMessage("Invalid expression.");
 					return;
+				}
 			}
-
-			CommandQueue.Add(new Set(info.x, info.y, info.x2, info.y2, e.Player, tiles[0], conditions));
+			CommandQueue.Add(new Set(info.x, info.y, info.x2, info.y2, e.Player, tiles[0], expression));
 		}
 		void SetWall(CommandArgs e)
 		{
@@ -1422,7 +1388,7 @@ namespace WorldEdit
 				return;
 			}
 
-			List<int> walls = Tools.GetWallByName(e.Parameters[0].ToLower());
+			List<int> walls = Tools.GetWallID(e.Parameters[0].ToLower());
 			if (walls.Count == 0)
 			{
 				e.Player.SendErrorMessage("Invalid wall.");
@@ -1434,14 +1400,16 @@ namespace WorldEdit
 				return;
 			}
 
-			var conditions = new List<Condition>();
+			Expression expression = null;
 			if (e.Parameters.Count > 1)
 			{
-				if (!Tools.ParseConditions(e.Parameters, e.Player, out conditions))
+				if (!Parser.TryCreateExpression(e.Parameters.Skip(1), out expression))
+				{
+					e.Player.SendErrorMessage("Invalid expression.");
 					return;
+				}
 			}
-
-			CommandQueue.Add(new SetWall(info.x, info.y, info.x2, info.y2, e.Player, walls[0], conditions));
+			CommandQueue.Add(new SetWall(info.x, info.y, info.x2, info.y2, e.Player, walls[0], expression));
 		}
 		void SetWire(CommandArgs e)
 		{
@@ -1457,9 +1425,9 @@ namespace WorldEdit
 				return;
 			}
 
-			bool wire1 = false;
+			bool wire = false;
 			if (e.Parameters[0].ToLower() == "on")
-				wire1 = true;
+				wire = true;
 			else if (e.Parameters[0].ToLower() != "off")
 			{
 				e.Player.SendErrorMessage("Invalid wire 1 state.");
@@ -1484,15 +1452,16 @@ namespace WorldEdit
 				return;
 			}
 
-			var conditions = new List<Condition>();
-			if (e.Parameters.Count > 3)
+			Expression expression = null;
+			if (e.Parameters.Count > 1)
 			{
-				e.Parameters.RemoveRange(0, 2);
-				if (!Tools.ParseConditions(e.Parameters, e.Player, out conditions))
+				if (!Parser.TryCreateExpression(e.Parameters.Skip(1), out expression))
+				{
+					e.Player.SendErrorMessage("Invalid expression.");
 					return;
+				}
 			}
-
-			CommandQueue.Add(new SetWire(info.x, info.y, info.x2, info.y2, e.Player, wire1, wire2, wire3, conditions));
+			CommandQueue.Add(new SetWire(info.x, info.y, info.x2, info.y2, e.Player, wire, wire2, wire3, expression));
 		}
 		void Shift(CommandArgs e)
 		{
@@ -1564,24 +1533,22 @@ namespace WorldEdit
 		}
 		void Undo(CommandArgs e)
 		{
-			if (e.Parameters.Count != 1 && e.Parameters.Count != 2)
+			if (e.Parameters.Count > 2)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //undo [account] <steps>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //undo [steps] [account]");
 				return;
 			}
 
-			int stepIndex = e.Parameters.Count - 1;
-
 			int steps = 1;
-			if ((!int.TryParse(e.Parameters[stepIndex], out steps) || steps <= 0))
+			if (e.Parameters.Count > 0 && (!int.TryParse(e.Parameters[0], out steps) || steps <= 0))
 			{
 				e.Player.SendErrorMessage("Invalid number of undo steps.");
 				return;
 			}
 
 			string accountName = e.Player.UserAccountName;
-			if (e.Parameters.Count == 2)
-				accountName = e.Parameters[0];
+			if (e.Parameters.Count > 1)
+				accountName = e.Parameters[1];
 
 			CommandQueue.Add(new Undo(e.Player, accountName, steps));
 		}

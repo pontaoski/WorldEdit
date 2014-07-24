@@ -1,19 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using Terraria;
 using TShockAPI;
+using WorldEdit.Expressions;
 
 namespace WorldEdit.Commands
 {
 	public class SetWall : WECommand
 	{
-		List<Condition> conditions;
+		Expression expression;
 		int wall;
 
-		public SetWall(int x, int y, int x2, int y2, TSPlayer plr, int wall, List<Condition> conditions)
+		public SetWall(int x, int y, int x2, int y2, TSPlayer plr, int wall, Expression expression)
 			: base(x, y, x2, y2, plr)
 		{
-			this.conditions = conditions;
+			this.expression = expression ?? new TestExpression(new Test((i, j) => true));
 			this.wall = wall;
 		}
 
@@ -25,7 +25,7 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (selectFunc(i, j, plr) && conditions.TrueForAll(c => c(i, j)))
+					if (Main.tile[i, j].wall != wall && select(i, j, plr) && expression.Evaluate(i, j))
 					{
 						Main.tile[i, j].wall = (byte)wall;
 						edits++;

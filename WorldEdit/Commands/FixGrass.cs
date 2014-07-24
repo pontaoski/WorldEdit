@@ -22,13 +22,13 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (Main.tile[i, j].type == 2 || Main.tile[i, j].type == 23 || Main.tile[i, j].type == 60
-						|| Main.tile[i, j].type == 70 || Main.tile[i, j].type == 109 || Main.tile[i, j].type == 199)
+					int type = Main.tile[i, j].type;
+					if (type == 2 || type == 23 || type == 60 || type == 70 || type == 109 || type == 199)
 					{
 						if (TileSolid(i - 1, j - 1) && TileSolid(i - 1, j) && TileSolid(i - 1, j + 1) && TileSolid(i, j - 1)
 							&& TileSolid(i, j + 1) && TileSolid(i + 1, j) && TileSolid(i + 1, j) && TileSolid(i + 1, j + 1))
 						{
-							Main.tile[i, j].type = (Main.tile[i, j].type == 60 || Main.tile[i, j].type == 70) ? (byte)59 : (byte)0;
+							type = (type == 60 || type == 70) ? (byte)59 : (byte)0;
 							edits++;
 						}
 					}
@@ -36,15 +36,6 @@ namespace WorldEdit.Commands
 			}
 			ResetSection();
 			plr.SendSuccessMessage("Fixed grass. ({0})", edits);
-		}
-
-		bool TileSolid(int x, int y)
-		{
-			if (x < 0 || y < 0 || x >= Main.maxTilesX || y >= Main.maxTilesY)
-			{
-				return true;
-			}
-			return Main.tile[x, y].active() && Main.tileSolid[Main.tile[x, y].type];
 		}
 	}
 }

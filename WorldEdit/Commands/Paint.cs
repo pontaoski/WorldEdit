@@ -1,21 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Terraria;
 using TShockAPI;
+using WorldEdit.Expressions;
 
 namespace WorldEdit.Commands
 {
 	public class Paint : WECommand
 	{
-		List<Condition> conditions;
 		int color;
+		Expression expression;
 
-		public Paint(int x, int y, int x2, int y2, TSPlayer plr, int color, List<Condition> conditions)
+		public Paint(int x, int y, int x2, int y2, TSPlayer plr, int color, Expression expression)
 			: base(x, y, x2, y2, plr)
 		{
-			this.conditions = conditions;
 			this.color = color;
+			this.expression = expression ?? new TestExpression(new Test((i, j) => true));
 		}
 
 		public override void Execute()
@@ -26,7 +25,7 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (selectFunc(i, j, plr) && conditions.TrueForAll(c => c(i, j)))
+					if (Main.tile[i, j].active() && Main.tile[i, j].color() != color && select(i, j, plr) && expression.Evaluate(i, j))
 					{
 						Main.tile[i, j].color((byte)color);
 						edits++;
@@ -34,8 +33,7 @@ namespace WorldEdit.Commands
 				}
 			}
 			ResetSection();
-
-			plr.SendSuccessMessage("Painted tiles {0}. ({1})", WorldEdit.ColorNames[color], edits);
+			plr.SendSuccessMessage("Painted tiles. ({0})", edits);
 		}
 	}
 }

@@ -3,7 +3,7 @@
 	public class PlayerInfo
 	{
 		public int pt;
-		public int select = -1;
+		public Selection select = null;
 		public int x = -1;
 		public int x2 = -1;
 		public int y = -1;

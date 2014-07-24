@@ -1,22 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using Terraria;
 using TShockAPI;
+using WorldEdit.Expressions;
 
 namespace WorldEdit.Commands
 {
 	public class Paste : WECommand
 	{
 		int alignment;
-        List<Condition> conditions;
+		Expression expression;
 
-		public Paste(int x, int y, TSPlayer plr, int alignment, List<Condition> conditions)
-			: base(x, y, Int32.MaxValue, Int32.MaxValue, plr)
+		public Paste(int x, int y, TSPlayer plr, int alignment, Expression expression)
+			: base(x, y, 0, 0, plr)
 		{
 			this.alignment = alignment;
-            this.conditions = conditions;
+			this.expression = expression;
 		}
 
 		public override void Execute()
@@ -51,7 +51,7 @@ namespace WorldEdit.Commands
 					for (int j = y; j <= y2; j++)
 					{
 						Tile tile = reader.ReadTile();
-						if (i >= 0 && j >= 0 && i < Main.maxTilesX && j < Main.maxTilesY && conditions.TrueForAll(c => c(i, j)))
+						if (i >= 0 && j >= 0 && i < Main.maxTilesX && j < Main.maxTilesY && (expression == null || expression.Evaluate(i, j)))
 							Main.tile[i, j] = tile;
 					}
 				}

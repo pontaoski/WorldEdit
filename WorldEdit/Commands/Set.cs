@@ -2,21 +2,20 @@
 using System.Collections.Generic;
 using Terraria;
 using TShockAPI;
+using WorldEdit.Expressions;
 
 namespace WorldEdit.Commands
 {
 	public class Set : WECommand
 	{
-		static string[] SpecialTileNames = { "air", "lava", "honey", "water" };
-
-		List<Condition> conditions;
 		int tile;
+		Expression expression;
 
-		public Set(int x, int y, int x2, int y2, TSPlayer plr, int tile, List<Condition> conditions)
+		public Set(int x, int y, int x2, int y2, TSPlayer plr, int tile, Expression expression)
 			: base(x, y, x2, y2, plr)
 		{
-			this.conditions = conditions;
 			this.tile = tile;
+			this.expression = expression ?? new TestExpression(new Test((i, j) => true));
 		}
 
 		public override void Execute()
@@ -27,7 +26,12 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (selectFunc(i, j, plr) && conditions.TrueForAll(c => c(i, j)))
+					if (((tile >= 0 && (!Main.tile[i, j].active() || Main.tile[i, j].type != tile)) ||
+						(tile == -1 && Main.tile[i, j].active()) ||
+						(tile == -2 && (Main.tile[i, j].liquid == 0 || Main.tile[i, j].liquidType() != 1)) ||
+						(tile == -3 && (Main.tile[i, j].liquid == 0 || Main.tile[i, j].liquidType() != 2)) ||
+						(tile == -4 && (Main.tile[i, j].liquid == 0 || Main.tile[i, j].liquidType() != 0))) &&
+						select(i, j, plr) && expression.Evaluate(i, j))
 					{
 						SetTile(i, j, tile);
 						edits++;
@@ -35,9 +39,7 @@ namespace WorldEdit.Commands
 				}
 			}
 			ResetSection();
-
-			string tileName = tile < 0 ? SpecialTileNames[-tile - 1] : "tile " + tile;
-			plr.SendSuccessMessage("Set tiles to {0}. ({1})", tileName, edits);
+			plr.SendSuccessMessage("Set tiles. ({0})", edits);
 		}
 	}
 }

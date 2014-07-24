@@ -22,7 +22,9 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (Main.tile[i, j].slope() != 0 && TileSolid(i, j - 1))
+					int slope = Main.tile[i, j].slope();
+					if (((slope == 1 || slope == 2) && TileSolid(i, j - 1)) ||
+						((slope == 3 || slope == 4) && TileSolid(i, j + 1)))
 					{
 						Main.tile[i, j].slope(0);
 						edits++;
@@ -31,15 +33,6 @@ namespace WorldEdit.Commands
 			}
 			ResetSection();
 			plr.SendSuccessMessage("Fixed slopes. ({0})", edits);
-		}
-
-		bool TileSolid(int x, int y)
-		{
-			if (x < 0 || y < 0 || x >= Main.maxTilesX || y >= Main.maxTilesY)
-			{
-				return true;
-			}
-			return Main.tile[x, y].active() && Main.tileSolid[Main.tile[x, y].type];
 		}
 	}
 }

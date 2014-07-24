@@ -6,10 +6,10 @@ namespace WorldEdit.Commands
 {
 	public class Biome : WECommand
 	{
-		private byte biome1;
-		private byte biome2;
+		private string biome1;
+		private string biome2;
 
-		public Biome(int x, int y, int x2, int y2, TSPlayer plr, byte biome1, byte biome2)
+		public Biome(int x, int y, int x2, int y2, TSPlayer plr, string biome1, string biome2)
 			: base(x, y, x2, y2, plr)
 		{
 			this.biome1 = biome1;
@@ -18,23 +18,23 @@ namespace WorldEdit.Commands
 
 		public override void Execute()
 		{
-			Tools.PrepareUndo(x, y, x2, y2, plr);
 			int edits = 0;
 			if (biome1 != biome2)
 			{
+				Tools.PrepareUndo(x, y, x2, y2, plr);
 				for (int i = x; i <= x2; i++)
 				{
 					for (int j = y; j <= y2; j++)
 					{
-						if (selectFunc(i, j, plr) && Main.tile[i, j].active())
+						if (select(i, j, plr) && Main.tile[i, j].active())
 						{
-							for (int k = 0; k < WorldEdit.BiomeConversions[biome1].Length; k++)
+							for (int k = 0; k < WorldEdit.Biomes[biome1].Length; k++)
 							{
-								int conv = WorldEdit.BiomeConversions[biome1][k];
+								int conv = WorldEdit.Biomes[biome1][k];
 								if ((conv >= 0 && Main.tile[i, j].active() && Main.tile[i, j].type == conv) ||
 									(conv == -1 && !Main.tile[i, j].active()))
 								{
-									SetTile(i, j, WorldEdit.BiomeConversions[biome2][k]);
+									SetTile(i, j, WorldEdit.Biomes[biome2][k]);
 									edits++;
 									break;
 								}
@@ -44,7 +44,7 @@ namespace WorldEdit.Commands
 				}
 				ResetSection();
 			}
-			plr.SendSuccessMessage("Converted {0} to {1}. ({2})", WorldEdit.BiomeNames[biome1], WorldEdit.BiomeNames[biome2], edits);
+			plr.SendSuccessMessage("Converted biomes. ({0})", edits);
 		}
 	}
 }

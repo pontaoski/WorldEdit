@@ -2,13 +2,14 @@
 using System.Linq;
 using Terraria;
 using TShockAPI;
+using WorldEdit.Expressions;
 
 namespace WorldEdit.Commands
 {
 	public abstract class WECommand
 	{
 		public TSPlayer plr;
-		public Func<int, int, TSPlayer, bool> selectFunc = (x, y, plr) => true;
+		public Selection select;
 		public int x;
 		public int x2;
 		public int y;
@@ -17,9 +18,7 @@ namespace WorldEdit.Commands
 		protected WECommand(int x, int y, int x2, int y2, TSPlayer plr)
 		{
 			this.plr = plr;
-			int select = WorldEdit.GetPlayerInfo(plr).select;
-			if (select >= 0)
-				selectFunc = WorldEdit.Selections[select];
+			this.select = WorldEdit.GetPlayerInfo(plr).select ?? WorldEdit.Selections["normal"];
 			this.x = x;
 			this.x2 = x2;
 			this.y = y;
@@ -110,6 +109,10 @@ namespace WorldEdit.Commands
 					}
 					return;
 			}
+		}
+		public bool TileSolid(int x, int y)
+		{
+			return x < 0 || y < 0 || x >= Main.maxTilesX || y >= Main.maxTilesY || (Main.tile[x, y].active() && Main.tileSolid[Main.tile[x, y].type]);
 		}
 	}
 }
