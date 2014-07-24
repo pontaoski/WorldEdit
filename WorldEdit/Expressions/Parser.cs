@@ -60,12 +60,16 @@ namespace WorldEdit.Expressions
 				switch (str[i])
 				{
 					case '&':
+						if (str[i + 1] == '&')
+							i++;
 						tokens.Add(new Token { TokenType = Token.Type.BinaryOperator, Value = OperatorType.And });
 						continue;
 					case '!':
 						tokens.Add(new Token { TokenType = Token.Type.UnaryOperator, Value = OperatorType.Not });
 						continue;
 					case '|':
+						if (str[i + 1] == '|')
+							i++;
 						tokens.Add(new Token { TokenType = Token.Type.BinaryOperator, Value = OperatorType.Or });
 						continue;
 					case '^':
