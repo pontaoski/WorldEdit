@@ -8,13 +8,15 @@ namespace WorldEdit.Commands
 {
 	public class Flip : WECommand
 	{
-		const int BUFFER_SIZE = 1048576;
-		byte direction;
+		private const int BUFFER_SIZE = 1048576;
+		private bool flipX;
+		private bool flipY;
 
-		public Flip(TSPlayer plr, byte direction)
+		public Flip(TSPlayer plr, bool flipX, bool flipY)
 			: base(0, 0, 0, 0, plr)
 		{
-			this.direction = direction;
+			this.flipX = flipX;
+			this.flipY = flipY;
 		}
 
 		public override void Execute()
@@ -24,8 +26,6 @@ namespace WorldEdit.Commands
 
 			int width = tiles.GetLength(0);
 			int height = tiles.GetLength(1);
-			bool flipX = (direction & 1) == 1;
-			bool flipY = (direction & 2) == 2;
 			int endX = flipX ? -1 : width;
 			int endY = flipY ? -1 : height;
 			int incX = flipX ? -1 : 1;

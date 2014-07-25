@@ -1,15 +1,32 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Terraria;
+using Terraria.ID;
 using TShockAPI;
 
 namespace WorldEdit.Commands
 {
 	public class Mow : WECommand
 	{
-		static int[] mowTiles = new[] { 3, 24, 32, 52, 61, 62, 69, 73, 74, 110, 113, 115, 201, 205, 227 };
+		private static ushort[] mowedTiles = new[]
+		{
+			TileID.CorruptPlants,
+			TileID.CorruptThorns,
+			TileID.CrimsonVines,
+			TileID.DyePlants,
+			TileID.FleshWeeds,
+			TileID.HallowedPlants,
+			TileID.HallowedPlants2,
+			TileID.HallowedVines,
+			TileID.JunglePlants,
+			TileID.JunglePlants2,
+			TileID.JungleThorns,
+			TileID.JungleVines,
+			TileID.MushroomPlants,
+			TileID.Plants,
+			TileID.Plants2,
+			TileID.Vines,
+		};
 
 		public Mow(int x, int y, int x2, int y2, TSPlayer plr)
 			: base(x, y, x2, y2, plr)
@@ -24,11 +41,11 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					int type = Main.tile[i, j].type;
-					if (mowTiles.Contains(type))
+					var tile = Main.tile[i, j];
+					if (mowedTiles.Contains(tile.type))
 					{
-						Main.tile[i, j].active(false);
-						Main.tile[i, j].type = 0;
+						tile.active(false);
+						tile.type = 0;
 						edits++;
 					}
 				}

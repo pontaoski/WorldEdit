@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Terraria;
 using TShockAPI;
 
@@ -9,7 +6,7 @@ namespace WorldEdit.Commands
 {
 	public class Flood : WECommand
 	{
-		int liquid;
+		private int liquid;
 
 		public Flood(int x, int y, int x2, int y2, TSPlayer plr, int liquid)
 			: base(x, y, x2, y2, plr)
@@ -25,16 +22,17 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (!Main.tile[i, j].active() || !Main.tileSolid[Main.tile[i, j].type])
+					var tile = Main.tile[i, j];
+					if (!tile.active() || !Main.tileSolid[tile.type])
 					{
-						Main.tile[i, j].liquidType((byte)liquid);
-						Main.tile[i, j].liquid = 255;
+						tile.liquidType((byte)liquid);
+						tile.liquid = 255;
 						edits++;
 					}
 				}
 			}
 			ResetSection();
-			plr.SendSuccessMessage("Flooded nearby area. ({0})", edits);
+			plr.SendSuccessMessage("Flooded area. ({0})", edits);
 		}
 	}
 }

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Terraria;
 using TShockAPI;
 
@@ -22,9 +19,10 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (Main.tile[i, j].halfBrick() && TileSolid(i, j - 1))
+					var tile = Main.tile[i, j];
+					if (tile.halfBrick() && TileSolid(i, j - 1))
 					{
-						Main.tile[i, j].halfBrick(false);
+						tile.halfBrick(false);
 						edits++;
 					}
 				}

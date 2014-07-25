@@ -7,14 +7,14 @@ namespace WorldEdit.Commands
 {
 	public class SetWall : WECommand
 	{
-		Expression expression;
-		int wall;
+		private Expression expression;
+		private int wallType;
 
-		public SetWall(int x, int y, int x2, int y2, TSPlayer plr, int wall, Expression expression)
+		public SetWall(int x, int y, int x2, int y2, TSPlayer plr, int wallType, Expression expression)
 			: base(x, y, x2, y2, plr)
 		{
-			this.expression = expression ?? new TestExpression(new Test((i, j) => true));
-			this.wall = wall;
+			this.expression = expression ?? new TestExpression(new Test(t => true));
+			this.wallType = wallType;
 		}
 
 		public override void Execute()
@@ -25,16 +25,17 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (Main.tile[i, j].wall != wall && select(i, j, plr) && expression.Evaluate(i, j))
+					var tile = Main.tile[i, j];
+					if (tile.wall != wallType && select(i, j, plr) && expression.Evaluate(tile))
 					{
-						Main.tile[i, j].wall = (byte)wall;
+						tile.wall = (byte)wallType;
 						edits++;
 					}
 				}
 			}
 			ResetSection();
 
-			string wallName = wall == 0 ? "air" : "wall " + wall;
+			string wallName = wallType == 0 ? "air" : "wall " + wallType;
 			plr.SendSuccessMessage("Set walls to {0}. ({1})", wallName, edits);
 		}
 	}

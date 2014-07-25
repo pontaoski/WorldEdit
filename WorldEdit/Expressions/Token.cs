@@ -1,15 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using Terraria;
 
 namespace WorldEdit.Expressions
 {
 	public class Token
 	{
-		public enum Type
+		public enum OperatorType
+		{
+			And,
+			Not,
+			Or,
+			Xor,
+		}
+		public enum TokenType
 		{
 			BinaryOperator,
 			CloseParentheses,
@@ -18,7 +20,7 @@ namespace WorldEdit.Expressions
 			UnaryOperator,
 		}
 
-		public Token.Type TokenType;
+		public Token.TokenType Type;
 		public object Value;
 	}
 }

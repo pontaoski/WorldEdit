@@ -7,14 +7,14 @@ namespace WorldEdit.Commands
 {
 	public class PaintWall : WECommand
 	{
-		int color;
-		Expression expression;
+		private int color;
+		private Expression expression;
 
 		public PaintWall(int x, int y, int x2, int y2, TSPlayer plr, int color, Expression expression)
 			: base(x, y, x2, y2, plr)
 		{
 			this.color = color;
-			this.expression = expression ?? new TestExpression(new Test((i, j) => true));
+			this.expression = expression ?? new TestExpression(new Test(t => true));
 		}
 
 		public override void Execute()
@@ -25,9 +25,10 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (Main.tile[i, j].wall > 0 && Main.tile[i, j].wallColor() != color && select(i, j, plr) && expression.Evaluate(i, j))
+					var tile = Main.tile[i, j];
+					if (tile.wall > 0 && tile.wallColor() != color && select(i, j, plr) && expression.Evaluate(tile))
 					{
-						Main.tile[i, j].wallColor((byte)color);
+						tile.wallColor((byte)color);
 						edits++;
 					}
 				}

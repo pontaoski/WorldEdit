@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using Terraria;
 
 namespace WorldEdit.Expressions
 {
@@ -13,9 +11,9 @@ namespace WorldEdit.Expressions
 			Right = right;
 		}
 
-		public override bool Evaluate(int i, int j)
+		public override bool Evaluate(Tile tile)
 		{
-			return Left.Evaluate(i, j) && Right.Evaluate(i, j);
+			return Left.Evaluate(tile) && Right.Evaluate(tile);
 		}
 	}
 }

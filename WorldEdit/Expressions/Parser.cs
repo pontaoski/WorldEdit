@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using Terraria;
-using TShockAPI;
 
 namespace WorldEdit.Expressions
 {
@@ -15,30 +13,30 @@ namespace WorldEdit.Expressions
 			var stack = new Stack<Expression>();
 			foreach (var token in postfix)
 			{
-				switch (token.TokenType)
+				switch (token.Type)
 				{
-					case Token.Type.BinaryOperator:
-						switch ((OperatorType)token.Value)
+					case Token.TokenType.BinaryOperator:
+						switch ((Token.OperatorType)token.Value)
 						{
-							case OperatorType.And:
+							case Token.OperatorType.And:
 								stack.Push(new AndExpression(stack.Pop(), stack.Pop()));
 								continue;
-							case OperatorType.Or:
+							case Token.OperatorType.Or:
 								stack.Push(new OrExpression(stack.Pop(), stack.Pop()));
 								continue;
-							case OperatorType.Xor:
+							case Token.OperatorType.Xor:
 								stack.Push(new XorExpression(stack.Pop(), stack.Pop()));
 								continue;
 							default:
 								return null;
 						}
-					case Token.Type.Test:
+					case Token.TokenType.Test:
 						stack.Push(new TestExpression((Test)token.Value));
 						continue;
-					case Token.Type.UnaryOperator:
-						switch ((OperatorType)token.Value)
+					case Token.TokenType.UnaryOperator:
+						switch ((Token.OperatorType)token.Value)
 						{
-							case OperatorType.Not:
+							case Token.OperatorType.Not:
 								stack.Push(new NotExpression(stack.Pop()));
 								continue;
 							default:
@@ -62,24 +60,24 @@ namespace WorldEdit.Expressions
 					case '&':
 						if (str[i + 1] == '&')
 							i++;
-						tokens.Add(new Token { TokenType = Token.Type.BinaryOperator, Value = OperatorType.And });
+						tokens.Add(new Token { Type = Token.TokenType.BinaryOperator, Value = Token.OperatorType.And });
 						continue;
 					case '!':
-						tokens.Add(new Token { TokenType = Token.Type.UnaryOperator, Value = OperatorType.Not });
+						tokens.Add(new Token { Type = Token.TokenType.UnaryOperator, Value = Token.OperatorType.Not });
 						continue;
 					case '|':
 						if (str[i + 1] == '|')
 							i++;
-						tokens.Add(new Token { TokenType = Token.Type.BinaryOperator, Value = OperatorType.Or });
+						tokens.Add(new Token { Type = Token.TokenType.BinaryOperator, Value = Token.OperatorType.Or });
 						continue;
 					case '^':
-						tokens.Add(new Token { TokenType = Token.Type.BinaryOperator, Value = OperatorType.Xor });
+						tokens.Add(new Token { Type = Token.TokenType.BinaryOperator, Value = Token.OperatorType.Xor });
 						continue;
 					case '(':
-						tokens.Add(new Token { TokenType = Token.Type.OpenParentheses });
+						tokens.Add(new Token { Type = Token.TokenType.OpenParentheses });
 						continue;
 					case ')':
-						tokens.Add(new Token { TokenType = Token.Type.CloseParentheses });
+						tokens.Add(new Token { Type = Token.TokenType.CloseParentheses });
 						continue;
 				}
 
@@ -102,42 +100,41 @@ namespace WorldEdit.Expressions
 					}
 					rhs = expression[1];
 				}
-				tokens.Add(new Token { TokenType = Token.Type.Test, Value = ParseTest(lhs, rhs, negated) });
+				tokens.Add(new Token { Type = Token.TokenType.Test, Value = ParseTest(lhs, rhs, negated) });
 			}
 			return tokens;
 		}
-		public static List<Token> ParsePostfix(List<Token> infix)
+		public static List<Token> ParsePostfix(IEnumerable<Token> infix)
 		{
-			var queue = new Queue<Token>();
+			var postfix = new List<Token>();
 			var stack = new Stack<Token>();
 
 			foreach (var token in infix)
 			{
-				switch (token.TokenType)
+				switch (token.Type)
 				{
-					case Token.Type.BinaryOperator:
-					case Token.Type.OpenParentheses:
-					case Token.Type.UnaryOperator:
+					case Token.TokenType.BinaryOperator:
+					case Token.TokenType.OpenParentheses:
+					case Token.TokenType.UnaryOperator:
 						stack.Push(token);
 						break;
-					case Token.Type.CloseParentheses:
-						while (stack.Peek().TokenType != Token.Type.OpenParentheses)
-							queue.Enqueue(stack.Pop());
+					case Token.TokenType.CloseParentheses:
+						while (stack.Peek().Type != Token.TokenType.OpenParentheses)
+							postfix.Add(stack.Pop());
 						stack.Pop();
 
-						if (stack.Count > 0 && stack.Peek().TokenType == Token.Type.UnaryOperator)
-							queue.Enqueue(stack.Pop());
+						if (stack.Count > 0 && stack.Peek().Type == Token.TokenType.UnaryOperator)
+							postfix.Add(stack.Pop());
 						break;
-					case Token.Type.Test:
-						queue.Enqueue(token);
+					case Token.TokenType.Test:
+						postfix.Add(token);
 						break;
 				}
 			}
 
 			while (stack.Count > 0)
-				queue.Enqueue(stack.Pop());
-
-			return queue.ToList();
+				postfix.Add(stack.Pop());
+			return postfix;
 		}
 		public static Test ParseTest(string lhs, string rhs, bool negated)
 		{
@@ -145,66 +142,68 @@ namespace WorldEdit.Expressions
 			switch (lhs)
 			{
 				case "honey":
-					return test = (i, j) => Main.tile[i, j].liquid > 0 && Main.tile[i, j].liquidType() == 2;
+					return test = t => t.liquid > 0 && t.liquidType() == 2;
 				case "lava":
-					return test = (i, j) => Main.tile[i, j].liquid > 0 && Main.tile[i, j].liquidType() == 1;
+					return test = t => t.liquid > 0 && t.liquidType() == 1;
+				case "liquid":
+					return test = t => t.liquid > 0;
 				case "tile":
 					if (String.IsNullOrEmpty(rhs))
-						return test = (i, j) => Main.tile[i, j].active();
+						return test = t => t.active();
 
 					List<int> tiles = Tools.GetTileID(rhs);
 					if (tiles.Count == 0)
 						throw new ArgumentException("No tile matched.");
 					if (tiles.Count > 1)
 						throw new ArgumentException("More than one tile matched.");
-					return test = (i, j) => (Main.tile[i, j].active() && Main.tile[i, j].type == tiles[0]) != negated;
+					return test = t => (t.active() && t.type == tiles[0]) != negated;
 				case "tilepaint":
 					{
 						if (String.IsNullOrEmpty(rhs))
-							return test = (i, j) => Main.tile[i, j].active() && Main.tile[i, j].color() != 0;
+							return test = t => t.active() && t.color() != 0;
 
 						List<int> colors = Tools.GetColorID(rhs);
 						if (colors.Count == 0)
 							throw new ArgumentException("No color matched.");
 						if (colors.Count > 1)
 							throw new ArgumentException("More than one color matched.");
-						return test = (i, j) => (Main.tile[i, j].active() && Main.tile[i, j].color() == colors[0]) != negated;
+						return test = t => (t.active() && t.color() == colors[0]) != negated;
 					}
 				case "wall":
 					if (String.IsNullOrEmpty(rhs))
-						return test = (i, j) => Main.tile[i, j].wall != 0;
+						return test = t => t.wall != 0;
 
 					List<int> walls = Tools.GetTileID(rhs);
 					if (walls.Count == 0)
 						throw new ArgumentException("No wall matched.");
 					if (walls.Count > 1)
 						throw new ArgumentException("More than one wall matched.");
-					return test = (i, j) => (Main.tile[i, j].wall == walls[0]) != negated;
+					return test = t => (t.wall == walls[0]) != negated;
 				case "wallpaint":
 					{
 						if (String.IsNullOrEmpty(rhs))
-							return test = (i, j) => Main.tile[i, j].wall > 0 && Main.tile[i, j].wallColor() != 0;
+							return test = t => t.wall > 0 && t.wallColor() != 0;
 
 						List<int> colors = Tools.GetColorID(rhs);
 						if (colors.Count == 0)
 							throw new ArgumentException("No color matched.");
 						if (colors.Count > 1)
 							throw new ArgumentException("More than one color matched.");
-						return test = (i, j) => (Main.tile[i, j].wall > 0 && Main.tile[i, j].wallColor() == colors[0]) != negated;
+						return test = t => (t.wall > 0 && t.wallColor() == colors[0]) != negated;
 					}
 				case "water":
-					return test = (i, j) => Main.tile[i, j].liquid > 0 && Main.tile[i, j].liquidType() == 0;
+					return test = t => t.liquid > 0 && t.liquidType() == 0;
 				case "wire":
-					return test = (i, j) => Main.tile[i, j].wire();
+					return test = t => t.wire();
 				case "wire2":
-					return test = (i, j) => Main.tile[i, j].wire2();
+					return test = t => t.wire2();
 				case "wire3":
-					return test = (i, j) => Main.tile[i, j].wire3();
+					return test = t => t.wire3();
 				default:
 					throw new ArgumentException("Invalid test.");
 			}
 		}
-		public static bool TryCreateExpression(IEnumerable<string> parameters, out Expression expression)
+		public static bool TryParseTree(IEnumerable<string> parameters, out Expression expression)
 		{
 			expression = null;
 			if (parameters.FirstOrDefault() != "=>")

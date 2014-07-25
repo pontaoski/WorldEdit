@@ -5,8 +5,8 @@ namespace WorldEdit.Commands
 {
 	public class Undo : WECommand
 	{
-		string accountName;
-		int steps;
+		private string accountName;
+		private int steps;
 
 		public Undo(TSPlayer plr, string accountName, int steps)
 			: base(0, 0, 0, 0, plr)
@@ -17,10 +17,8 @@ namespace WorldEdit.Commands
 
 		public override void Execute()
 		{
-			int i = 0;
-			for (; i < steps && Tools.Undo(accountName); i++)
-			{
-			}
+			int i = -1;
+			while (++i < steps && Tools.Undo(accountName));
 			if (i == 0)
 				plr.SendErrorMessage("Failed to undo any actions.");
 			else

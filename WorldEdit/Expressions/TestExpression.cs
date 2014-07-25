@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+using Terraria;
 
 namespace WorldEdit.Expressions
 {
-	public delegate bool Test(int i, int j);
+	public delegate bool Test(Tile tile);
 
 	public sealed class TestExpression : Expression
 	{
@@ -17,9 +14,9 @@ namespace WorldEdit.Expressions
 			Test = test;
 		}
 
-		public override bool Evaluate(int i, int j)
+		public override bool Evaluate(Tile tile)
 		{
-			return Test(i, j);
+			return Test(tile);
 		}
 	}
 }

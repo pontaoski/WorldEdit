@@ -8,8 +8,8 @@ namespace WorldEdit.Commands
 {
 	public class Rotate : WECommand
 	{
-		const int BUFFER_SIZE = 1048576;
-		int degrees;
+		private const int BUFFER_SIZE = 1048576;
+		private int degrees;
 
 		public Rotate(TSPlayer plr, int degrees)
 			: base(0, 0, 0, 0, plr)

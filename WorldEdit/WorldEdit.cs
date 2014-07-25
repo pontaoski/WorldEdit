@@ -7,7 +7,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using Terraria;
@@ -87,7 +86,7 @@ namespace WorldEdit
 			if (!e.Handled && e.MsgID == PacketTypes.Tile)
 			{
 				PlayerInfo info = Players[e.Msg.whoAmI];
-				if (info.pt != 0)
+				if (info.Point != 0)
 				{
 					using (var reader = new BinaryReader(new MemoryStream(e.Msg.readBuffer, e.Index, e.Length)))
 					{
@@ -96,19 +95,19 @@ namespace WorldEdit
 						int y = reader.ReadInt16();
 						if (x >= 0 && y >= 0 && x < Main.maxTilesX && y < Main.maxTilesY)
 						{
-							if (info.pt == 1)
+							if (info.Point == 1)
 							{
-								info.x = x;
-								info.y = y;
+								info.X = x;
+								info.Y = y;
 								TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set point 1.");
 							}
-							else if (info.pt == 2)
+							else if (info.Point == 2)
 							{
-								info.x2 = x;
-								info.y2 = y;
+								info.X2 = x;
+								info.Y2 = y;
 								TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set point 2.");
 							}
-							else if (info.pt == 3)
+							else if (info.Point == 3)
 							{
 								List<string> regions = TShock.Regions.InAreaRegionName(x, y);
 								if (regions.Count == 0)
@@ -117,13 +116,13 @@ namespace WorldEdit
 									return;
 								}
 								Region curReg = TShock.Regions.GetRegionByName(regions[0]);
-								info.x = curReg.Area.X;
-								info.y = curReg.Area.Y;
-								info.x2 = curReg.Area.X + curReg.Area.Width;
-								info.y2 = curReg.Area.Y + curReg.Area.Height;
+								info.X = curReg.Area.Left;
+								info.Y = curReg.Area.Top;
+								info.X2 = curReg.Area.Right;
+								info.Y2 = curReg.Area.Bottom;
 								TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set region.");
 							}
-							info.pt = 0;
+							info.Point = 0;
 							e.Handled = true;
 							TShock.Players[e.Msg.whoAmI].SendTileSquare(x, y, 3);
 						}
@@ -137,134 +136,118 @@ namespace WorldEdit
 
 			#region Commands
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.all", All, "/all")
-				{
-					HelpText = "Sets the worldedit selection to the entire world."
-				});
+			{
+				HelpText = "Sets the worldedit selection to the entire world."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.biome", Biome, "/biome")
-				{
-					HelpText = "Converts biomes in the worldedit selection."
-				});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.contract", Contract, "/contract")
-				{
-					HelpText = "Contracts the worldedit selection in a direction."
-				});
+			{
+				HelpText = "Converts biomes in the worldedit selection."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.copy", Copy, "/copy")
-				{
-					HelpText = "Copies the worldedit selection to the clipboard."
-				});
+			{
+				HelpText = "Copies the worldedit selection to the clipboard."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.cut", Cut, "/cut")
-				{
-					HelpText = "Copies the worldedit selection to the clipboard, then deletes it."
-				});
+			{
+				HelpText = "Copies the worldedit selection to the clipboard, then deletes it."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.drain", Drain, "/drain")
-				{
-					HelpText = "Drains liquids in the worldedit selection or an area around you."
-				});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.expand", Expand, "/expand")
-				{
-					HelpText = "Expands the worldedit selection in a direction."
-				});
+			{
+				HelpText = "Drains liquids in the worldedit selection."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.fixgrass", FixGrass, "/fixgrass")
-				{
-					HelpText = "Fixes suffocated grass in the worldedit selection or an area around you."
-				});
+			{
+				HelpText = "Fixes suffocated grass in the worldedit selection."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.fixhalves", FixHalves, "/fixhalves")
-				{
-					HelpText = "Fixes half blocks in the worldedit selection or an area around you."
-				});
+			{
+				HelpText = "Fixes half blocks in the worldedit selection."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.fixslopes", FixSlopes, "/fixslopes")
-				{
-					HelpText = "Fixes covered slopes in the worldedit selection or an area around you."
-				});
+			{
+				HelpText = "Fixes covered slopes in the worldedit selection."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.flip", Flip, "/flip")
-				{
-					HelpText = "Flips the worldedit clipboard."
-				});
+			{
+				HelpText = "Flips the worldedit clipboard."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.flood", Flood, "/flood")
-				{
-					HelpText = "Floods liquids in the worldedit selection or an area around you."
-				});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.inset", Inset, "/inset")
-				{
-					HelpText = "Expands the worldedit selection on all four sides."
-				});
+			{
+				HelpText = "Floods liquids in the worldedit selection."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.mow", Mow, "/mow")
-				{
-					HelpText = "Mows grass, thorns, and vines in the worldedit selection or an area around you."
-				});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.outset", Outset, "/outset")
-				{
-					HelpText = "Contracts the worldedit selection on all four sides."
-				});
+			{
+				HelpText = "Mows grass, thorns, and vines in the worldedit selection."
+			});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.near", Near, "/near")
+			{
+				AllowServer = false,
+				HelpText = "Sets the worldedit selection to a radius around you."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.paint", Paint, "/paint")
-				{
-					HelpText = "Paints tiles in the worldedit selection with optional conditions."
-				});
+			{
+				HelpText = "Paints tiles in the worldedit selection."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.paintwall", PaintWall, "/paintwall")
-				{
-					HelpText = "Paints walls in the worldedit selection with optional conditions."
-				});
+			{
+				HelpText = "Paints walls in the worldedit selection."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.paste", Paste, "/paste")
-				{
-					HelpText = "Pastes the clipboard to the worldedit selection."
-				});
+			{
+				HelpText = "Pastes the clipboard to the worldedit selection."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", Point1, "/point1")
-				{
-					HelpText = "Sets the positions of the worldedit selection's first point."
-				});
+			{
+				HelpText = "Sets the positions of the worldedit selection's first point."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", Point2, "/point2")
-				{
-					HelpText = "Sets the positions of the worldedit selection's second point."
-				});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", PointCmd, "/point")
-				{
-					AllowServer = false,
-					HelpText = "Polls for the positions of the worldedit selection."
-				});
+			{
+				HelpText = "Sets the positions of the worldedit selection's second point."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.history.redo", Redo, "/redo")
-				{
-					HelpText = "Redoes a number of worldedit actions."
-				});
+			{
+				HelpText = "Redoes a number of worldedit actions."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.region", RegionCmd, "/region")
-				{
-					HelpText = "Selects a region as a worldedit selection."
-				});
+			{
+				HelpText = "Selects a region as a worldedit selection."
+			});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.resize", Resize, "/resize")
+			{
+				HelpText = "Resizes the worldedit selection in a direction."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.rotate", Rotate, "/rotate")
-				{
-					HelpText = "Rotates the worldedit clipboard."
-				});
+			{
+				HelpText = "Rotates the worldedit clipboard."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.schematic", Schematic, "/schematic", "/schem")
-				{
-					HelpText = "Manages worldedit schematics."
-				});
+			{
+				HelpText = "Manages worldedit schematics."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.selecttype", Select, "/select")
-				{
-					HelpText = "Sets the worldedit selection function."
-				});
+			{
+				HelpText = "Sets the worldedit selection function."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.set", Set, "/set")
-				{
-					HelpText = "Sets tiles in the worldedit selection with optional conditions."
-				});
+			{
+				HelpText = "Sets tiles in the worldedit selection."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.setwall", SetWall, "/setwall")
-				{
-					HelpText = "Sets walls in the worldedit selectino with optional conditions."
-				});
+			{
+				HelpText = "Sets walls in the worldedit selection."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.setwire", SetWire, "/setwire")
-				{
-					HelpText = "Sets wires in the worldedit selection with optional conditions."
-				});
+			{
+				HelpText = "Sets wires in the worldedit selection."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.shift", Shift, "/shift")
-				{
-					HelpText = "Shifts the worldedit selection in a direction."
-				});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.size", Size, "/size")
-				{
-					HelpText = "Prints the worldedit selection's size."
-				});
+			{
+				HelpText = "Shifts the worldedit selection in a direction."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.history.undo", Undo, "/undo")
-				{
-					HelpText = "Undoes a number of worldedit actions."
-				});
+			{
+				HelpText = "Undoes a number of worldedit actions."
+			});
 			#endregion
 			#region Database
 			switch (TShock.Config.StorageType.ToLower())
@@ -325,10 +308,10 @@ namespace WorldEdit
 			{
 				PlayerInfo info = GetPlayerInfo(plr);
 
-				int X = Math.Min(info.x, info.x2);
-				int Y = Math.Min(info.y, info.y2);
-				int X2 = Math.Max(info.x, info.x2);
-				int Y2 = Math.Max(info.y, info.y2);
+				int X = Math.Min(info.X, info.X2);
+				int Y = Math.Min(info.Y, info.Y2);
+				int X2 = Math.Max(info.X, info.X2);
+				int Y2 = Math.Max(info.Y, info.Y2);
 
 				Vector2 center = new Vector2((float)(X2 - X) / 2, (float)(Y2 - Y) / 2);
 				float major = Math.Max(center.X, center.Y);
@@ -345,7 +328,7 @@ namespace WorldEdit
 			Selections.Add("outline", (i, j, plr) =>
 			{
 				PlayerInfo info = GetPlayerInfo(plr);
-				return i == info.x || i == info.x2 || j == info.y || j == info.y2;
+				return i == info.X || i == info.X2 || j == info.Y || j == info.Y2;
 			});
 			#endregion
 			#region Tiles
@@ -419,9 +402,9 @@ namespace WorldEdit
 		void All(CommandArgs e)
 		{
 			PlayerInfo info = GetPlayerInfo(e.Player);
-			info.x = info.y = 0;
-			info.x2 = Main.maxTilesX - 1;
-			info.y2 = Main.maxTilesY - 1;
+			info.X = info.Y = 0;
+			info.X2 = Main.maxTilesX - 1;
+			info.Y2 = Main.maxTilesY - 1;
 			e.Player.SendSuccessMessage("Selected all tiles.");
 		}
 		void Biome(CommandArgs e)
@@ -432,7 +415,7 @@ namespace WorldEdit
 				return;
 			}
 			PlayerInfo info = GetPlayerInfo(e.Player);
-			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
+			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 			{
 				e.Player.SendErrorMessage("Invalid selection.");
 				return;
@@ -441,505 +424,136 @@ namespace WorldEdit
 			string biome1 = e.Parameters[0].ToLower();
 			string biome2 = e.Parameters[1].ToLower();
 			if (!Biomes.ContainsKey(biome1) || !Biomes.ContainsKey(biome2))
-			{
 				e.Player.SendErrorMessage("Invalid biome.");
-				return;
-			}
-
-			int x = Math.Min(info.x, info.x2);
-			int y = Math.Min(info.y, info.y2);
-			int x2 = Math.Max(info.x, info.x2);
-			int y2 = Math.Max(info.y, info.y2);
-			CommandQueue.Add(new Biome(x, y, x2, y2, e.Player, biome1, biome2));
-		}
-		void Contract(CommandArgs e)
-		{
-			if (e.Parameters.Count != 2)
-			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //contract <amount> <direction>");
-				return;
-			}
-			PlayerInfo info = GetPlayerInfo(e.Player);
-			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
-			{
-				e.Player.SendErrorMessage("Invalid selection.");
-				return;
-			}
-
-			int amount;
-			if (!int.TryParse(e.Parameters[0], out amount) || amount < 0)
-			{
-				e.Player.SendErrorMessage("Invalid contraction amount.");
-				return;
-			}
-			switch (e.Parameters[1].ToLower())
-			{
-				case "d":
-				case "down":
-					if (info.y < info.y2)
-						info.y += amount;
-					else
-						info.y2 += amount;
-					e.Player.SendSuccessMessage("Contracted selection down {0}.", amount);
-					break;
-
-				case "l":
-				case "left":
-					if (info.x < info.x2)
-						info.x2 -= amount;
-					else
-						info.x -= amount;
-					e.Player.SendSuccessMessage("Contracted selection left {0}.", amount);
-					break;
-
-				case "r":
-				case "right":
-					if (info.x < info.x2)
-						info.x += amount;
-					else
-						info.x2 += amount;
-					e.Player.SendSuccessMessage("Contracted selection right {0}.", amount);
-					break;
-
-				case "u":
-				case "up":
-					if (info.y < info.y2)
-						info.y2 -= amount;
-					else
-						info.y -= amount;
-					e.Player.SendSuccessMessage("Contracted selection up {0}.", amount);
-					break;
-
-				default:
-					e.Player.SendSuccessMessage("Invalid direction.");
-					break;
-			}
+			else
+				CommandQueue.Add(new Biome(info.X, info.Y, info.X2, info.Y2, e.Player, biome1, biome2));
 		}
 		void Copy(CommandArgs e)
 		{
 			PlayerInfo info = GetPlayerInfo(e.Player);
-			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
-			{
-				e.Player.SendErrorMessage("Invalid selection.");
-				return;
-			}
-
-			int x = Math.Min(info.x, info.x2);
-			int y = Math.Min(info.y, info.y2);
-			int x2 = Math.Max(info.x, info.x2);
-			int y2 = Math.Max(info.y, info.y2);
-			CommandQueue.Add(new Copy(x, y, x2, y2, e.Player));
+			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
+				e.Player.SendErrorMessage("Invalid selection!");
+			else
+				CommandQueue.Add(new Copy(info.X, info.Y, info.X2, info.Y2, e.Player));
 		}
 		void Cut(CommandArgs e)
 		{
 			PlayerInfo info = GetPlayerInfo(e.Player);
-			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
-			{
+			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 				e.Player.SendErrorMessage("Invalid selection.");
-				return;
-			}
-
-			int x = Math.Min(info.x, info.x2);
-			int y = Math.Min(info.y, info.y2);
-			int x2 = Math.Max(info.x, info.x2);
-			int y2 = Math.Max(info.y, info.y2);
-			CommandQueue.Add(new Cut(x, y, x2, y2, e.Player));
+			else
+				CommandQueue.Add(new Cut(info.X, info.Y, info.X2, info.Y2, e.Player));
 		}
 		void Drain(CommandArgs e)
 		{
-			if (e.Parameters.Count > 1)
-			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //drain [radius]");
-				return;
-			}
-
-			if (e.Parameters.Count == 0)
-			{
-				PlayerInfo info = GetPlayerInfo(e.Player);
-				if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
-				{
-					e.Player.SendErrorMessage("Invalid selection.");
-					return;
-				}
-
-				CommandQueue.Add(new Drain(info.x, info.y, info.x2, info.y2, e.Player));
-			}
-			else
-			{
-				int radius;
-				if (!int.TryParse(e.Parameters[0], out radius) || radius <= 0)
-				{
-					e.Player.SendErrorMessage("Invalid radius.");
-					return;
-				}
-
-				int x = e.Player.TileX - radius;
-				int x2 = e.Player.TileX + radius + 2;
-				int y = e.Player.TileY - radius + 1;
-				int y2 = e.Player.TileY + radius + 1;
-				CommandQueue.Add(new Drain(x, y, x2, y2, e.Player));
-			}
-		}
-		void Expand(CommandArgs e)
-		{
-			if (e.Parameters.Count != 2)
-			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //expand <amount> <direction>");
-				return;
-			}
 			PlayerInfo info = GetPlayerInfo(e.Player);
-			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
-			{
+			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 				e.Player.SendErrorMessage("Invalid selection.");
-				return;
-			}
-
-			int amount;
-			if (!int.TryParse(e.Parameters[0], out amount) || amount < 0)
-			{
-				e.Player.SendErrorMessage("Invalid expansion amount.");
-				return;
-			}
-			switch (e.Parameters[1].ToLower())
-			{
-				case "d":
-				case "down":
-					if (info.y < info.y2)
-						info.y2 += amount;
-					else
-						info.y += amount;
-					e.Player.SendSuccessMessage("Expanded selection down {0}.", amount);
-					break;
-
-				case "l":
-				case "left":
-					if (info.x < info.x2)
-						info.x -= amount;
-					else
-						info.x2 -= amount;
-					e.Player.SendSuccessMessage("Expanded selection left {0}.", amount);
-					break;
-
-				case "r":
-				case "right":
-					if (info.x < info.x2)
-						info.x2 += amount;
-					else
-						info.x += amount;
-					e.Player.SendSuccessMessage("Expanded selection right {0}.", amount);
-					break;
-
-				case "u":
-				case "up":
-					if (info.y < info.y2)
-						info.y -= amount;
-					else
-						info.y2 -= amount;
-					e.Player.SendSuccessMessage("Expanded selection up {0}.", amount);
-					break;
-
-				default:
-					e.Player.SendErrorMessage("Invalid direction.");
-					break;
-			}
+			else
+				CommandQueue.Add(new Drain(info.X, info.Y, info.X2, info.Y2, e.Player));
 		}
 		void FixGrass(CommandArgs e)
 		{
-			if (e.Parameters.Count > 1)
-			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //fixgrass [radius]");
-				return;
-			}
-
-			if (e.Parameters.Count == 0)
-			{
-				PlayerInfo info = GetPlayerInfo(e.Player);
-				if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
-				{
-					e.Player.SendErrorMessage("Invalid selection.");
-					return;
-				}
-
-				CommandQueue.Add(new FixGrass(info.x, info.y, info.x2, info.y2, e.Player));
-			}
+			PlayerInfo info = GetPlayerInfo(e.Player);
+			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
+				e.Player.SendErrorMessage("Invalid selection!");
 			else
-			{
-				int radius;
-				if (!int.TryParse(e.Parameters[0], out radius) || radius <= 0)
-				{
-					e.Player.SendErrorMessage("Invalid radius.");
-					return;
-				}
-
-				int x = e.Player.TileX - radius;
-				int x2 = e.Player.TileX + radius + 2;
-				int y = e.Player.TileY - radius + 1;
-				int y2 = e.Player.TileY + radius + 1;
-				CommandQueue.Add(new FixGrass(x, y, x2, y2, e.Player));
-			}
+				CommandQueue.Add(new FixGrass(info.X, info.Y, info.X2, info.Y2, e.Player));
 		}
 		void FixHalves(CommandArgs e)
 		{
-			if (e.Parameters.Count > 1)
-			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //fixhalves [radius]");
-				return;
-			}
-
-			if (e.Parameters.Count == 0)
-			{
-				PlayerInfo info = GetPlayerInfo(e.Player);
-				if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
-				{
-					e.Player.SendErrorMessage("Invalid selection.");
-					return;
-				}
-
-				CommandQueue.Add(new FixHalves(info.x, info.y, info.x2, info.y2, e.Player));
-			}
+			PlayerInfo info = GetPlayerInfo(e.Player);
+			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
+				e.Player.SendErrorMessage("Invalid selection!");
 			else
-			{
-				int radius;
-				if (!int.TryParse(e.Parameters[0], out radius) || radius <= 0)
-				{
-					e.Player.SendErrorMessage("Invalid radius.");
-					return;
-				}
-
-				int x = e.Player.TileX - radius;
-				int x2 = e.Player.TileX + radius + 2;
-				int y = e.Player.TileY - radius + 1;
-				int y2 = e.Player.TileY + radius + 1;
-				CommandQueue.Add(new FixHalves(x, y, x2, y2, e.Player));
-			}
+				CommandQueue.Add(new FixHalves(info.X, info.Y, info.X2, info.Y2, e.Player));
 		}
 		void FixSlopes(CommandArgs e)
 		{
-			if (e.Parameters.Count > 1)
-			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //fixslopes [radius]");
-				return;
-			}
-
-			if (e.Parameters.Count == 0)
-			{
-				PlayerInfo info = GetPlayerInfo(e.Player);
-				if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
-				{
-					e.Player.SendErrorMessage("Invalid selection.");
-					return;
-				}
-
-				CommandQueue.Add(new FixSlopes(info.x, info.y, info.x2, info.y2, e.Player));
-			}
+			PlayerInfo info = GetPlayerInfo(e.Player);
+			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
+				e.Player.SendErrorMessage("Invalid selection!");
 			else
-			{
-				int radius;
-				if (!int.TryParse(e.Parameters[0], out radius) || radius <= 0)
-				{
-					e.Player.SendErrorMessage("Invalid radius.");
-					return;
-				}
-
-				int x = e.Player.TileX - radius;
-				int x2 = e.Player.TileX + radius + 2;
-				int y = e.Player.TileY - radius + 1;
-				int y2 = e.Player.TileY + radius + 1;
-				CommandQueue.Add(new FixSlopes(x, y, x2, y2, e.Player));
-			}
+				CommandQueue.Add(new FixSlopes(info.X, info.Y, info.X2, info.Y2, e.Player));
 		}
 		void Flood(CommandArgs e)
 		{
-			if (e.Parameters.Count != 1 && e.Parameters.Count != 2)
+			if (e.Parameters.Count != 1)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //flood <liquid> [radius]");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //flood <liquid>");
 				return;
 			}
 
 			int liquid = 0;
-			if (e.Parameters[0].ToLower() == "lava")
+			if (String.Equals(e.Parameters[0], "lava", StringComparison.CurrentCultureIgnoreCase))
 				liquid = 1;
-			else if (e.Parameters[0].ToLower() == "honey")
+			else if (String.Equals(e.Parameters[0], "honey", StringComparison.CurrentCultureIgnoreCase))
 				liquid = 2;
-			else if (e.Parameters[0].ToLower() != "water")
+			else if (!String.Equals(e.Parameters[0], "water", StringComparison.CurrentCultureIgnoreCase))
 			{
-				e.Player.SendErrorMessage("Invalid liquid type!");
+				e.Player.SendErrorMessage("Invalid liquid type '{0}'!", e.Parameters[0]);
 				return;
 			}
 
-			if (e.Parameters.Count == 1)
-			{
-				PlayerInfo info = GetPlayerInfo(e.Player);
-				if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
-				{
-					e.Player.SendErrorMessage("Invalid selection.");
-					return;
-				}
-
-				CommandQueue.Add(new Flood(info.x, info.y, info.x2, info.y2, e.Player, liquid));
-			}
-			else
-			{
-				int radius;
-				if (!int.TryParse(e.Parameters[1], out radius) || radius <= 0)
-				{
-					e.Player.SendErrorMessage("Invalid radius.");
-					return;
-				}
-
-				int x = e.Player.TileX - radius;
-				int x2 = e.Player.TileX + radius + 2;
-				int y = e.Player.TileY - radius + 1;
-				int y2 = e.Player.TileY + radius + 1;
-				CommandQueue.Add(new Flood(x, y, x2, y2, e.Player, liquid));
-			}
+			PlayerInfo info = GetPlayerInfo(e.Player);
+			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
+				e.Player.SendErrorMessage("Invalid selection!");
+			CommandQueue.Add(new Flood(info.X, info.Y, info.X2, info.Y2, e.Player, liquid));
 		}
 		void Flip(CommandArgs e)
 		{
 			if (e.Parameters.Count != 1)
-			{
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //flip <direction>");
-				return;
-			}
-			if (!Tools.HasClipboard(e.Player.UserAccountName))
+			else if (!Tools.HasClipboard(e.Player.UserAccountName))
+				e.Player.SendErrorMessage("Invalid clipboard!");
+			else
 			{
-				e.Player.SendErrorMessage("Invalid clipboard.");
-				return;
-			}
-
-			byte flip = 0;
-			foreach (char c in e.Parameters[0].ToLower())
-			{
-				if (c == 'x')
-					flip ^= 1;
-				else if (c == 'y')
-					flip ^= 2;
-				else
+				bool flipX = false;
+				bool flipY = false;
+				foreach (char c in e.Parameters[0].ToLowerInvariant())
 				{
-					e.Player.SendErrorMessage("Invalid direction.");
-					return;
+					if (c == 'x')
+						flipX ^= true;
+					else if (c == 'y')
+						flipY ^= true;
+					else
+					{
+						e.Player.SendErrorMessage("Invalid direction '{0}'!", c);
+						return;
+					}
 				}
+				CommandQueue.Add(new Flip(e.Player, flipX, flipY));
 			}
-			CommandQueue.Add(new Flip(e.Player, flip));
-		}
-		void Inset(CommandArgs e)
-		{
-			if (e.Parameters.Count != 1)
-			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //inset <amount>");
-				return;
-			}
-			PlayerInfo info = GetPlayerInfo(e.Player);
-			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
-			{
-				e.Player.SendErrorMessage("Invalid selection.");
-				return;
-			}
-
-			int amount;
-			if (!int.TryParse(e.Parameters[0], out amount) || amount < 0)
-			{
-				e.Player.SendErrorMessage("Invalid inset amount.");
-				return;
-			}
-			if (info.x < info.x2)
-			{
-				info.x += amount;
-				info.x2 -= amount;
-			}
-			else
-			{
-				info.x -= amount;
-				info.x2 += amount;
-			}
-			if (info.y < info.y2)
-			{
-				info.y += amount;
-				info.y2 -= amount;
-			}
-			else
-			{
-				info.y -= amount;
-				info.y2 += amount;
-			}
-			e.Player.SendSuccessMessage("Inset selection by {0}.", amount);
 		}
 		void Mow(CommandArgs e)
 		{
-			if (e.Parameters.Count > 1)
-			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //mow [radius]");
-				return;
-			}
-
-			if (e.Parameters.Count == 0)
-			{
-				PlayerInfo info = GetPlayerInfo(e.Player);
-				if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
-				{
-					e.Player.SendErrorMessage("Invalid selection.");
-					return;
-				}
-
-				CommandQueue.Add(new Mow(info.x, info.y, info.x2, info.y2, e.Player));
-			}
+			PlayerInfo info = GetPlayerInfo(e.Player);
+			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
+				e.Player.SendErrorMessage("Invalid selection!");
 			else
-			{
-				int radius;
-				if (!int.TryParse(e.Parameters[0], out radius) || radius <= 0)
-				{
-					e.Player.SendErrorMessage("Invalid radius.");
-					return;
-				}
-
-				int x = e.Player.TileX - radius;
-				int x2 = e.Player.TileX + radius + 2;
-				int y = e.Player.TileY - radius + 1;
-				int y2 = e.Player.TileY + radius + 1;
-				CommandQueue.Add(new Mow(x, y, x2, y2, e.Player));
-			}
+				CommandQueue.Add(new Mow(info.X, info.Y, info.X2, info.Y2, e.Player));
 		}
-		void Outset(CommandArgs e)
+		void Near(CommandArgs e)
 		{
 			if (e.Parameters.Count != 1)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //outset <amount>");
-				return;
-			}
-			PlayerInfo info = GetPlayerInfo(e.Player);
-			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
-			{
-				e.Player.SendErrorMessage("Invalid selection.");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //near <radius>");
 				return;
 			}
 
-			int amount;
-			if (!int.TryParse(e.Parameters[0], out amount) || amount < 0)
+			int radius;
+			if (!int.TryParse(e.Parameters[0], out radius) || radius <= 0)
 			{
-				e.Player.SendErrorMessage("Invalid outset amount.");
+				e.Player.SendErrorMessage("Invalid radius '{0}'!", e.Parameters[0]);
 				return;
 			}
-			if (info.x < info.x2)
-			{
-				info.x -= amount;
-				info.x2 += amount;
-			}
-			else
-			{
-				info.x += amount;
-				info.x2 -= amount;
-			}
-			if (info.y < info.y2)
-			{
-				info.y -= amount;
-				info.y2 += amount;
-			}
-			else
-			{
-				info.y += amount;
-				info.y2 -= amount;
-			}
-			e.Player.SendSuccessMessage("Outset selection by {0}.", amount);
+
+			PlayerInfo info = GetPlayerInfo(e.Player);
+			info.X = e.Player.TileX - radius;
+			info.X2 = e.Player.TileX + radius + 1;
+			info.Y = e.Player.TileY - radius;
+			info.Y2 = e.Player.TileY + radius + 2;
+			e.Player.SendSuccessMessage("Selected tiles around you!");
 		}
 		void Paint(CommandArgs e)
 		{
@@ -949,34 +563,30 @@ namespace WorldEdit
 				return;
 			}
 			PlayerInfo info = GetPlayerInfo(e.Player);
-			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
+			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 			{
-				e.Player.SendErrorMessage("Invalid selection.");
+				e.Player.SendErrorMessage("Invalid selection!");
 				return;
 			}
 
-			List<int> colors = Tools.GetColorID(e.Parameters[0].ToLower());
+			var colors = Tools.GetColorID(e.Parameters[0].ToLower());
 			if (colors.Count == 0)
-			{
-				e.Player.SendErrorMessage("Invalid color.");
-				return;
-			}
+				e.Player.SendErrorMessage("Invalid color '{0}'!", e.Parameters[0]);
 			else if (colors.Count > 1)
+				e.Player.SendErrorMessage("More than one color matched!");
+			else
 			{
-				e.Player.SendErrorMessage("More than one color matched.");
-				return;
-			}
-
-			Expression expression = null;
-			if (e.Parameters.Count > 1)
-			{
-				if (!Parser.TryCreateExpression(e.Parameters.Skip(1), out expression))
+				Expression expression = null;
+				if (e.Parameters.Count > 1)
 				{
-					e.Player.SendErrorMessage("Invalid expression.");
-					return;
+					if (!Parser.TryParseTree(e.Parameters.Skip(1), out expression))
+					{
+						e.Player.SendErrorMessage("Invalid expression!");
+						return;
+					}
 				}
+				CommandQueue.Add(new Paint(info.X, info.Y, info.X2, info.Y2, e.Player, colors[0], expression));
 			}
-			CommandQueue.Add(new Paint(info.x, info.y, info.x2, info.y2, e.Player, colors[0], expression));
 		}
 		void PaintWall(CommandArgs e)
 		{
@@ -986,88 +596,86 @@ namespace WorldEdit
 				return;
 			}
 			PlayerInfo info = GetPlayerInfo(e.Player);
-			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
+			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 			{
-				e.Player.SendErrorMessage("Invalid selection.");
+				e.Player.SendErrorMessage("Invalid selection!");
 				return;
 			}
 
-			List<int> colors = Tools.GetColorID(e.Parameters[0].ToLower());
+			var colors = Tools.GetColorID(e.Parameters[0].ToLower());
 			if (colors.Count == 0)
-			{
-				e.Player.SendErrorMessage("Invalid color.");
-				return;
-			}
+				e.Player.SendErrorMessage("Invalid color '{0}'!", e.Parameters[0]);
 			else if (colors.Count > 1)
+				e.Player.SendErrorMessage("More than one color matched!");
+			else
 			{
-				e.Player.SendErrorMessage("More than one color matched.");
-				return;
-			}
-
-			Expression expression = null;
-			if (e.Parameters.Count > 1)
-			{
-				if (!Parser.TryCreateExpression(e.Parameters.Skip(1), out expression))
+				Expression expression = null;
+				if (e.Parameters.Count > 1)
 				{
-					e.Player.SendErrorMessage("Invalid expression.");
-					return;
+					if (!Parser.TryParseTree(e.Parameters.Skip(1), out expression))
+					{
+						e.Player.SendErrorMessage("Invalid expression!");
+						return;
+					}
 				}
+				CommandQueue.Add(new PaintWall(info.X, info.Y, info.X2, info.Y2, e.Player, colors[0], expression));
 			}
-			CommandQueue.Add(new PaintWall(info.x, info.y, info.x2, info.y2, e.Player, colors[0], expression));
 		}
 		void Paste(CommandArgs e)
 		{
 			PlayerInfo info = GetPlayerInfo(e.Player);
-			if (info.x == -1 || info.y == -1)
+			if (info.X == -1 || info.Y == -1)
+				e.Player.SendErrorMessage("Invalid first point!");
+			else if (!Tools.HasClipboard(e.Player.UserAccountName))
+				e.Player.SendErrorMessage("Invalid clipboard!");
+			else
 			{
-				e.Player.SendErrorMessage("Invalid first point.");
-				return;
-			}
-			if (!Tools.HasClipboard(e.Player.UserAccountName))
-			{
-				e.Player.SendErrorMessage("Invalid clipboard.");
-				return;
-			}
-
-			int alignment = 0;
-			if (e.Parameters.Count == 1)
-			{
-				foreach (char c in e.Parameters[0].ToLower())
+				int alignment = 0;
+				if (e.Parameters.Count == 1)
 				{
-					switch (c)
+					foreach (char c in e.Parameters[0].ToLower())
 					{
-						case 'l':
-                            alignment &= 2;
-							break;
-						case 'r':
-                            alignment |= 1;
-							break;
-						case 't':
-                            alignment &= 1;
-							break;
-						case 'b':
-                            alignment |= 2;
-							break;
-                        default:
-                            e.Player.SendErrorMessage("Invalid paste direction!");
-                            return;
+						if (c == 'l')
+							alignment &= 2;
+						else if (c == 'r')
+							alignment |= 1;
+						else if (c == 't')
+							alignment &= 1;
+						else if (c == 'b')
+							alignment |= 2;
+						else
+						{
+							e.Player.SendErrorMessage("Invalid paste alignment '{0}'!", c);
+							return;
+						}
 					}
 				}
-			}
 
-			Expression expression = null;
-			if (e.Parameters.Count > 1)
-			{
-				if (!Parser.TryCreateExpression(e.Parameters.Skip(1), out expression))
+				Expression expression = null;
+				if (e.Parameters.Count > 1)
 				{
-					e.Player.SendErrorMessage("Invalid expression.");
-					return;
+					if (!Parser.TryParseTree(e.Parameters.Skip(1), out expression))
+					{
+						e.Player.SendErrorMessage("Invalid expression!");
+						return;
+					}
 				}
+				CommandQueue.Add(new Paste(info.X, info.Y, e.Player, alignment, expression));
 			}
-			CommandQueue.Add(new Paste(info.x, info.y, e.Player, alignment, expression));
 		}
 		void Point1(CommandArgs e)
 		{
+			if (e.Parameters.Count == 0)
+			{
+				if (!e.Player.RealPlayer)
+					e.Player.SendErrorMessage("You must use this command in-game.");
+				else
+				{
+					Players[e.Player.Index].Point = 1;
+					e.Player.SendInfoMessage("Modify a block to set point 1.");
+				}
+				return;
+			}
 			if (e.Parameters.Count != 2)
 			{
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //point1 <x> <y>");
@@ -1083,14 +691,26 @@ namespace WorldEdit
 			}
 
 			PlayerInfo info = GetPlayerInfo(e.Player);
-			info.x = x;
-			info.y = y;
+			info.X = x;
+			info.Y = y;
+			e.Player.SendInfoMessage("Set point 1.");
 		}
 		void Point2(CommandArgs e)
 		{
+			if (e.Parameters.Count == 0)
+			{
+				if (!e.Player.RealPlayer)
+					e.Player.SendErrorMessage("You must use this command in-game.");
+				else
+				{
+					Players[e.Player.Index].Point = 2;
+					e.Player.SendInfoMessage("Modify a block to set point 2.");
+				}
+				return;
+			}
 			if (e.Parameters.Count != 2)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //point2 <x> <y>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //point2 [x] [y]");
 				return;
 			}
 
@@ -1098,36 +718,14 @@ namespace WorldEdit
 			if (!int.TryParse(e.Parameters[0], out x) || x < 0 || x >= Main.maxTilesX
 				|| !int.TryParse(e.Parameters[1], out y) || y < 0 || y >= Main.maxTilesY)
 			{
-				e.Player.SendErrorMessage("Invalid coordinates.");
+				e.Player.SendErrorMessage("Invalid coordinates '({0}, {1})'!", e.Parameters[0], e.Parameters[1]);
 				return;
 			}
 
 			PlayerInfo info = GetPlayerInfo(e.Player);
-			info.x2 = x;
-			info.y2 = y;
-		}
-		void PointCmd(CommandArgs e)
-		{
-			if (e.Parameters.Count != 1)
-			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //point <1 | 2>");
-				return;
-			}
-
-			switch (e.Parameters[0])
-			{
-				case "1":
-					Players[e.Player.Index].pt = 1;
-					e.Player.SendInfoMessage("Hit a block to set point 1.");
-					return;
-				case "2":
-					Players[e.Player.Index].pt = 2;
-					e.Player.SendInfoMessage("Hit a block to set point 2.");
-					return;
-				default:
-					e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //point <1 | 2>");
-					return;
-			}
+			info.X2 = x;
+			info.Y2 = y;
+			e.Player.SendInfoMessage("Set point 2.");
 		}
 		void Redo(CommandArgs e)
 		{
@@ -1139,69 +737,97 @@ namespace WorldEdit
 
 			int steps = 1;
 			if (e.Parameters.Count > 0 && (!int.TryParse(e.Parameters[0], out steps) || steps <= 0))
-			{
-				e.Player.SendErrorMessage("Invalid number of redo steps.");
-				return;
-			}
-
-			string accountName = e.Player.UserAccountName;
-			if (e.Parameters.Count > 1)
-				accountName = e.Parameters[1];
-
-			CommandQueue.Add(new Redo(e.Player, accountName, steps));
+				e.Player.SendErrorMessage("Invalid redo steps '{0}'!", e.Parameters[0]);
+			else
+				CommandQueue.Add(new Redo(e.Player, e.Parameters.Count > 1 ? e.Parameters[1] : e.Player.UserAccountName, steps));
 		}
 		void RegionCmd(CommandArgs e)
 		{
-			if (e.Parameters.Count > 2)
+			if (e.Parameters.Count > 1)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //region <region name> | //region <x> <y>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //region [region name]");
 				return;
 			}
-			else if (e.Parameters.Count == 0)
+			
+			if (e.Parameters.Count == 0)
 			{
-				Players[e.Player.Index].pt = 3;
+				Players[e.Player.Index].Point = 3;
 				e.Player.SendInfoMessage("Hit a block to select that region.");
-			}
-			else if (e.Parameters.Count == 1)
-			{
-				Region curReg = TShock.Regions.ZacksGetRegionByName(e.Parameters[0]);
-				if (curReg == null)
-					e.Player.SendErrorMessage("Invalid region.");
-				else
-				{
-					PlayerInfo info = GetPlayerInfo(e.Player);
-					info.x = curReg.Area.X;
-					info.y = curReg.Area.Y;
-					info.x2 = curReg.Area.X + curReg.Area.Width;
-					info.y2 = curReg.Area.Y + curReg.Area.Height;
-				}
 			}
 			else
 			{
-				int x;
-				int y;
-				if (!int.TryParse(e.Parameters[0], out x) || !int.TryParse(e.Parameters[1], out y))
+				Region region = TShock.Regions.ZacksGetRegionByName(e.Parameters[0]);
+				if (region == null)
+					e.Player.SendErrorMessage("Invalid region '{0}'!", e.Parameters[0]);
+				else
 				{
-					e.Player.SendErrorMessage("Invalid coordinates.");
-					return;
+					PlayerInfo info = GetPlayerInfo(e.Player);
+					info.X = region.Area.Left;
+					info.Y = region.Area.Top;
+					info.X2 = region.Area.Right;
+					info.Y2 = region.Area.Bottom;
+					e.Player.SendSuccessMessage("Set selection to region '{0}'.", region.Name);
 				}
+			}
+		}
+		void Resize(CommandArgs e)
+		{
+			if (e.Parameters.Count != 2)
+			{
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //resize <direction(s)> <amount>");
+				return;
+			}
+			PlayerInfo info = GetPlayerInfo(e.Player);
+			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
+			{
+				e.Player.SendErrorMessage("Invalid selection!");
+				return;
+			}
 
-				PlayerInfo info = GetPlayerInfo(e.Player);
-				List<string> regions = TShock.Regions.InAreaRegionName(x, y);
-				if (regions.Count >= 1)
+			int amount;
+			if (!int.TryParse(e.Parameters[1], out amount))
+			{
+				e.Player.SendErrorMessage("Invalid resize amount '{0}'!", e.Parameters[0]);
+				return;
+			}
+
+			foreach (char c in e.Parameters[0].ToLowerInvariant())
+			{
+				if (c == 'd')
 				{
-					if (regions.Count > 1)
-						e.Player.SendInfoMessage("Overlapping regions; using first encountered...");
-					Region curReg = TShock.Regions.GetRegionByName(regions[0]);
-
-					info.x = curReg.Area.X;
-					info.y = curReg.Area.Y;
-					info.x2 = curReg.Area.X + curReg.Area.Width;
-					info.y2 = curReg.Area.Y + curReg.Area.Height;
+					if (info.Y < info.Y2)
+						info.Y2 += amount;
+					else
+						info.Y += amount;
+				}
+				else if (c == 'l')
+				{
+					if (info.X < info.X2)
+						info.X -= amount;
+					else
+						info.X2 -= amount;
+				}
+				else if (c == 'r')
+				{
+					if (info.X < info.X2)
+						info.X2 += amount;
+					else
+						info.X += amount;
+				}
+				else if (c == 'u')
+				{
+					if (info.Y < info.Y2)
+						info.Y -= amount;
+					else
+						info.Y2 -= amount;
 				}
 				else
-					e.Player.SendErrorMessage("Invalid region.");
+				{
+					e.Player.SendErrorMessage("Invalid direction '{0}'!", c);
+					return;
+				}
 			}
+			e.Player.SendSuccessMessage("Resized selection.");
 		}
 		void Rotate(CommandArgs e)
 		{
@@ -1212,17 +838,15 @@ namespace WorldEdit
 			}
 			if (!Tools.HasClipboard(e.Player.UserAccountName))
 			{
-				e.Player.SendErrorMessage("Invalid clipboard.");
+				e.Player.SendErrorMessage("Invalid clipboard!");
 				return;
 			}
 
 			int degrees;
 			if (!int.TryParse(e.Parameters[0], out degrees) || degrees % 90 != 0)
-			{
-				e.Player.SendErrorMessage("Invalid angle.");
-				return;
-			}
-			CommandQueue.Add(new Rotate(e.Player, degrees));
+				e.Player.SendErrorMessage("Invalid angle '{0}'!", e.Parameters[0]);
+			else
+				CommandQueue.Add(new Rotate(e.Player, degrees));
 		}
 		void Schematic(CommandArgs e)
 		{
@@ -1235,31 +859,31 @@ namespace WorldEdit
 						if (e.Parameters.Count != 2)
 						{
 							e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //schematic delete <name>");
-							break;
+							return;
 						}
 						string schematicPath = Path.Combine("worldedit", String.Format("schematic-{0}.dat", e.Parameters[1]));
 						if (!File.Exists(schematicPath))
 						{
-							e.Player.SendErrorMessage("Invalid schematic.");
-							break;
+							e.Player.SendErrorMessage("Invalid schematic '{0}'!");
+							return;
 						}
 						File.Delete(schematicPath);
-						e.Player.SendErrorMessage("Deleted schematic.");
+						e.Player.SendErrorMessage("Deleted schematic '{0}'.", e.Parameters[1]);
 					}
-					break;
+					return;
 				case "help":
-					e.Player.SendSuccessMessage("Schematics commands:");
+					e.Player.SendSuccessMessage("Schematics Subcommands:");
 					e.Player.SendInfoMessage("//schematic delete <name>");
 					e.Player.SendInfoMessage("//schematic list [page]");
 					e.Player.SendInfoMessage("//schematic load <name>");
 					e.Player.SendInfoMessage("//schematic save <name>");
-					break;
+					return;
 				case "list":
 					{
 						if (e.Parameters.Count > 2)
 						{
 							e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //schematic list [page]");
-							break;
+							return;
 						}
 
 						int pageNumber;
@@ -1272,52 +896,51 @@ namespace WorldEdit
 							new PaginationTools.Settings
 							{
 								HeaderFormat = "Schematics ({0}/{1}):",
-								FooterFormat = "Type /schematic list {0} for more."
+								FooterFormat = "Type //schematic list {0} for more."
 							});
 					}
-					break;
+					return;
 				case "load":
 					{
 						if (e.Parameters.Count != 2)
 						{
 							e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //schematic load <name>");
-							break;
+							return;
 						}
 						string schematicPath = Path.Combine("worldedit", String.Format("schematic-{0}.dat", e.Parameters[1]));
 						if (!File.Exists(schematicPath))
 						{
-							e.Player.SendErrorMessage("Invalid schematic.");
+							e.Player.SendErrorMessage("Invalid schematic '{0}'!");
 							return;
 						}
 
 						string clipboardPath = Path.Combine("worldedit", String.Format("clipboard-{0}.dat", e.Player.UserAccountName));
 						File.Copy(schematicPath, clipboardPath, true);
-						e.Player.SendSuccessMessage("Loaded schematic to clipboard.");
+						e.Player.SendSuccessMessage("Loaded schematic '{0}' to clipboard.", e.Parameters[1]);
 					}
-					break;
-				case "add":
+					return;
 				case "save":
 					{
 						if (e.Parameters.Count != 2)
 						{
 							e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //schematic save <name>");
-							break;
+							return;
 						}
 						string clipboardPath = Path.Combine("worldedit", String.Format("clipboard-{0}.dat", e.Player.UserAccountName));
 						if (!File.Exists(clipboardPath))
 						{
-							e.Player.SendErrorMessage("Invalid clipboard.");
-							break;
+							e.Player.SendErrorMessage("Invalid clipboard!");
+							return;
 						}
 
 						string schematicPath = Path.Combine("worldedit", String.Format("schematic-{0}.dat", e.Parameters[1]));
 						File.Copy(clipboardPath, schematicPath, true);
-						e.Player.SendSuccessMessage("Saved clipboard to schematic.");
+						e.Player.SendSuccessMessage("Saved clipboard to schematic '{0}'.", e.Parameters[1]);
 					}
-					break;
+					return;
 				default:
-					e.Player.SendErrorMessage("Unknown subcommand.");
-					break;
+					e.Player.SendErrorMessage("Invalid subcommand.");
+					return;
 			}
 		}
 		void Select(CommandArgs e)
@@ -1331,205 +954,169 @@ namespace WorldEdit
 			string selection = e.Parameters[0].ToLower();
 			if (!Selections.ContainsKey(selection))
 			{
-				e.Player.SendErrorMessage("Invalid selection type.");
+				e.Player.SendErrorMessage("Invalid selection type '{0}'!", selection);
 				return;
 			}
-			GetPlayerInfo(e.Player).select = Selections[selection];
-			e.Player.SendSuccessMessage("Set selection type to {0}.", selection);
+			GetPlayerInfo(e.Player).Select = Selections[selection];
+			e.Player.SendSuccessMessage("Set selection type to '{0}'.", selection);
 		}
 		void Set(CommandArgs e)
 		{
 			if (e.Parameters.Count == 0)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //set <tile> [where] [conditions...]");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //set <tile> [=> boolean expr...]");
 				return;
 			}
 			PlayerInfo info = GetPlayerInfo(e.Player);
-			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
+			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 			{
-				e.Player.SendErrorMessage("Invalid selection.");
+				e.Player.SendErrorMessage("Invalid selection!");
 				return;
 			}
 
-			List<int> tiles = Tools.GetTileID(e.Parameters[0].ToLower());
+			var tiles = Tools.GetTileID(e.Parameters[0].ToLower());
 			if (tiles.Count == 0)
-			{
-				e.Player.SendErrorMessage("Invalid tile.");
-				return;
-			}
+				e.Player.SendErrorMessage("Invalid tile '{0}'!", e.Parameters[0]);
 			else if (tiles.Count > 1)
+				e.Player.SendErrorMessage("More than one tile matched!");
+			else
 			{
-				e.Player.SendErrorMessage("More than one tile matched.");
-				return;
-			}
-
-			Expression expression = null;
-			if (e.Parameters.Count > 1)
-			{
-				if (!Parser.TryCreateExpression(e.Parameters.Skip(1), out expression))
+				Expression expression = null;
+				if (e.Parameters.Count > 1)
 				{
-					e.Player.SendErrorMessage("Invalid expression.");
-					return;
+					if (!Parser.TryParseTree(e.Parameters.Skip(1), out expression))
+					{
+						e.Player.SendErrorMessage("Invalid expression!");
+						return;
+					}
 				}
+				CommandQueue.Add(new Set(info.X, info.Y, info.X2, info.Y2, e.Player, tiles[0], expression));
 			}
-			CommandQueue.Add(new Set(info.x, info.y, info.x2, info.y2, e.Player, tiles[0], expression));
 		}
 		void SetWall(CommandArgs e)
 		{
 			if (e.Parameters.Count == 0)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //setwall <wall> [where] [conditions...]");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //setwall <wall> [=> boolean expr...]");
 				return;
 			}
 			PlayerInfo info = GetPlayerInfo(e.Player);
-			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
+			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 			{
-				e.Player.SendErrorMessage("Invalid selection.");
+				e.Player.SendErrorMessage("Invalid selection!");
 				return;
 			}
 
-			List<int> walls = Tools.GetWallID(e.Parameters[0].ToLower());
+			var walls = Tools.GetWallID(e.Parameters[0].ToLower());
 			if (walls.Count == 0)
-			{
-				e.Player.SendErrorMessage("Invalid wall.");
-				return;
-			}
+				e.Player.SendErrorMessage("Invalid wall '{0}'!", e.Parameters[0]);
 			else if (walls.Count > 1)
+				e.Player.SendErrorMessage("More than one wall matched!");
+			else
 			{
-				e.Player.SendErrorMessage("More than one wall matched.");
-				return;
-			}
-
-			Expression expression = null;
-			if (e.Parameters.Count > 1)
-			{
-				if (!Parser.TryCreateExpression(e.Parameters.Skip(1), out expression))
+				Expression expression = null;
+				if (e.Parameters.Count > 1)
 				{
-					e.Player.SendErrorMessage("Invalid expression.");
-					return;
+					if (!Parser.TryParseTree(e.Parameters.Skip(1), out expression))
+					{
+						e.Player.SendErrorMessage("Invalid expression!");
+						return;
+					}
 				}
+				CommandQueue.Add(new SetWall(info.X, info.Y, info.X2, info.Y2, e.Player, walls[0], expression));
 			}
-			CommandQueue.Add(new SetWall(info.x, info.y, info.x2, info.y2, e.Player, walls[0], expression));
 		}
 		void SetWire(CommandArgs e)
 		{
-			if (e.Parameters.Count < 3)
+			if (e.Parameters.Count < 2)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //setwire <wire 1 state> <wire 2 state> <wire 3 state>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //setwire <wire> <wire state> [=> boolean expr...]");
 				return;
 			}
 			PlayerInfo info = GetPlayerInfo(e.Player);
-			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
+			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 			{
-				e.Player.SendErrorMessage("Invalid selection.");
+				e.Player.SendErrorMessage("Invalid selection!");
 				return;
 			}
 
-			bool wire = false;
-			if (e.Parameters[0].ToLower() == "on")
-				wire = true;
-			else if (e.Parameters[0].ToLower() != "off")
+			int wire;
+			if (!int.TryParse(e.Parameters[0], out wire) || wire < 1 || wire > 3)
 			{
-				e.Player.SendErrorMessage("Invalid wire 1 state.");
+				e.Player.SendErrorMessage("Invalid wire '{0}'!", e.Parameters[0]);
 				return;
 			}
 
-			bool wire2 = false;
-			if (e.Parameters[1].ToLower() == "on")
-				wire2 = true;
-			else if (e.Parameters[1].ToLower() != "off")
+			bool state = false;
+			if (String.Equals(e.Parameters[1], "on", StringComparison.CurrentCultureIgnoreCase))
+				state = true;
+			else if (!String.Equals(e.Parameters[1], "off", StringComparison.CurrentCultureIgnoreCase))
 			{
-				e.Player.SendErrorMessage("Invalid wire 2 state.");
-				return;
-			}
-
-			bool wire3 = false;
-			if (e.Parameters[2].ToLower() == "on")
-				wire3 = true;
-			else if (e.Parameters[2].ToLower() != "off")
-			{
-				e.Player.SendErrorMessage("Invalid wire 3 state.");
+				e.Player.SendErrorMessage("Invalid wire state '{0}'!", e.Parameters[1]);
 				return;
 			}
 
 			Expression expression = null;
-			if (e.Parameters.Count > 1)
+			if (e.Parameters.Count > 2)
 			{
-				if (!Parser.TryCreateExpression(e.Parameters.Skip(1), out expression))
+				if (!Parser.TryParseTree(e.Parameters.Skip(2), out expression))
 				{
-					e.Player.SendErrorMessage("Invalid expression.");
+					e.Player.SendErrorMessage("Invalid expression!");
 					return;
 				}
 			}
-			CommandQueue.Add(new SetWire(info.x, info.y, info.x2, info.y2, e.Player, wire, wire2, wire3, expression));
+			CommandQueue.Add(new SetWire(info.X, info.Y, info.X2, info.Y2, e.Player, wire, state, expression));
 		}
 		void Shift(CommandArgs e)
 		{
 			if (e.Parameters.Count != 2)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //shift <amount> <direction>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //shift <direction> <amount>");
 				return;
 			}
 			PlayerInfo info = GetPlayerInfo(e.Player);
-			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
+			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 			{
-				e.Player.SendErrorMessage("Invalid selection.");
+				e.Player.SendErrorMessage("Invalid selection!");
 				return;
 			}
 
 			int amount;
-			if (!int.TryParse(e.Parameters[0], out amount) || amount < 0)
+			if (!int.TryParse(e.Parameters[1], out amount) || amount < 0)
 			{
-				e.Player.SendErrorMessage("Invalid shift amount.");
-				return;
-			}
-			switch (e.Parameters[1].ToLower())
-			{
-				case "d":
-				case "down":
-					info.y += amount;
-					info.y2 += amount;
-					e.Player.SendSuccessMessage("Shifted selection down {0}.", amount);
-					break;
-
-				case "l":
-				case "left":
-					info.x -= amount;
-					info.x2 -= amount;
-					e.Player.SendSuccessMessage("Shifted selection left {0}.", amount);
-					break;
-
-				case "r":
-				case "right":
-					info.x += amount;
-					info.x2 += amount;
-					e.Player.SendSuccessMessage("Shifted selection right {0}.", amount);
-					break;
-
-				case "u":
-				case "up":
-					info.y -= amount;
-					info.y2 -= amount;
-					e.Player.SendSuccessMessage("Shifted selection up {0}.", amount);
-					break;
-
-				default:
-					e.Player.SendErrorMessage("Invalid direction.");
-					break;
-			}
-		}
-		void Size(CommandArgs e)
-		{
-			PlayerInfo info = GetPlayerInfo(e.Player);
-			if (info.x == -1 || info.y == -1 || info.x2 == -1 || info.y2 == -1)
-			{
-				e.Player.SendErrorMessage("Invalid selection.");
+				e.Player.SendErrorMessage("Invalid shift amount '{0}'!", e.Parameters[0]);
 				return;
 			}
 
-			int lenX = Math.Abs(info.x - info.x2) + 1;
-			int lenY = Math.Abs(info.y - info.y2) + 1;
-			e.Player.SendInfoMessage("Selection size: {0} x {1}", lenX, lenY);
+			foreach (char c in e.Parameters[1].ToLowerInvariant())
+			{
+				if (c == 'd')
+				{
+					info.Y += amount;
+					info.Y2 += amount;
+				}
+				else if (c == 'l')
+				{
+					info.X -= amount;
+					info.X2 -= amount;
+				}
+				else if (c == 'r')
+				{
+					info.X += amount;
+					info.X2 += amount;
+				}
+				else if (c == 'u')
+				{
+					info.Y -= amount;
+					info.Y2 -= amount;
+				}
+				else
+				{
+					e.Player.SendErrorMessage("Invalid direction '{0}'!", c);
+					return;
+				}
+			}
+			e.Player.SendSuccessMessage("Shifted selection.");
 		}
 		void Undo(CommandArgs e)
 		{
@@ -1541,16 +1128,9 @@ namespace WorldEdit
 
 			int steps = 1;
 			if (e.Parameters.Count > 0 && (!int.TryParse(e.Parameters[0], out steps) || steps <= 0))
-			{
-				e.Player.SendErrorMessage("Invalid number of undo steps.");
-				return;
-			}
-
-			string accountName = e.Player.UserAccountName;
-			if (e.Parameters.Count > 1)
-				accountName = e.Parameters[1];
-
-			CommandQueue.Add(new Undo(e.Player, accountName, steps));
+				e.Player.SendErrorMessage("Invalid undo steps '{0}'!", e.Parameters[0]);
+			else
+				CommandQueue.Add(new Undo(e.Player, e.Parameters.Count > 1 ? e.Parameters[1] : e.Player.UserAccountName, steps));
 		}
 	}
 }

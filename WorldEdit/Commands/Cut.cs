@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
-using System.Text;
 using Terraria;
 using TShockAPI;
 using TShockAPI.DB;
@@ -12,7 +9,7 @@ namespace WorldEdit.Commands
 {
 	public class Cut : WECommand
 	{
-		const int BUFFER_SIZE = 1048576;
+		private const int BUFFER_SIZE = 1048576;
 
 		public Cut(int x, int y, int x2, int y2, TSPlayer plr)
 			: base(x, y, x2, y2, plr)

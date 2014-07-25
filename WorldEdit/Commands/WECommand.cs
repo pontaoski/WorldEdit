@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using Terraria;
 using TShockAPI;
 using WorldEdit.Expressions;
@@ -18,7 +19,7 @@ namespace WorldEdit.Commands
 		protected WECommand(int x, int y, int x2, int y2, TSPlayer plr)
 		{
 			this.plr = plr;
-			this.select = WorldEdit.GetPlayerInfo(plr).select ?? WorldEdit.Selections["normal"];
+			this.select = WorldEdit.GetPlayerInfo(plr).Select ?? WorldEdit.Selections["normal"];
 			this.x = x;
 			this.x2 = x2;
 			this.y = y;
@@ -29,14 +30,11 @@ namespace WorldEdit.Commands
 		public void Position()
 		{
 			int temp;
-			if (x < 0)
-				x = 0;
-			if (y < 0)
-				y = 0;
-			if (x2 >= Main.maxTilesX)
-				x2 = Main.maxTilesX - 1;
-			if (y2 >= Main.maxTilesY)
-				y2 = Main.maxTilesY - 1;
+			x = Math.Max(x, 0);
+			y = Math.Max(y, 0);
+			x2 = Math.Min(x2, Main.maxTilesX - 1);
+			y2 = Math.Min(y2, Main.maxTilesY - 1);
+			
 			if (x > x2)
 			{
 				temp = x2;
@@ -65,47 +63,49 @@ namespace WorldEdit.Commands
 				}
 			}
 		}
-		public void SetTile(int i, int j, int tile)
+		public void SetTile(int i, int j, int tileType)
 		{
-			switch (tile)
+			var tile = Main.tile[i, j];
+			switch (tileType)
 			{
 				case -1:
-					Main.tile[i, j].active(false);
-					Main.tile[i, j].frameX = -1;
-					Main.tile[i, j].frameY = -1;
-					Main.tile[i, j].liquidType(0);
-					Main.tile[i, j].liquid = 0;
-					Main.tile[i, j].type = 0;
+					tile.active(false);
+					tile.frameX = -1;
+					tile.frameY = -1;
+					tile.liquidType(0);
+					tile.liquid = 0;
+					tile.type = 0;
 					return;
 				case -2:
-					Main.tile[i, j].active(false);
-					Main.tile[i, j].liquidType(1);
-					Main.tile[i, j].liquid = 255;
-					Main.tile[i, j].type = 0;
+					tile.active(false);
+					tile.liquidType(1);
+					tile.liquid = 255;
+					tile.type = 0;
 					return;
 				case -3:
-					Main.tile[i, j].active(false);
-					Main.tile[i, j].liquidType(2);
-					Main.tile[i, j].liquid = 255;
-					Main.tile[i, j].type = 0;
+					tile.active(false);
+					tile.liquidType(2);
+					tile.liquid = 255;
+					tile.type = 0;
 					return;
 				case -4:
-					Main.tile[i, j].active(false);
-					Main.tile[i, j].liquidType(0);
-					Main.tile[i, j].liquid = 255;
-					Main.tile[i, j].type = 0;
+					tile.active(false);
+					tile.liquidType(0);
+					tile.liquid = 255;
+					tile.type = 0;
 					return;
 				default:
-					if (Main.tileFrameImportant[tile])
-						WorldGen.PlaceTile(i, j, tile);
+					if (Main.tileFrameImportant[tileType])
+						WorldGen.PlaceTile(i, j, tileType);
 					else
 					{
-						Main.tile[i, j].active(true);
-						Main.tile[i, j].frameX = -1;
-						Main.tile[i, j].frameY = -1;
-						Main.tile[i, j].liquidType(0);
-						Main.tile[i, j].liquid = 0;
-						Main.tile[i, j].type = (ushort)tile;
+						tile.active(true);
+						tile.frameX = -1;
+						tile.frameY = -1;
+						tile.liquidType(0);
+						tile.liquid = 0;
+						tile.slope(0);
+						tile.type = (ushort)tileType;
 					}
 					return;
 			}

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using Terraria;
 using TShockAPI;
 
 namespace WorldEdit.Commands

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Terraria;
 using TShockAPI;
 
@@ -22,16 +19,17 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (Main.tile[i, j].liquid != 0)
+					var tile = Main.tile[i, j];
+					if (tile.liquid != 0)
 					{
-						Main.tile[i, j].liquid = 0;
-						Main.tile[i, j].liquidType(0);
+						tile.liquid = 0;
+						tile.liquidType(0);
 						edits++;
 					}
 				}
 			}
 			ResetSection();
-			plr.SendSuccessMessage("Drained nearby area. ({0})", edits);
+			plr.SendSuccessMessage("Drained area. ({0})", edits);
 		}
 	}
 }

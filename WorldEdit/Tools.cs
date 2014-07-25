@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using Terraria;
 using TShockAPI;
 using TShockAPI.DB;
-using TShockAPI.Extensions;
-using TShockAPI.Net;
 
 namespace WorldEdit
 {

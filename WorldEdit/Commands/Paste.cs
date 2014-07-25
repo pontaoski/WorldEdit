@@ -9,8 +9,8 @@ namespace WorldEdit.Commands
 {
 	public class Paste : WECommand
 	{
-		int alignment;
-		Expression expression;
+		private int alignment;
+		private Expression expression;
 
 		public Paste(int x, int y, TSPlayer plr, int alignment, Expression expression)
 			: base(x, y, 0, 0, plr)
@@ -51,7 +51,7 @@ namespace WorldEdit.Commands
 					for (int j = y; j <= y2; j++)
 					{
 						Tile tile = reader.ReadTile();
-						if (i >= 0 && j >= 0 && i < Main.maxTilesX && j < Main.maxTilesY && (expression == null || expression.Evaluate(i, j)))
+						if (i >= 0 && j >= 0 && i < Main.maxTilesX && j < Main.maxTilesY && (expression == null || expression.Evaluate(Main.tile[i, j])))
 							Main.tile[i, j] = tile;
 					}
 				}
