@@ -50,7 +50,7 @@ namespace WorldEdit.Expressions
 		}
 		public static List<Token> ParseInfix(string str)
 		{
-			str = str.Replace(" ", "").ToLower();
+			str = str.Replace(" ", "").ToLowerInvariant();
 			var tokens = new List<Token>();
 
 			for (int i = 0; i < str.Length; i++)

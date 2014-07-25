@@ -250,7 +250,7 @@ namespace WorldEdit
 			});
 			#endregion
 			#region Database
-			switch (TShock.Config.StorageType.ToLower())
+			switch (TShock.Config.StorageType.ToLowerInvariant())
 			{
 				case "mysql":
 					string[] host = TShock.Config.MySqlHost.Split(':');
@@ -298,7 +298,7 @@ namespace WorldEdit
 			{
 				item.netDefaults(i);
 				if (item.paint > 0)
-					Colors.Add(item.name.Substring(0, item.name.Length - 6).ToLower(), item.paint);
+					Colors.Add(item.name.Substring(0, item.name.Length - 6).ToLowerInvariant(), item.paint);
 			}
 			#endregion
 			#region Selections
@@ -421,8 +421,8 @@ namespace WorldEdit
 				return;
 			}
 
-			string biome1 = e.Parameters[0].ToLower();
-			string biome2 = e.Parameters[1].ToLower();
+			string biome1 = e.Parameters[0].ToLowerInvariant();
+			string biome2 = e.Parameters[1].ToLowerInvariant();
 			if (!Biomes.ContainsKey(biome1) || !Biomes.ContainsKey(biome2))
 				e.Player.SendErrorMessage("Invalid biome.");
 			else
@@ -569,7 +569,7 @@ namespace WorldEdit
 				return;
 			}
 
-			var colors = Tools.GetColorID(e.Parameters[0].ToLower());
+			var colors = Tools.GetColorID(e.Parameters[0].ToLowerInvariant());
 			if (colors.Count == 0)
 				e.Player.SendErrorMessage("Invalid color '{0}'!", e.Parameters[0]);
 			else if (colors.Count > 1)
@@ -602,7 +602,7 @@ namespace WorldEdit
 				return;
 			}
 
-			var colors = Tools.GetColorID(e.Parameters[0].ToLower());
+			var colors = Tools.GetColorID(e.Parameters[0].ToLowerInvariant());
 			if (colors.Count == 0)
 				e.Player.SendErrorMessage("Invalid color '{0}'!", e.Parameters[0]);
 			else if (colors.Count > 1)
@@ -633,7 +633,7 @@ namespace WorldEdit
 				int alignment = 0;
 				if (e.Parameters.Count == 1)
 				{
-					foreach (char c in e.Parameters[0].ToLower())
+					foreach (char c in e.Parameters[0].ToLowerInvariant())
 					{
 						if (c == 'l')
 							alignment &= 2;
@@ -850,7 +850,7 @@ namespace WorldEdit
 		}
 		void Schematic(CommandArgs e)
 		{
-			string subCmd = e.Parameters.Count == 0 ? "help" : e.Parameters[0].ToLower();
+			string subCmd = e.Parameters.Count == 0 ? "help" : e.Parameters[0].ToLowerInvariant();
 			switch (subCmd)
 			{
 				case "del":
@@ -951,7 +951,7 @@ namespace WorldEdit
 				return;
 			}
 
-			string selection = e.Parameters[0].ToLower();
+			string selection = e.Parameters[0].ToLowerInvariant();
 			if (!Selections.ContainsKey(selection))
 			{
 				e.Player.SendErrorMessage("Invalid selection type '{0}'!", selection);
@@ -974,7 +974,7 @@ namespace WorldEdit
 				return;
 			}
 
-			var tiles = Tools.GetTileID(e.Parameters[0].ToLower());
+			var tiles = Tools.GetTileID(e.Parameters[0].ToLowerInvariant());
 			if (tiles.Count == 0)
 				e.Player.SendErrorMessage("Invalid tile '{0}'!", e.Parameters[0]);
 			else if (tiles.Count > 1)
@@ -1007,7 +1007,7 @@ namespace WorldEdit
 				return;
 			}
 
-			var walls = Tools.GetWallID(e.Parameters[0].ToLower());
+			var walls = Tools.GetWallID(e.Parameters[0].ToLowerInvariant());
 			if (walls.Count == 0)
 				e.Player.SendErrorMessage("Invalid wall '{0}'!", e.Parameters[0]);
 			else if (walls.Count > 1)
