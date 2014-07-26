@@ -147,48 +147,44 @@ namespace WorldEdit.Expressions
 					return test = t => t.liquid > 0 && t.liquidType() == 1;
 				case "liquid":
 					return test = t => t.liquid > 0;
+				case "t":
 				case "tile":
 					if (String.IsNullOrEmpty(rhs))
 						return test = t => t.active();
 
 					List<int> tiles = Tools.GetTileID(rhs);
-					if (tiles.Count == 0)
-						throw new ArgumentException("No tile matched.");
-					if (tiles.Count > 1)
-						throw new ArgumentException("More than one tile matched.");
+					if (tiles.Count == 0 || tiles.Count > 1)
+						throw new ArgumentException();
 					return test = t => (t.active() && t.type == tiles[0]) != negated;
+				case "tp":
 				case "tilepaint":
 					{
 						if (String.IsNullOrEmpty(rhs))
 							return test = t => t.active() && t.color() != 0;
 
-						List<int> colors = Tools.GetColorID(rhs);
-						if (colors.Count == 0)
-							throw new ArgumentException("No color matched.");
-						if (colors.Count > 1)
-							throw new ArgumentException("More than one color matched.");
+						var colors = Tools.GetColorID(rhs);
+						if (colors.Count == 0 || colors.Count > 1)
+							throw new ArgumentException();
 						return test = t => (t.active() && t.color() == colors[0]) != negated;
 					}
+				case "w":
 				case "wall":
 					if (String.IsNullOrEmpty(rhs))
 						return test = t => t.wall != 0;
 
-					List<int> walls = Tools.GetTileID(rhs);
-					if (walls.Count == 0)
-						throw new ArgumentException("No wall matched.");
-					if (walls.Count > 1)
-						throw new ArgumentException("More than one wall matched.");
+					var walls = Tools.GetTileID(rhs);
+					if (walls.Count == 0 || walls.Count > 1)
+						throw new ArgumentException();
 					return test = t => (t.wall == walls[0]) != negated;
+				case "wp":
 				case "wallpaint":
 					{
 						if (String.IsNullOrEmpty(rhs))
 							return test = t => t.wall > 0 && t.wallColor() != 0;
 
-						List<int> colors = Tools.GetColorID(rhs);
-						if (colors.Count == 0)
-							throw new ArgumentException("No color matched.");
-						if (colors.Count > 1)
-							throw new ArgumentException("More than one color matched.");
+						var colors = Tools.GetColorID(rhs);
+						if (colors.Count == 0 || colors.Count > 1)
+							throw new ArgumentException();
 						return test = t => (t.wall > 0 && t.wallColor() == colors[0]) != negated;
 					}
 				case "water":
