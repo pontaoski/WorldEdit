@@ -16,6 +16,7 @@ using TShockAPI;
 using TShockAPI.DB;
 using WorldEdit.Commands;
 using WorldEdit.Expressions;
+using WorldEdit.Extensions;
 
 namespace WorldEdit
 {
@@ -27,15 +28,9 @@ namespace WorldEdit
 		public static Dictionary<string, int[]> Biomes = new Dictionary<string, int[]>();
 		public static Dictionary<string, int> Colors = new Dictionary<string, int>();
 		public static IDbConnection Database;
-		public static PlayerInfo[] Players = new PlayerInfo[257];
 		public static Dictionary<string, Selection> Selections = new Dictionary<string, Selection>();
 		public static Dictionary<string, int> Tiles = new Dictionary<string, int>();
 		public static Dictionary<string, int> Walls = new Dictionary<string, int>();
-
-		public static PlayerInfo GetPlayerInfo(TSPlayer player)
-		{
-			return player.RealPlayer ? Players[player.Index] : Players[256];
-		}
 
 		public override string Author
 		{
@@ -59,8 +54,6 @@ namespace WorldEdit
 		public WorldEdit(Main game)
 			: base(game)
 		{
-			for (int i = 0; i < Players.Length; i++)
-				Players[i] = new PlayerInfo();
 		}
 
 		protected override void Dispose(bool disposing)
@@ -69,7 +62,6 @@ namespace WorldEdit
 			{
 				ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
 				ServerApi.Hooks.NetGetData.Deregister(this, OnGetData);
-				ServerApi.Hooks.ServerLeave.Deregister(this, OnLeave);
 
 				Cancel.Cancel();
 			}
@@ -78,14 +70,13 @@ namespace WorldEdit
 		{
 			ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
 			ServerApi.Hooks.NetGetData.Register(this, OnGetData);
-			ServerApi.Hooks.ServerLeave.Register(this, OnLeave);
 		}
 
 		void OnGetData(GetDataEventArgs e)
 		{
 			if (!e.Handled && e.MsgID == PacketTypes.Tile)
 			{
-				PlayerInfo info = Players[e.Msg.whoAmI];
+				PlayerInfo info = TShock.Players[e.Msg.whoAmI].GetPlayerInfo();
 				if (info.Point != 0)
 				{
 					using (var reader = new BinaryReader(new MemoryStream(e.Msg.readBuffer, e.Index, e.Length)))
@@ -306,7 +297,7 @@ namespace WorldEdit
 			Selections.Add("checkers", (i, j, plr) => ((i + j) & 1) == 1);
 			Selections.Add("ellipse", (i, j, plr) =>
 			{
-				PlayerInfo info = GetPlayerInfo(plr);
+				PlayerInfo info = plr.GetPlayerInfo();
 
 				int X = Math.Min(info.X, info.X2);
 				int Y = Math.Min(info.Y, info.Y2);
@@ -327,7 +318,7 @@ namespace WorldEdit
 			Selections.Add("normal", (i, j, plr) => true);
 			Selections.Add("outline", (i, j, plr) =>
 			{
-				PlayerInfo info = GetPlayerInfo(plr);
+				PlayerInfo info = plr.GetPlayerInfo();
 				return i == info.X || i == info.X2 || j == info.Y || j == info.Y2;
 			});
 			#endregion
@@ -371,10 +362,6 @@ namespace WorldEdit
 
 			ThreadPool.QueueUserWorkItem(QueueCallback);
 		}
-		void OnLeave(LeaveEventArgs e)
-		{
-			Players[e.Who] = new PlayerInfo();
-		}
 
 		void QueueCallback(object context)
 		{
@@ -401,7 +388,7 @@ namespace WorldEdit
 
 		void All(CommandArgs e)
 		{
-			PlayerInfo info = GetPlayerInfo(e.Player);
+			PlayerInfo info = e.Player.GetPlayerInfo();
 			info.X = info.Y = 0;
 			info.X2 = Main.maxTilesX - 1;
 			info.Y2 = Main.maxTilesY - 1;
@@ -414,7 +401,7 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //biome <biome 1> <biome 2>");
 				return;
 			}
-			PlayerInfo info = GetPlayerInfo(e.Player);
+			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 			{
 				e.Player.SendErrorMessage("Invalid selection.");
@@ -430,7 +417,7 @@ namespace WorldEdit
 		}
 		void Copy(CommandArgs e)
 		{
-			PlayerInfo info = GetPlayerInfo(e.Player);
+			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 				e.Player.SendErrorMessage("Invalid selection!");
 			else
@@ -438,7 +425,7 @@ namespace WorldEdit
 		}
 		void Cut(CommandArgs e)
 		{
-			PlayerInfo info = GetPlayerInfo(e.Player);
+			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 				e.Player.SendErrorMessage("Invalid selection.");
 			else
@@ -446,7 +433,7 @@ namespace WorldEdit
 		}
 		void Drain(CommandArgs e)
 		{
-			PlayerInfo info = GetPlayerInfo(e.Player);
+			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 				e.Player.SendErrorMessage("Invalid selection.");
 			else
@@ -454,7 +441,7 @@ namespace WorldEdit
 		}
 		void FixGrass(CommandArgs e)
 		{
-			PlayerInfo info = GetPlayerInfo(e.Player);
+			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 				e.Player.SendErrorMessage("Invalid selection!");
 			else
@@ -462,7 +449,7 @@ namespace WorldEdit
 		}
 		void FixHalves(CommandArgs e)
 		{
-			PlayerInfo info = GetPlayerInfo(e.Player);
+			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 				e.Player.SendErrorMessage("Invalid selection!");
 			else
@@ -470,7 +457,7 @@ namespace WorldEdit
 		}
 		void FixSlopes(CommandArgs e)
 		{
-			PlayerInfo info = GetPlayerInfo(e.Player);
+			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 				e.Player.SendErrorMessage("Invalid selection!");
 			else
@@ -495,7 +482,7 @@ namespace WorldEdit
 				return;
 			}
 
-			PlayerInfo info = GetPlayerInfo(e.Player);
+			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 				e.Player.SendErrorMessage("Invalid selection!");
 			CommandQueue.Add(new Flood(info.X, info.Y, info.X2, info.Y2, e.Player, liquid));
@@ -527,7 +514,7 @@ namespace WorldEdit
 		}
 		void Mow(CommandArgs e)
 		{
-			PlayerInfo info = GetPlayerInfo(e.Player);
+			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 				e.Player.SendErrorMessage("Invalid selection!");
 			else
@@ -548,7 +535,7 @@ namespace WorldEdit
 				return;
 			}
 
-			PlayerInfo info = GetPlayerInfo(e.Player);
+			PlayerInfo info = e.Player.GetPlayerInfo();
 			info.X = e.Player.TileX - radius;
 			info.X2 = e.Player.TileX + radius + 1;
 			info.Y = e.Player.TileY - radius;
@@ -562,7 +549,7 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //paint <color> [where] [conditions...]");
 				return;
 			}
-			PlayerInfo info = GetPlayerInfo(e.Player);
+			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 			{
 				e.Player.SendErrorMessage("Invalid selection!");
@@ -595,7 +582,7 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //paintwall <color> [where] [conditions...]");
 				return;
 			}
-			PlayerInfo info = GetPlayerInfo(e.Player);
+			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 			{
 				e.Player.SendErrorMessage("Invalid selection!");
@@ -623,7 +610,8 @@ namespace WorldEdit
 		}
 		void Paste(CommandArgs e)
 		{
-			PlayerInfo info = GetPlayerInfo(e.Player);
+			PlayerInfo info = e.Player.GetPlayerInfo();
+			e.Player.SendInfoMessage("X: {0}, Y: {1}", info.X, info.Y);
 			if (info.X == -1 || info.Y == -1)
 				e.Player.SendErrorMessage("Invalid first point!");
 			else if (!Tools.HasClipboard(e.Player.UserAccountName))
@@ -665,13 +653,14 @@ namespace WorldEdit
 		}
 		void Point1(CommandArgs e)
 		{
+			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (e.Parameters.Count == 0)
 			{
 				if (!e.Player.RealPlayer)
 					e.Player.SendErrorMessage("You must use this command in-game.");
 				else
 				{
-					Players[e.Player.Index].Point = 1;
+					info.Point = 1;
 					e.Player.SendInfoMessage("Modify a block to set point 1.");
 				}
 				return;
@@ -690,20 +679,20 @@ namespace WorldEdit
 				return;
 			}
 
-			PlayerInfo info = GetPlayerInfo(e.Player);
 			info.X = x;
 			info.Y = y;
 			e.Player.SendInfoMessage("Set point 1.");
 		}
 		void Point2(CommandArgs e)
 		{
+			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (e.Parameters.Count == 0)
 			{
 				if (!e.Player.RealPlayer)
 					e.Player.SendErrorMessage("You must use this command in-game.");
 				else
 				{
-					Players[e.Player.Index].Point = 2;
+					info.Point = 2;
 					e.Player.SendInfoMessage("Modify a block to set point 2.");
 				}
 				return;
@@ -722,7 +711,6 @@ namespace WorldEdit
 				return;
 			}
 
-			PlayerInfo info = GetPlayerInfo(e.Player);
 			info.X2 = x;
 			info.Y2 = y;
 			e.Player.SendInfoMessage("Set point 2.");
@@ -748,10 +736,11 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //region [region name]");
 				return;
 			}
-			
+
+			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (e.Parameters.Count == 0)
 			{
-				Players[e.Player.Index].Point = 3;
+				info.Point = 3;
 				e.Player.SendInfoMessage("Hit a block to select that region.");
 			}
 			else
@@ -761,7 +750,6 @@ namespace WorldEdit
 					e.Player.SendErrorMessage("Invalid region '{0}'!", e.Parameters[0]);
 				else
 				{
-					PlayerInfo info = GetPlayerInfo(e.Player);
 					info.X = region.Area.Left;
 					info.Y = region.Area.Top;
 					info.X2 = region.Area.Right;
@@ -777,7 +765,7 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //resize <direction(s)> <amount>");
 				return;
 			}
-			PlayerInfo info = GetPlayerInfo(e.Player);
+			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 			{
 				e.Player.SendErrorMessage("Invalid selection!");
@@ -957,7 +945,7 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid selection type '{0}'!", selection);
 				return;
 			}
-			GetPlayerInfo(e.Player).Select = Selections[selection];
+			e.Player.GetPlayerInfo().Select = Selections[selection];
 			e.Player.SendSuccessMessage("Set selection type to '{0}'.", selection);
 		}
 		void Set(CommandArgs e)
@@ -967,7 +955,7 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //set <tile> [=> boolean expr...]");
 				return;
 			}
-			PlayerInfo info = GetPlayerInfo(e.Player);
+			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 			{
 				e.Player.SendErrorMessage("Invalid selection!");
@@ -1000,7 +988,7 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //setwall <wall> [=> boolean expr...]");
 				return;
 			}
-			PlayerInfo info = GetPlayerInfo(e.Player);
+			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 			{
 				e.Player.SendErrorMessage("Invalid selection!");
@@ -1033,7 +1021,7 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //setwire <wire> <wire state> [=> boolean expr...]");
 				return;
 			}
-			PlayerInfo info = GetPlayerInfo(e.Player);
+			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 			{
 				e.Player.SendErrorMessage("Invalid selection!");
@@ -1074,7 +1062,7 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //shift <direction> <amount>");
 				return;
 			}
-			PlayerInfo info = GetPlayerInfo(e.Player);
+			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 			{
 				e.Player.SendErrorMessage("Invalid selection!");

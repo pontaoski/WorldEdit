@@ -4,6 +4,7 @@ using System.Threading;
 using Terraria;
 using TShockAPI;
 using WorldEdit.Expressions;
+using WorldEdit.Extensions;
 
 namespace WorldEdit.Commands
 {
@@ -19,7 +20,7 @@ namespace WorldEdit.Commands
 		protected WECommand(int x, int y, int x2, int y2, TSPlayer plr)
 		{
 			this.plr = plr;
-			this.select = WorldEdit.GetPlayerInfo(plr).Select ?? WorldEdit.Selections["normal"];
+			this.select = plr.GetPlayerInfo().Select ?? WorldEdit.Selections["normal"];
 			this.x = x;
 			this.x2 = x2;
 			this.y = y;

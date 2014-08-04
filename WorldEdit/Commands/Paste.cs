@@ -13,7 +13,7 @@ namespace WorldEdit.Commands
 		private Expression expression;
 
 		public Paste(int x, int y, TSPlayer plr, int alignment, Expression expression)
-			: base(x, y, 0, 0, plr)
+			: base(x, y, Int32.MaxValue, Int32.MaxValue, plr)
 		{
 			this.alignment = alignment;
 			this.expression = expression;
