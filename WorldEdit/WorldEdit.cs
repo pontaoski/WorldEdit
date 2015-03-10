@@ -22,7 +22,7 @@ namespace WorldEdit
 {
 	public delegate bool Selection(int i, int j, TSPlayer player);
 
-	[ApiVersion(1, 16)]
+	[ApiVersion(1, 17)]
 	public class WorldEdit : TerrariaPlugin
 	{
 		public static Dictionary<string, int[]> Biomes = new Dictionary<string, int[]>();
@@ -745,7 +745,7 @@ namespace WorldEdit
 			}
 			else
 			{
-				Region region = TShock.Regions.ZacksGetRegionByName(e.Parameters[0]);
+				Region region = TShock.Regions.GetRegionByName(e.Parameters[0]);
 				if (region == null)
 					e.Player.SendErrorMessage("Invalid region '{0}'!", e.Parameters[0]);
 				else
