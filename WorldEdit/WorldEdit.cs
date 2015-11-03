@@ -22,7 +22,7 @@ namespace WorldEdit
 {
 	public delegate bool Selection(int i, int j, TSPlayer player);
 
-	[ApiVersion(1, 21)]
+	[ApiVersion(1, 22)]
 	public class WorldEdit : TerrariaPlugin
 	{
 		public static Dictionary<string, int[]> Biomes = new Dictionary<string, int[]>();
