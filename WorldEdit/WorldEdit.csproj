@@ -59,6 +59,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\Inactive.cs" />
     <Compile Include="Commands\Biome.cs" />
     <Compile Include="Commands\Cut.cs" />
     <Compile Include="Commands\FixHalves.cs" />
