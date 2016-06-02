@@ -10,6 +10,8 @@ namespace WorldEdit
 		private int y = -1;
 		private int y2 = -1;
 
+		public const string KEY = "WorldEdit_Data";
+
 		public int Point = 0;
 		public Selection Select = null;
 		public int X

@@ -22,7 +22,7 @@ namespace WorldEdit
 {
 	public delegate bool Selection(int i, int j, TSPlayer player);
 
-	[ApiVersion(1, 22)]
+	[ApiVersion(1, 23)]
 	public class WorldEdit : TerrariaPlugin
 	{
 		public static Dictionary<string, int[]> Biomes = new Dictionary<string, int[]>();
@@ -74,51 +74,151 @@ namespace WorldEdit
 
 		void OnGetData(GetDataEventArgs e)
 		{
-			if (!e.Handled && e.MsgID == PacketTypes.Tile)
+			if (e.Handled)
+				return;
+
+			switch (e.MsgID)
 			{
-				PlayerInfo info = TShock.Players[e.Msg.whoAmI].GetPlayerInfo();
-				if (info.Point != 0)
-				{
-					using (var reader = new BinaryReader(new MemoryStream(e.Msg.readBuffer, e.Index, e.Length)))
+				#region Packet 17 - Tile
+
+				case PacketTypes.Tile:
+					PlayerInfo info = TShock.Players[e.Msg.whoAmI].GetPlayerInfo();
+					if (info.Point != 0)
 					{
-						reader.ReadByte();
-						int x = reader.ReadInt16();
-						int y = reader.ReadInt16();
-						if (x >= 0 && y >= 0 && x < Main.maxTilesX && y < Main.maxTilesY)
+						using (var reader = new BinaryReader(new MemoryStream(e.Msg.readBuffer, e.Index, e.Length)))
 						{
-							if (info.Point == 1)
+							reader.ReadByte();
+							int x = reader.ReadInt16();
+							int y = reader.ReadInt16();
+							if (x >= 0 && y >= 0 && x < Main.maxTilesX && y < Main.maxTilesY)
 							{
-								info.X = x;
-								info.Y = y;
-								TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set point 1.");
-							}
-							else if (info.Point == 2)
-							{
-								info.X2 = x;
-								info.Y2 = y;
-								TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set point 2.");
-							}
-							else if (info.Point == 3)
-							{
-								List<string> regions = TShock.Regions.InAreaRegionName(x, y).ToList();
-								if (regions.Count == 0)
+								if (info.Point == 1)
 								{
-									TShock.Players[e.Msg.whoAmI].SendErrorMessage("No region exists there.");
-									return;
+									info.X = x;
+									info.Y = y;
+									TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set point 1.");
 								}
-								Region curReg = TShock.Regions.GetRegionByName(regions[0]);
-								info.X = curReg.Area.Left;
-								info.Y = curReg.Area.Top;
-								info.X2 = curReg.Area.Right;
-								info.Y2 = curReg.Area.Bottom;
-								TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set region.");
+								else if (info.Point == 2)
+								{
+									info.X2 = x;
+									info.Y2 = y;
+									TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set point 2.");
+								}
+								else if (info.Point == 3)
+								{
+									List<string> regions = TShock.Regions.InAreaRegionName(x, y).ToList();
+									if (regions.Count == 0)
+									{
+										TShock.Players[e.Msg.whoAmI].SendErrorMessage("No region exists there.");
+										return;
+									}
+									Region curReg = TShock.Regions.GetRegionByName(regions[0]);
+									info.X = curReg.Area.Left;
+									info.Y = curReg.Area.Top;
+									info.X2 = curReg.Area.Right;
+									info.Y2 = curReg.Area.Bottom;
+									TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set region.");
+								}
+								info.Point = 0;
+								e.Handled = true;
+								TShock.Players[e.Msg.whoAmI].SendTileSquare(x, y, 3);
 							}
-							info.Point = 0;
-							e.Handled = true;
-							TShock.Players[e.Msg.whoAmI].SendTileSquare(x, y, 3);
 						}
 					}
-				}
+					return;
+
+				#endregion
+				#region Packet 109 - MassWireOperation
+
+				case PacketTypes.MassWireOperation:
+					PlayerInfo data = TShock.Players[e.Msg.whoAmI].GetPlayerInfo();
+					if (data.Point != 0)
+					{
+						using (var reader = new BinaryReader(new MemoryStream(e.Msg.readBuffer, e.Index, e.Length)))
+						{
+							int startX = reader.ReadInt16();
+							int startY = reader.ReadInt16();
+							int endX = reader.ReadInt16();
+							int endY = reader.ReadInt16();
+
+							if (startX >= 0 && startY >= 0 && endX >= 0 && endY >= 0 && startX < Main.maxTilesX && startY < Main.maxTilesY && endX < Main.maxTilesX && endY < Main.maxTilesY)
+							{
+								if (startX == endX && startY == endY)
+								{
+									// Set a single point
+									if (data.Point == 1)
+									{
+										data.X = startX;
+										data.Y = startY;
+										TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set point 1.");
+									}
+									else if (data.Point == 2)
+									{
+										data.X2 = startX;
+										data.Y2 = startY;
+										TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set point 2.");
+									}
+									else if (data.Point == 3)
+									{
+										List<string> regions = TShock.Regions.InAreaRegionName(startX, startY).ToList();
+										if (regions.Count == 0)
+										{
+											TShock.Players[e.Msg.whoAmI].SendErrorMessage("No region exists there.");
+										}
+										else
+										{
+											Region curReg = TShock.Regions.GetRegionByName(regions[0]);
+											data.X = curReg.Area.Left;
+											data.Y = curReg.Area.Top;
+											data.X2 = curReg.Area.Right;
+											data.Y2 = curReg.Area.Bottom;
+											TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set region.");
+										}
+									}
+								}
+								else
+								{
+									// Set both points at the same time
+									if (data.Point == 1 || data.Point == 2)
+									{
+										data.X = startX;
+										data.Y = startY;
+										data.X2 = endX;
+										data.Y2 = endY;
+										TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set area.");
+									}
+									else if (data.Point == 3)
+									{
+										// Set topmost region inside the selection
+										int x = Math.Min(startX, endX);
+										int y = Math.Min(startY, endY);
+										int width = Math.Max(startX, endX) - x;
+										int height = Math.Max(startY, endY) - y;
+										Rectangle rect = new Rectangle(x, y, width, height);
+										List<Region> regions = TShock.Regions.Regions.FindAll(r => rect.Intersects(r.Area));
+										if (regions.Count == 0)
+										{
+											TShock.Players[e.Msg.whoAmI].SendErrorMessage("No region exists there.");
+										}
+										else
+										{
+											Region curReg = TShock.Regions.GetTopRegion(regions);
+											data.X = curReg.Area.Left;
+											data.Y = curReg.Area.Top;
+											data.X2 = curReg.Area.Right;
+											data.Y2 = curReg.Area.Bottom;
+											TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set region.");
+										}
+									}
+								}
+								data.Point = 0;
+								e.Handled = true;
+							}
+						}
+					}
+					return;
+
+					#endregion
 			}
 		}
 		void OnInitialize(EventArgs e)
@@ -359,7 +459,6 @@ namespace WorldEdit
 				Walls.Add(sb.ToString(1, sb.Length - 1), (byte)fi.GetValue(null));
 			}
 			#endregion
-
 			ThreadPool.QueueUserWorkItem(QueueCallback);
 		}
 

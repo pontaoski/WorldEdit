@@ -9,11 +9,12 @@ namespace WorldEdit.Extensions
 {
 	public static class TSPlayerExtensions
 	{
-		private static ConditionalWeakTable<TSPlayer, PlayerInfo> players = new ConditionalWeakTable<TSPlayer, PlayerInfo>();
-
 		public static PlayerInfo GetPlayerInfo(this TSPlayer tsplayer)
 		{
-			return players.GetOrCreateValue(tsplayer);
+			if (!tsplayer.ContainsData(PlayerInfo.KEY))
+				tsplayer.SetData(PlayerInfo.KEY, new PlayerInfo());
+
+			return tsplayer.GetData<PlayerInfo>(PlayerInfo.KEY);
 		}
 	}
 }
