@@ -1175,7 +1175,7 @@ namespace WorldEdit
 				return;
 			}
 
-			foreach (char c in e.Parameters[1].ToLowerInvariant())
+			foreach (char c in e.Parameters[0].ToLowerInvariant())
 			{
 				if (c == 'd')
 				{
