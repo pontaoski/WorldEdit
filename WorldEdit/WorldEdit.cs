@@ -34,7 +34,7 @@ namespace WorldEdit
 
 		public override string Author
 		{
-			get { return "MarioE"; }
+			get { return "Nyx Studios"; }
 		}
 		private CancellationTokenSource Cancel = new CancellationTokenSource();
 		private BlockingCollection<WECommand> CommandQueue = new BlockingCollection<WECommand>();

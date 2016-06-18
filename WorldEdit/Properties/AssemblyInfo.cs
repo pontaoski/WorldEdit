@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("WorldEdit")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("MarioE")]
+[assembly: AssemblyCompany("Nyx Studios")]
 [assembly: AssemblyProduct("WorldEdit")]
-[assembly: AssemblyCopyright("Copyright © MarioE 2013-2016")]
+[assembly: AssemblyCopyright("Copyright © Nyx Studios 2013-2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.4.6")]
-[assembly: AssemblyFileVersion("1.4.6")]
+[assembly: AssemblyVersion("1.4.7")]
+[assembly: AssemblyFileVersion("1.4.7")]
