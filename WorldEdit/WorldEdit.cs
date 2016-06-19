@@ -1132,7 +1132,7 @@ namespace WorldEdit
 			}
 
 			int wire;
-			if (!int.TryParse(e.Parameters[0], out wire) || wire < 1 || wire > 3)
+			if (!int.TryParse(e.Parameters[0], out wire) || wire < 1 || wire > 4)
 			{
 				e.Player.SendErrorMessage("Invalid wire '{0}'!", e.Parameters[0]);
 				return;
