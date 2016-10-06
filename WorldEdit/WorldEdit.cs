@@ -22,7 +22,7 @@ namespace WorldEdit
 {
 	public delegate bool Selection(int i, int j, TSPlayer player);
 
-	[ApiVersion(1, 24)]
+	[ApiVersion(1, 25)]
 	public class WorldEdit : TerrariaPlugin
 	{
 		public static Dictionary<string, int[]> Biomes = new Dictionary<string, int[]>();
@@ -32,27 +32,14 @@ namespace WorldEdit
 		public static Dictionary<string, int> Tiles = new Dictionary<string, int>();
 		public static Dictionary<string, int> Walls = new Dictionary<string, int>();
 
-		public override string Author
-		{
-			get { return "Nyx Studios"; }
-		}
+		public override string Author => "Nyx Studios";
 		private CancellationTokenSource Cancel = new CancellationTokenSource();
 		private BlockingCollection<WECommand> CommandQueue = new BlockingCollection<WECommand>();
-		public override string Description
-		{
-			get { return "Adds commands for mass editing of blocks."; }
-		}
-		public override string Name
-		{
-			get { return "WorldEdit"; }
-		}
-		public override Version Version
-		{
-			get { return Assembly.GetExecutingAssembly().GetName().Version; }
-		}
+		public override string Description => "Adds commands for mass editing of blocks.";
+		public override string Name => "WorldEdit";
+		public override Version Version => Assembly.GetExecutingAssembly().GetName().Version;
 
-		public WorldEdit(Main game)
-			: base(game)
+		public WorldEdit(Main game) : base(game)
 		{
 		}
 
