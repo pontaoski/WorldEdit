@@ -381,8 +381,9 @@ namespace WorldEdit
 			for (int i = -48; i < Main.maxItemTypes; i++)
 			{
 				item.netDefaults(i);
+				var name = Lang.itemName(i, true);
 				if (item.paint > 0)
-					Colors.Add(item.name.Substring(0, item.name.Length - 6).ToLowerInvariant(), item.paint);
+					Colors.Add(name.Substring(0, name.Length - 6).ToLowerInvariant(), item.paint);
 			}
 			#endregion
 			#region Selections
