@@ -195,6 +195,8 @@ namespace WorldEdit.Expressions
 					return test = t => t.wire2();
 				case "wire3":
 					return test = t => t.wire3();
+				case "wire4":
+					return test = t => t.wire4();
 				default:
 					throw new ArgumentException("Invalid test.");
 			}
