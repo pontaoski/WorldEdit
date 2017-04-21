@@ -24,7 +24,7 @@ namespace WorldEdit
 {
 	public delegate bool Selection(int i, int j, TSPlayer player);
 
-	[ApiVersion(2, 0)]
+	[ApiVersion(2, 1)]
 	public class WorldEdit : TerrariaPlugin
 	{
 		public static Dictionary<string, int[]> Biomes = new Dictionary<string, int[]>();
@@ -381,7 +381,9 @@ namespace WorldEdit
 			for (int i = -48; i < Main.maxItemTypes; i++)
 			{
 				item.netDefaults(i);
-				var name = Lang.itemName(i, true);
+
+				// todo: other language support
+				var name = Lang.GetItemNameValue(i);
 				if (item.paint > 0)
 					Colors.Add(name.Substring(0, name.Length - 6).ToLowerInvariant(), item.paint);
 			}
