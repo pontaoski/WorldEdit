@@ -382,10 +382,13 @@ namespace WorldEdit
 			{
 				item.netDefaults(i);
 
-				// todo: other language support
-				var name = Lang.GetItemNameValue(i);
-				if (item.paint > 0)
-					Colors.Add(name.Substring(0, name.Length - 6).ToLowerInvariant(), item.paint);
+				if (item.paint <= 0)
+				{
+					continue;
+				}
+
+				var name = TShockAPI.Localization.EnglishLanguage.GetItemNameById(i);
+				Colors.Add(name.Substring(0, name.Length - 6).ToLowerInvariant(), item.paint);
 			}
 			#endregion
 			#region Selections
@@ -462,10 +465,9 @@ namespace WorldEdit
 		{
 			while (!Netplay.disconnect)
 			{
-				WECommand command;
 				try
 				{
-					if (!CommandQueue.TryTake(out command, -1, Cancel.Token))
+					if (!CommandQueue.TryTake(out var command, -1, Cancel.Token))
 						return;
 					if (Main.rand == null)
 						Main.rand = new UnifiedRandom();
