@@ -12,8 +12,8 @@ namespace WorldEdit
 {
 	public static class Tools
 	{
-		const int BUFFER_SIZE = 1048576;
-		const int MAX_UNDOS = 50;
+		private const int BUFFER_SIZE = 1048576;
+		private const int MAX_UNDOS = 50;
 
 		public static string GetClipboardPath(string accountName)
 		{

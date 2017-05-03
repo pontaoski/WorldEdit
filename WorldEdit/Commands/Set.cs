@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using Terraria;
+﻿using Terraria;
 using TShockAPI;
 using WorldEdit.Expressions;
 

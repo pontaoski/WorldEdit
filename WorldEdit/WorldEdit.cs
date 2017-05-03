@@ -61,7 +61,7 @@ namespace WorldEdit
 			ServerApi.Hooks.NetGetData.Register(this, OnGetData);
 		}
 
-		void OnGetData(GetDataEventArgs e)
+		private static void OnGetData(GetDataEventArgs e)
 		{
 			if (e.Handled)
 				return;
@@ -210,7 +210,8 @@ namespace WorldEdit
 					#endregion
 			}
 		}
-		void OnInitialize(EventArgs e)
+
+		private void OnInitialize(EventArgs e)
 		{
 			Directory.CreateDirectory("worldedit");
 
@@ -378,7 +379,7 @@ namespace WorldEdit
 
 			Main.player[Main.myPlayer] = new Player();
 			var item = new Item();
-			for (int i = -48; i < Main.maxItemTypes; i++)
+			for (var i = 1; i < Main.maxItemTypes; i++)
 			{
 				item.netDefaults(i);
 
@@ -461,7 +462,7 @@ namespace WorldEdit
 			ThreadPool.QueueUserWorkItem(QueueCallback);
 		}
 
-		void QueueCallback(object context)
+		private void QueueCallback(object context)
 		{
 			while (!Netplay.disconnect)
 			{
@@ -481,7 +482,7 @@ namespace WorldEdit
 			}
 		}
 
-		void All(CommandArgs e)
+		private void All(CommandArgs e)
 		{
 			PlayerInfo info = e.Player.GetPlayerInfo();
 			info.X = info.Y = 0;
@@ -489,7 +490,8 @@ namespace WorldEdit
 			info.Y2 = Main.maxTilesY - 1;
 			e.Player.SendSuccessMessage("Selected all tiles.");
 		}
-		void Biome(CommandArgs e)
+
+		private void Biome(CommandArgs e)
 		{
 			if (e.Parameters.Count != 2)
 			{
@@ -510,7 +512,8 @@ namespace WorldEdit
 			else
 				CommandQueue.Add(new Biome(info.X, info.Y, info.X2, info.Y2, e.Player, biome1, biome2));
 		}
-		void Copy(CommandArgs e)
+
+		private void Copy(CommandArgs e)
 		{
 			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
@@ -518,7 +521,8 @@ namespace WorldEdit
 			else
 				CommandQueue.Add(new Copy(info.X, info.Y, info.X2, info.Y2, e.Player));
 		}
-		void Cut(CommandArgs e)
+
+		private void Cut(CommandArgs e)
 		{
 			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
@@ -526,7 +530,8 @@ namespace WorldEdit
 			else
 				CommandQueue.Add(new Cut(info.X, info.Y, info.X2, info.Y2, e.Player));
 		}
-		void Drain(CommandArgs e)
+
+		private void Drain(CommandArgs e)
 		{
 			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
@@ -534,7 +539,8 @@ namespace WorldEdit
 			else
 				CommandQueue.Add(new Drain(info.X, info.Y, info.X2, info.Y2, e.Player));
 		}
-		void FixGrass(CommandArgs e)
+
+		private void FixGrass(CommandArgs e)
 		{
 			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
@@ -542,7 +548,8 @@ namespace WorldEdit
 			else
 				CommandQueue.Add(new FixGrass(info.X, info.Y, info.X2, info.Y2, e.Player));
 		}
-		void FixHalves(CommandArgs e)
+
+		private void FixHalves(CommandArgs e)
 		{
 			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
@@ -550,7 +557,8 @@ namespace WorldEdit
 			else
 				CommandQueue.Add(new FixHalves(info.X, info.Y, info.X2, info.Y2, e.Player));
 		}
-		void FixSlopes(CommandArgs e)
+
+		private void FixSlopes(CommandArgs e)
 		{
 			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
@@ -558,7 +566,8 @@ namespace WorldEdit
 			else
 				CommandQueue.Add(new FixSlopes(info.X, info.Y, info.X2, info.Y2, e.Player));
 		}
-		void Flood(CommandArgs e)
+
+		private void Flood(CommandArgs e)
 		{
 			if (e.Parameters.Count != 1)
 			{
@@ -582,7 +591,8 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid selection!");
 			CommandQueue.Add(new Flood(info.X, info.Y, info.X2, info.Y2, e.Player, liquid));
 		}
-		void Flip(CommandArgs e)
+
+		private void Flip(CommandArgs e)
 		{
 			if (e.Parameters.Count != 1)
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //flip <direction>");
@@ -607,7 +617,8 @@ namespace WorldEdit
 				CommandQueue.Add(new Flip(e.Player, flipX, flipY));
 			}
 		}
-		void Mow(CommandArgs e)
+
+		private void Mow(CommandArgs e)
 		{
 			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
@@ -615,7 +626,8 @@ namespace WorldEdit
 			else
 				CommandQueue.Add(new Mow(info.X, info.Y, info.X2, info.Y2, e.Player));
 		}
-		void Near(CommandArgs e)
+
+		private void Near(CommandArgs e)
 		{
 			if (e.Parameters.Count != 1)
 			{
@@ -637,7 +649,8 @@ namespace WorldEdit
 			info.Y2 = e.Player.TileY + radius + 2;
 			e.Player.SendSuccessMessage("Selected tiles around you!");
 		}
-		void Paint(CommandArgs e)
+
+		private void Paint(CommandArgs e)
 		{
 			if (e.Parameters.Count == 0)
 			{
@@ -670,7 +683,8 @@ namespace WorldEdit
 				CommandQueue.Add(new Paint(info.X, info.Y, info.X2, info.Y2, e.Player, colors[0], expression));
 			}
 		}
-		void PaintWall(CommandArgs e)
+
+		private void PaintWall(CommandArgs e)
 		{
 			if (e.Parameters.Count == 0)
 			{
@@ -703,7 +717,8 @@ namespace WorldEdit
 				CommandQueue.Add(new PaintWall(info.X, info.Y, info.X2, info.Y2, e.Player, colors[0], expression));
 			}
 		}
-		void Paste(CommandArgs e)
+
+		private void Paste(CommandArgs e)
 		{
 			PlayerInfo info = e.Player.GetPlayerInfo();
 			e.Player.SendInfoMessage("X: {0}, Y: {1}", info.X, info.Y);
@@ -746,7 +761,8 @@ namespace WorldEdit
 				CommandQueue.Add(new Paste(info.X, info.Y, e.Player, alignment, expression));
 			}
 		}
-		void Point1(CommandArgs e)
+
+		private void Point1(CommandArgs e)
 		{
 			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (e.Parameters.Count == 0)
@@ -778,7 +794,8 @@ namespace WorldEdit
 			info.Y = y;
 			e.Player.SendInfoMessage("Set point 1.");
 		}
-		void Point2(CommandArgs e)
+
+		private void Point2(CommandArgs e)
 		{
 			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (e.Parameters.Count == 0)
@@ -810,7 +827,8 @@ namespace WorldEdit
 			info.Y2 = y;
 			e.Player.SendInfoMessage("Set point 2.");
 		}
-		void Redo(CommandArgs e)
+
+		private void Redo(CommandArgs e)
 		{
 			if (e.Parameters.Count > 2)
 			{
@@ -824,7 +842,8 @@ namespace WorldEdit
 			else
 				CommandQueue.Add(new Redo(e.Player, e.Parameters.Count > 1 ? e.Parameters[1] : e.Player.User.Name, steps));
 		}
-		void RegionCmd(CommandArgs e)
+
+		private void RegionCmd(CommandArgs e)
 		{
 			if (e.Parameters.Count > 1)
 			{
@@ -853,7 +872,8 @@ namespace WorldEdit
 				}
 			}
 		}
-		void Resize(CommandArgs e)
+
+		private void Resize(CommandArgs e)
 		{
 			if (e.Parameters.Count != 2)
 			{
@@ -912,7 +932,8 @@ namespace WorldEdit
 			}
 			e.Player.SendSuccessMessage("Resized selection.");
 		}
-		void Rotate(CommandArgs e)
+
+		private void Rotate(CommandArgs e)
 		{
 			if (e.Parameters.Count != 1)
 			{
@@ -931,7 +952,8 @@ namespace WorldEdit
 			else
 				CommandQueue.Add(new Rotate(e.Player, degrees));
 		}
-		void Schematic(CommandArgs e)
+
+		private void Schematic(CommandArgs e)
 		{
 			string subCmd = e.Parameters.Count == 0 ? "help" : e.Parameters[0].ToLowerInvariant();
 			switch (subCmd)
@@ -1026,7 +1048,8 @@ namespace WorldEdit
 					return;
 			}
 		}
-		void Select(CommandArgs e)
+
+		private void Select(CommandArgs e)
 		{
 			if (e.Parameters.Count != 1)
 			{
@@ -1043,7 +1066,8 @@ namespace WorldEdit
 			e.Player.GetPlayerInfo().Select = Selections[selection];
 			e.Player.SendSuccessMessage("Set selection type to '{0}'.", selection);
 		}
-		void Set(CommandArgs e)
+
+		private void Set(CommandArgs e)
 		{
 			if (e.Parameters.Count == 0)
 			{
@@ -1076,7 +1100,8 @@ namespace WorldEdit
 				CommandQueue.Add(new Set(info.X, info.Y, info.X2, info.Y2, e.Player, tiles[0], expression));
 			}
 		}
-		void SetWall(CommandArgs e)
+
+		private void SetWall(CommandArgs e)
 		{
 			if (e.Parameters.Count == 0)
 			{
@@ -1109,7 +1134,8 @@ namespace WorldEdit
 				CommandQueue.Add(new SetWall(info.X, info.Y, info.X2, info.Y2, e.Player, walls[0], expression));
 			}
 		}
-		void SetWire(CommandArgs e)
+
+		private void SetWire(CommandArgs e)
 		{
 			if (e.Parameters.Count < 2)
 			{
@@ -1150,7 +1176,8 @@ namespace WorldEdit
 			}
 			CommandQueue.Add(new SetWire(info.X, info.Y, info.X2, info.Y2, e.Player, wire, state, expression));
 		}
-		void Inactive(CommandArgs e) {
+
+		private void Inactive(CommandArgs e) {
 			if(e.Parameters.Count == 0) 
 			{
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //inactive <status(on/off/reverse)> [=> boolean expr...]");
@@ -1185,7 +1212,8 @@ namespace WorldEdit
 			}
 			CommandQueue.Add(new Inactive(info.X, info.Y, info.X2, info.Y2, e.Player, mode, expression));
 		}
-		void Shift(CommandArgs e)
+
+		private void Shift(CommandArgs e)
 		{
 			if (e.Parameters.Count != 2)
 			{
@@ -1236,7 +1264,8 @@ namespace WorldEdit
 			}
 			e.Player.SendSuccessMessage("Shifted selection.");
 		}
-		void Undo(CommandArgs e)
+
+		private void Undo(CommandArgs e)
 		{
 			if (e.Parameters.Count > 2)
 			{

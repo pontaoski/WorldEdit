@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace WorldEdit.Expressions
+﻿namespace WorldEdit.Expressions
 {
 	public class Token
 	{

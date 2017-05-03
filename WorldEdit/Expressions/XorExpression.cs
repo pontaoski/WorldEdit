@@ -1,6 +1,4 @@
-﻿using System;
-using OTAPI.Tile;
-using Terraria;
+﻿using OTAPI.Tile;
 
 namespace WorldEdit.Expressions
 {

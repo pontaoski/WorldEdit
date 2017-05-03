@@ -1,5 +1,4 @@
-﻿using System;
-using TShockAPI;
+﻿using TShockAPI;
 
 namespace WorldEdit.Commands
 {

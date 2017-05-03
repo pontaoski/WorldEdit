@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Linq;
-using System.Threading;
 using Terraria;
 using TShockAPI;
-using WorldEdit.Expressions;
 using WorldEdit.Extensions;
 
 namespace WorldEdit.Commands
