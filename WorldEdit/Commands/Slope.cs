@@ -27,7 +27,7 @@ namespace WorldEdit.Commands
                     for (int j = y; j <= y2; j++)
                     {
                         var tile = (Tile)Main.tile[i, j];
-                        if (tile.active() && select(i, j, plr) && expression.Evaluate((Tile)tile))
+                        if (tile.active() && select(i, j, plr) && expression.Evaluate(tile))
                         {
                             tile.halfBrick(true);
                             edits++;
@@ -43,7 +43,7 @@ namespace WorldEdit.Commands
                     for (int j = y; j <= y2; j++)
                     {
                         var tile = (Tile)Main.tile[i, j];
-                        if (tile.active() && select(i, j, plr) && expression.Evaluate((Tile)tile))
+                        if (tile.active() && select(i, j, plr) && expression.Evaluate(tile))
                         {
                             tile.slope(slope);
                             edits++;

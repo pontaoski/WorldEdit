@@ -57,13 +57,19 @@ namespace WorldEdit.Commands
                         writer.WriteTileNew(Main.tile[i, j], i, j);
                         var tile = Main.tile[i, j];
                         if (((tile.type == Terraria.ID.TileID.Signs)
+                            || (tile.type == Terraria.ID.TileID.Tombstones)
+                            || (tile.type == Terraria.ID.TileID.AnnouncementBox)
                             || (tile.type == Terraria.ID.TileID.Containers)
+                            || (tile.type == Terraria.ID.TileID.Dressers)
                             || (tile.type == Terraria.ID.TileID.ItemFrame))
                             && ((tile.frameX % 36 == 0) && (tile.frameY == 0)))
                         {
-                            if (tile.type == Terraria.ID.TileID.Signs)
+                            if ((tile.type == Terraria.ID.TileID.Signs)
+                                || (tile.type == Terraria.ID.TileID.Tombstones)
+                                || (tile.type == Terraria.ID.TileID.AnnouncementBox))
                             { Sign.KillSign(i, j); }
-                            if (tile.type == Terraria.ID.TileID.Containers)
+                            if ((tile.type == Terraria.ID.TileID.Containers)
+                                || (tile.type == Terraria.ID.TileID.Dressers))
                             { Chest.DestroyChest(i, j); }
                             if (tile.type == Terraria.ID.TileID.ItemFrame)
                             { Terraria.GameContent.Tile_Entities.TEItemFrame.Kill(i, j); }

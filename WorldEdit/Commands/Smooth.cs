@@ -41,7 +41,7 @@ namespace WorldEdit.Commands
                     bool XmY = Main.tile[i, j - 1].active();
                     bool XpY = Main.tile[i, j + 1].active();
 
-                    if (XY && slope && expression.Evaluate((Tile)Main.tile[i, j]))
+                    if (XY && slope && expression.Evaluate(Main.tile[i, j]))
                     {
                         if (mXY && XmY && !XpY && !pXY)
                         {

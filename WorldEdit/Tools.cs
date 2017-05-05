@@ -262,13 +262,7 @@ namespace WorldEdit
             }
             tile.wall = reader.ReadByte();
             tile.liquid = reader.ReadByte();
-
-            /*TShock.Utils.Broadcast((reader.BaseStream.Length - 1) + " ", 255, 255, 0);
-            TShock.Utils.Broadcast(" " + reader.BaseStream.Position), 255, 255, 0);
-            TShock.Utils.Broadcast(" " + (reader.BaseStream.Position != (reader.BaseStream.Length - 1)), 255, 255, 0);
-
-            if ((reader.BaseStream.Position != (reader.BaseStream.Length - 1)) && tile.active())
-            {*/
+            
             if ((tile.type == Terraria.ID.TileID.Signs)
                 || (tile.type == Terraria.ID.TileID.AnnouncementBox)
                 || (tile.type == Terraria.ID.TileID.Tombstones))
@@ -277,27 +271,16 @@ namespace WorldEdit
                 if (signID != -1)
                 {
                     sign = reader.ReadString();
-                    /*int SignID = Sign.ReadSign(X, Y);
-                    string Text = reader.ReadString();
-                    if (SignID != -1)
-                    { Sign.TextSign(SignID, Text); }*/
                 }
             }
             else if (tile.type == Terraria.ID.TileID.ItemFrame)
             {
-                int frameID = reader.ReadInt32(); //TEItemFrame.Find(X, Y);
+                int frameID = reader.ReadInt32();
                 if (frameID != -1)
                 {
-                    /*int FrameID = TEItemFrame.Place(X, Y);
-                    WorldGen.PlaceObject(X, Y, Terraria.ID.TileID.ItemFrame);*/
                     item = new Item();
                     item.netDefaults(reader.ReadInt32());
                     item.prefix = reader.ReadByte();
-                    /*if (FrameID != -1)
-                    {
-                        TEItemFrame frame = (TEItemFrame)TileEntity.ByID[FrameID];
-                        frame.item = item
-                    }*/
                 }
             }
             else if ((tile.type == Terraria.ID.TileID.Containers)
@@ -317,7 +300,6 @@ namespace WorldEdit
                     }
                 }
             }
-            //}
             return new Tuple<Tile, string, Item, Item[]>(tile, sign, item, items);
         }
         public static Tile ReadTileOld(this BinaryReader reader)

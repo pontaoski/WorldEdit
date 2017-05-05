@@ -58,7 +58,7 @@ namespace WorldEdit.Commands
                         for (int j = y; j <= y2; j++)
                         {
                             var Tile = reader.ReadTileNew();
-                            if (expression == null || expression.Evaluate((mode_MainBlocks) ? Main.tile[i, j] : Tile.Item1))
+                            if (i >= 0 && j >= 0 && i < Main.maxTilesX && j < Main.maxTilesY && (expression == null || expression.Evaluate((mode_MainBlocks) ? Main.tile[i, j] : Tile.Item1)))
                             {
                                 if ((Tile.Item2 != null) || (Tile.Item3 != null)
                                 || (Tile.Item4 != null))

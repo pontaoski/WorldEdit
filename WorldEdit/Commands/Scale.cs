@@ -39,7 +39,7 @@ namespace WorldEdit.Commands
                     writer.Write(hight * scale);
 
                     List<Tuple<Tile, string, Item, Item[]>> R = new List<Tuple<Tile, string, Item, Item[]>>();
-
+                    // TODO: Decreased scaling
                     for (int i = 0; i < width; i++)
                     {
                         for (int j = 0; j < hight; j++)

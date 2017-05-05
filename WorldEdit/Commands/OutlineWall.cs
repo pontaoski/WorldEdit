@@ -23,14 +23,14 @@ namespace WorldEdit.Commands
 
         public override void Execute()
         {
-            if (x < 2) x = 2;
-            else if (x > (Main.maxTilesX - 3)) x = (Main.maxTilesX - 3);
-            if (y < 2) y = 2;
-            else if (y > (Main.maxTilesY - 3)) y = (Main.maxTilesY - 3);
-            if (x2 < 2) x2 = 2;
-            else if (x2 > (Main.maxTilesX - 3)) x2 = (Main.maxTilesX - 3);
-            if (y2 < 2) y2 = 2;
-            else if (y2 > (Main.maxTilesY - 3)) y2 = (Main.maxTilesY - 3);
+            if (x < 1) x = 1;
+            else if (x > (Main.maxTilesX - 2)) x = (Main.maxTilesX - 2);
+            if (y < 1) y = 1;
+            else if (y > (Main.maxTilesY - 2)) y = (Main.maxTilesY - 2);
+            if (x2 < 1) x2 = 1;
+            else if (x2 > (Main.maxTilesX - 2)) x2 = (Main.maxTilesX - 2);
+            if (y2 < 1) y2 = 1;
+            else if (y2 > (Main.maxTilesY - 2)) y2 = (Main.maxTilesY - 2);
 
             Tools.PrepareUndo(x - 1, y - 1, x2 + 1, y2 + 1, plr);
             int edits = 0;
@@ -52,7 +52,7 @@ namespace WorldEdit.Commands
                     bool XmY = Main.tile[i, j - 1].wall == 0;
                     bool XpY = Main.tile[i, j + 1].wall == 0;
 
-                    if (XY && expression.Evaluate((Tile)Main.tile[i, j]))
+                    if (XY && expression.Evaluate(Main.tile[i, j]))
                     {
                         if (mXmY)
                         {
