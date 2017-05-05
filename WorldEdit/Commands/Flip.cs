@@ -45,6 +45,7 @@ namespace WorldEdit.Commands
                     writer.Write(width);
                     writer.Write(height);
 
+                    // TODO: don't flip furniture
                     for (int i = flipX ? width - 1 : 0; i != endX; i += incX)
                     {
                         for (int j = flipY ? height - 1 : 0; j != endY; j += incY)

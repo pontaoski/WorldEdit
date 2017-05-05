@@ -23,6 +23,15 @@ namespace WorldEdit.Commands
 
         public override void Execute()
         {
+            if (x < 2) x = 2;
+            else if (x > (Main.maxTilesX - 3)) x = (Main.maxTilesX - 3);
+            if (y < 2) y = 2;
+            else if (y > (Main.maxTilesY - 3)) y = (Main.maxTilesY - 3);
+            if (x2 < 2) x2 = 2;
+            else if (x2 > (Main.maxTilesX - 3)) x2 = (Main.maxTilesX - 3);
+            if (y2 < 2) y2 = 2;
+            else if (y2 > (Main.maxTilesY - 3)) y2 = (Main.maxTilesY - 3);
+
             Tools.PrepareUndo(x - 1, y - 1, x2 + 1, y2 + 1, plr);
             int edits = 0;
             List<Point> walls = new List<Point>();

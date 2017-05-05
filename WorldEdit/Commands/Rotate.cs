@@ -34,7 +34,7 @@ namespace WorldEdit.Commands
                 {
                     writer.Write(0);
                     writer.Write(0);
-
+                    // TODO: don't rotate furniture
                     switch (((degrees / 90) % 4 + 4) % 4)
                     {
                         case 0:

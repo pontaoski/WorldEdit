@@ -18,25 +18,27 @@ namespace WorldEdit.Commands
 
         public override void Execute()
         {
-            foreach (string fileName in Directory.EnumerateFiles("worldedit", String.Format("redo-{0}-*.dat", plr.User.Name)))
+            foreach (string fileName in Directory.EnumerateFiles("worldedit", String.Format("redo-{0}-*.dat", plr.User.ID)))
                 File.Delete(fileName);
 
             if (WorldEdit.Database.GetSqlType() == SqlType.Mysql)
-                WorldEdit.Database.Query("INSERT IGNORE INTO WorldEdit VALUES (@0, -1, -1)", plr.User.Name);
+                WorldEdit.Database.Query("INSERT IGNORE INTO WorldEdit VALUES (@0, -1, -1)", plr.User.ID);
             else
-                WorldEdit.Database.Query("INSERT OR IGNORE INTO WorldEdit VALUES (@0, 0, 0)", plr.User.Name);
-            WorldEdit.Database.Query("UPDATE WorldEdit SET RedoLevel = -1 WHERE Account = @0", plr.User.Name);
-            WorldEdit.Database.Query("UPDATE WorldEdit SET UndoLevel = UndoLevel + 1 WHERE Account = @0", plr.User.Name);
+                WorldEdit.Database.Query("INSERT OR IGNORE INTO WorldEdit VALUES (@0, 0, 0)", plr.User.ID);
+            WorldEdit.Database.Query("UPDATE WorldEdit SET RedoLevel = -1 WHERE Account = @0", plr.User.ID);
+            WorldEdit.Database.Query("UPDATE WorldEdit SET UndoLevel = UndoLevel + 1 WHERE Account = @0", plr.User.ID);
 
             int undoLevel = 0;
-            using (var reader = WorldEdit.Database.QueryReader("SELECT UndoLevel FROM WorldEdit WHERE Account = @0", plr.User.Name))
+            using (var reader = WorldEdit.Database.QueryReader("SELECT UndoLevel FROM WorldEdit WHERE Account = @0", plr.User.ID))
             {
                 if (reader.Read())
                     undoLevel = reader.Get<int>("UndoLevel");
             }
 
-            string clipboardPath = Tools.GetClipboardPath(plr.User.ID);
-            string undoPath = Path.Combine("worldedit", String.Format("undo-{0}-{1}.dat", plr.User.Name, undoLevel));
+            string Old = Tools.GetClipboardPath(plr.User.ID, false, false);
+            string New = Tools.GetClipboardPath(plr.User.ID, false, true);
+
+            string undoPath = Path.Combine("worldedit", String.Format("undo-{0}-{1}.dat", plr.User.ID, undoLevel));
             // GZipStream is already buffered, but it's much faster to have a 1 MB buffer.
             using (var writer =
                 new BinaryWriter(
@@ -70,8 +72,9 @@ namespace WorldEdit.Commands
                     }
                 }
             }
-            File.Delete(clipboardPath);
-            File.Copy(undoPath, clipboardPath);
+            if (File.Exists(Old)) File.Delete(Old);
+            if (File.Exists(New)) File.Delete(New);
+            File.Copy(undoPath, New);
 
             ResetSection();
             plr.SendSuccessMessage("Cut selection. ({0})", (x2 - x + 1) * (y2 - y + 1));
