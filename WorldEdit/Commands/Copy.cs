@@ -1,20 +1,29 @@
-﻿using TShockAPI;
+﻿using System.IO;
+using TShockAPI;
 
 namespace WorldEdit.Commands
 {
-	public class Copy : WECommand
-	{
-		public Copy(int x, int y, int x2, int y2, TSPlayer plr)
-			: base(x, y, x2, y2, plr)
-		{
-		}
+    public class Copy : WECommand
+    {
+        public Copy(int x, int y, int x2, int y2, TSPlayer plr)
+            : base(x, y, x2, y2, plr)
+        {
+        }
 
-		public override void Execute()
-		{
-			string clipboardPath = Tools.GetClipboardPath(plr.User.Name);
-			Tools.SaveWorldSection(x, y, x2, y2, clipboardPath);
+        public override void Execute()
+        {
+            string clipboardPath = Tools.GetClipboardPath(plr.User.ID);
 
-			plr.SendSuccessMessage("Copied selection to clipboard.");
-		}
-	}
+            if (!Tools.NewClipboardStruct(clipboardPath))
+            {
+                if (File.Exists(clipboardPath))
+                { File.Delete(clipboardPath); }
+                clipboardPath = Tools.GetClipboardPath(plr.User.ID, false, true);
+            }
+
+            Tools.SaveWorldSection(x, y, x2, y2, clipboardPath);
+
+            plr.SendSuccessMessage("Copied selection to clipboard.");
+        }
+    }
 }

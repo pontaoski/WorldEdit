@@ -139,66 +139,92 @@ namespace WorldEdit.Expressions
 		{
 			Test test;
 			switch (lhs)
-			{
-				case "honey":
-					return test = t => t.liquid > 0 && t.liquidType() == 2;
-				case "lava":
-					return test = t => t.liquid > 0 && t.liquidType() == 1;
-				case "liquid":
-					return test = t => t.liquid > 0;
-				case "t":
-				case "tile":
-					if (String.IsNullOrEmpty(rhs))
-						return test = t => t.active();
+            {
+                case "honey":
+                    return test = t => t.liquid > 0 && t.liquidType() == 2;
+                case "lava":
+                    return test = t => t.liquid > 0 && t.liquidType() == 1;
+                case "liquid":
+                    return test = t => t.liquid > 0;
+                case "t":
+                case "tile":
+                    if (String.IsNullOrEmpty(rhs))
+                        return test = t => t.active();
 
-					List<int> tiles = Tools.GetTileID(rhs);
-					if (tiles.Count == 0 || tiles.Count > 1)
-						throw new ArgumentException();
-					return test = t => (t.active() && t.type == tiles[0]) != negated;
-				case "tp":
-				case "tilepaint":
-					{
-						if (String.IsNullOrEmpty(rhs))
-							return test = t => t.active() && t.color() != 0;
+                    List<int> tiles = Tools.GetTileID(rhs);
+                    if (tiles.Count == 0 || tiles.Count > 1)
+                        throw new ArgumentException();
+                    return test = t => (t.active() && t.type == tiles[0]) != negated;
+                case "tp":
+                case "tilepaint":
+                    {
+                        if (String.IsNullOrEmpty(rhs))
+                            return test = t => t.active() && t.color() != 0;
 
-						var colors = Tools.GetColorID(rhs);
-						if (colors.Count == 0 || colors.Count > 1)
-							throw new ArgumentException();
-						return test = t => (t.active() && t.color() == colors[0]) != negated;
-					}
-				case "w":
-				case "wall":
-					if (String.IsNullOrEmpty(rhs))
-						return test = t => t.wall != 0;
+                        var colors = Tools.GetColorID(rhs);
+                        if (colors.Count == 0 || colors.Count > 1)
+                            throw new ArgumentException();
+                        return test = t => (t.active() && t.color() == colors[0]) != negated;
+                    }
+                case "w":
+                case "wall":
+                    if (String.IsNullOrEmpty(rhs))
+                        return test = t => t.wall != 0;
 
-					var walls = Tools.GetTileID(rhs);
-					if (walls.Count == 0 || walls.Count > 1)
-						throw new ArgumentException();
-					return test = t => (t.wall == walls[0]) != negated;
-				case "wp":
-				case "wallpaint":
-					{
-						if (String.IsNullOrEmpty(rhs))
-							return test = t => t.wall > 0 && t.wallColor() != 0;
+                    var walls = Tools.GetTileID(rhs);
+                    if (walls.Count == 0 || walls.Count > 1)
+                        throw new ArgumentException();
+                    return test = t => (t.wall == walls[0]) != negated;
+                case "wp":
+                case "wallpaint":
+                    {
+                        if (String.IsNullOrEmpty(rhs))
+                            return test = t => t.wall > 0 && t.wallColor() != 0;
 
-						var colors = Tools.GetColorID(rhs);
-						if (colors.Count == 0 || colors.Count > 1)
-							throw new ArgumentException();
-						return test = t => (t.wall > 0 && t.wallColor() == colors[0]) != negated;
-					}
-				case "water":
-					return test = t => t.liquid > 0 && t.liquidType() == 0;
-				case "wire":
-					return test = t => t.wire();
-				case "wire2":
-					return test = t => t.wire2();
-				case "wire3":
-					return test = t => t.wire3();
-				case "wire4":
-					return test = t => t.wire4();
-				default:
-					throw new ArgumentException("Invalid test.");
-			}
+                        var colors = Tools.GetColorID(rhs);
+                        if (colors.Count == 0 || colors.Count > 1)
+                            throw new ArgumentException();
+                        return test = t => (t.wall > 0 && t.wallColor() == colors[0]) != negated;
+                    }
+                case "water":
+                    return test = t => t.liquid > 0 && t.liquidType() == 0;
+                case "wire":
+                case "wire1":
+                case "wirered":
+                case "redwire":
+                    return test = t => t.wire();
+                case "wire2":
+                case "wireblue":
+                case "bluewire":
+                    return test = t => t.wire2();
+                case "wire3":
+                case "wiregreen":
+                case "greenwire":
+                    return test = t => t.wire3();
+                case "wire4":
+                case "wireyellow":
+                case "yellowwire":
+                    return test = t => t.wire4();
+                case "a":
+                case "active":
+                    return test = t => t.active() && !t.inActive();
+                case "na":
+                case "nactive":
+                    return test = t => t.inActive();
+                case "s":
+                case "slope":
+                    {
+                        if (String.IsNullOrEmpty(rhs))
+                            return test = t => (t.slope() != 0);
+
+                        int slope = Tools.GetSlopeID(rhs);
+                        if (slope == -1)
+                            throw new ArgumentException();
+                        return test = t => (t.active() && t.slope() == (byte)slope) != negated;
+                    }
+                default:
+                    throw new ArgumentException("Invalid test.");
+            }
 		}
 		public static bool TryParseTree(IEnumerable<string> parameters, out Expression expression)
 		{
