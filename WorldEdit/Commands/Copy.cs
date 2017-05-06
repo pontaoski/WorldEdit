@@ -3,27 +3,27 @@ using TShockAPI;
 
 namespace WorldEdit.Commands
 {
-    public class Copy : WECommand
-    {
-        public Copy(int x, int y, int x2, int y2, TSPlayer plr)
-            : base(x, y, x2, y2, plr)
-        {
-        }
+	public class Copy : WECommand
+	{
+		public Copy(int x, int y, int x2, int y2, TSPlayer plr)
+			: base(x, y, x2, y2, plr)
+		{
+		}
 
-        public override void Execute()
-        {
-            string clipboardPath = Tools.GetClipboardPath(plr.User.ID);
+		public override void Execute()
+		{
+			string clipboardPath = Tools.GetClipboardPath(plr.User.ID);
 
-            if (!Tools.NewClipboardStruct(clipboardPath))
-            {
-                if (File.Exists(clipboardPath))
-                { File.Delete(clipboardPath); }
-                clipboardPath = Tools.GetClipboardPath(plr.User.ID, false, true);
-            }
+			if (!Tools.NewClipboardStruct(clipboardPath))
+			{
+				if (File.Exists(clipboardPath))
+				{ File.Delete(clipboardPath); }
+				clipboardPath = Tools.GetClipboardPath(plr.User.ID, false, true);
+			}
 
-            Tools.SaveWorldSection(x, y, x2, y2, clipboardPath);
+			Tools.SaveWorldSection(x, y, x2, y2, clipboardPath);
 
-            plr.SendSuccessMessage("Copied selection to clipboard.");
-        }
-    }
+			plr.SendSuccessMessage("Copied selection to clipboard.");
+		}
+	}
 }

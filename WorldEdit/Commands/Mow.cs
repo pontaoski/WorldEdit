@@ -8,22 +8,22 @@ namespace WorldEdit.Commands
 	public class Mow : WECommand
 	{
 		private static ushort[] mowedTiles = new[]
-        {
-            TileID.DyePlants,
-            TileID.Plants,
-            TileID.Plants2,
-            TileID.CorruptPlants,
-            TileID.HallowedPlants,
-            TileID.HallowedPlants2,
-            TileID.JunglePlants,
-            TileID.JunglePlants2,
-            TileID.MushroomPlants,
-            TileID.FleshWeeds,
-            TileID.CorruptThorns,
-            TileID.CrimtaneThorns,
-            TileID.JungleThorns,
-            TileID.Vines,
-            TileID.CrimsonVines,
+		{
+			TileID.DyePlants,
+			TileID.Plants,
+			TileID.Plants2,
+			TileID.CorruptPlants,
+			TileID.HallowedPlants,
+			TileID.HallowedPlants2,
+			TileID.JunglePlants,
+			TileID.JunglePlants2,
+			TileID.MushroomPlants,
+			TileID.FleshWeeds,
+			TileID.CorruptThorns,
+			TileID.CrimtaneThorns,
+			TileID.JungleThorns,
+			TileID.Vines,
+			TileID.CrimsonVines,
 			TileID.HallowedVines,
 			TileID.JungleVines
 		};
