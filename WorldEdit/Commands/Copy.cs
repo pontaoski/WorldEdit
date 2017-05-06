@@ -1,5 +1,4 @@
-﻿using System.IO;
-using TShockAPI;
+﻿using TShockAPI;
 
 namespace WorldEdit.Commands
 {
@@ -13,14 +12,7 @@ namespace WorldEdit.Commands
 		public override void Execute()
 		{
 			string clipboardPath = Tools.GetClipboardPath(plr.User.ID);
-
-			if (!Tools.NewClipboardStruct(clipboardPath))
-			{
-				if (File.Exists(clipboardPath))
-				{ File.Delete(clipboardPath); }
-				clipboardPath = Tools.GetClipboardPath(plr.User.ID, false, true);
-			}
-
+			
 			Tools.SaveWorldSection(x, y, x2, y2, clipboardPath);
 
 			plr.SendSuccessMessage("Copied selection to clipboard.");

@@ -34,9 +34,8 @@ namespace WorldEdit.Commands
 				if (reader.Read())
 					undoLevel = reader.Get<int>("UndoLevel");
 			}
-
-			string Old = Tools.GetClipboardPath(plr.User.ID, false, false);
-			string New = Tools.GetClipboardPath(plr.User.ID, false, true);
+			
+			string clipboard = Tools.GetClipboardPath(plr.User.ID);
 
 			string undoPath = Path.Combine("worldedit", String.Format("undo-{0}-{1}.dat", plr.User.ID, undoLevel));
 			// GZipStream is already buffered, but it's much faster to have a 1 MB buffer.
@@ -54,7 +53,7 @@ namespace WorldEdit.Commands
 				{
 					for (int j = y; j <= y2; j++)
 					{
-						writer.WriteTileNew(Main.tile[i, j], i, j);
+						writer.Write(Main.tile[i, j], i, j);
 						var tile = Main.tile[i, j];
 						if (((tile.type == Terraria.ID.TileID.Signs)
 							|| (tile.type == Terraria.ID.TileID.Tombstones)
@@ -78,9 +77,9 @@ namespace WorldEdit.Commands
 					}
 				}
 			}
-			if (File.Exists(Old)) File.Delete(Old);
-			if (File.Exists(New)) File.Delete(New);
-			File.Copy(undoPath, New);
+
+			if (File.Exists(clipboard)) File.Delete(clipboard);
+			File.Copy(undoPath, clipboard);
 
 			ResetSection();
 			plr.SendSuccessMessage("Cut selection. ({0})", (x2 - x + 1) * (y2 - y + 1));

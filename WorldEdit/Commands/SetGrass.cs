@@ -12,39 +12,6 @@ namespace WorldEdit.Commands
 		private Expression expression;
 		private string grass;
 
-		private static ushort[] grassTiles = new[]
-		{
-			TileID.CorruptGrass,
-			TileID.FleshGrass,
-			TileID.FleshGrass,
-			TileID.Grass,
-			TileID.HallowedGrass,
-			TileID.JungleGrass,
-			TileID.MushroomGrass
-		};
-
-		private static ushort[] tiles = new[]
-		{
-			TileID.Dirt,
-			TileID.Dirt,
-			TileID.Dirt,
-			TileID.Dirt,
-			TileID.Dirt,
-			TileID.Mud,
-			TileID.Mud,
-		};
-
-		private static string[] grassTiles_ = new[]
-		{
-			"corrupt",
-			"flesh",
-			"crimson",
-			"normal",
-			"hallowed",
-			"jungle",
-			"mushroom"
-		};
-
 		public SetGrass(int x, int y, int x2, int y2, TSPlayer plr, string grass, Expression expression)
 			: base(x, y, x2, y2, plr)
 		{
@@ -64,7 +31,10 @@ namespace WorldEdit.Commands
 			else if (y2 > (Main.maxTilesY - 2)) y2 = (Main.maxTilesY - 2);
 
 			Tools.PrepareUndo(x, y, x2, y2, plr);
-			int index = grassTiles_.ToList().IndexOf(grass);
+
+			WorldEdit.Biomes.TryGetValue(grass, out int[] tiles);
+			ushort Old = ((ushort)tiles[0]), New = ((ushort)tiles[4]);
+
 			int edits = 0;
 			for (int i = x; i <= x2; i++)
 			{
@@ -82,15 +52,15 @@ namespace WorldEdit.Commands
 
 					if (XY && !(mXmY && mXpY && pXmY && pXpY && mXY && pXY && XmY && XpY)
 						&& expression.Evaluate(Main.tile[i, j])
-						&& (Main.tile[i, j].type == tiles[index]))
+						&& (Main.tile[i, j].type == Old))
 					{
-						Main.tile[i, j].type = grassTiles[index];
+						Main.tile[i, j].type = New;
 						edits++;
 					}
 				}
 			}
 			ResetSection();
-			plr.SendSuccessMessage("Set {1} grass. ({0})", edits, grassTiles_[index]);
+			plr.SendSuccessMessage("Set {1} grass. ({0})", edits, grass);
 		}
 	}
 }

@@ -217,6 +217,10 @@ namespace WorldEdit
 			Directory.CreateDirectory("worldedit");
 
 			#region Commands
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.activate", Activate, "/activate")
+			{
+				HelpText = "Activates non-working signs, chests or item frames."
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.all", All, "/all")
 			{
 				HelpText = "Sets the worldedit selection to the entire world."
@@ -399,10 +403,10 @@ namespace WorldEdit
 			if (!File.Exists(Path.Combine("worldedit", "' README '.txt")))
 			{
 				Database.Query("DELETE FROM WorldEdit;");
-				string[] files = Directory.GetFiles("worldedit", "undo-*-*.dat").Concat(Directory.GetFiles("worldedit", "redo-*-*.dat")).ToArray();
+				string[] files = Directory.GetFiles("worldedit", "undo-*-*.dat").Concat(Directory.GetFiles("worldedit", "redo-*-*.dat")).Concat(Directory.GetFiles("worldedit", "clipboard-*.dat")).ToArray();
 				foreach (string file in files)
 				{ File.Delete(file); }
-				File.AppendAllText(Path.Combine("worldedit", "' README '.txt"), "This file prevents your undo / redo files and database from deliting.");
+				File.AppendAllText(Path.Combine("worldedit", "' README '.txt"), "This file prevents your undo / redo / clipboard files and database from deliting.");
 			}
 			#endregion
 
@@ -410,11 +414,13 @@ namespace WorldEdit
 			// Format: dirt, stone, ice, sand, grass, plants, tall plants, vines, thorn
 
 			Biomes.Add("crimson", new[] { 0, 203, 200, 234, 199, -1, -1, 205, 32 });
+			Biomes.Add("flesh", new[] { 0, 203, 200, 234, 199, -1, -1, 205, 32 });
 			Biomes.Add("corruption", new[] { 0, 25, 163, 112, 23, 24, -1, -1, 32 });
 			Biomes.Add("hallow", new[] { 0, 117, 164, 116, 109, 110, 113, 52, -1 });
 			Biomes.Add("jungle", new[] { 59, 1, 161, 53, 60, 61, 74, 62, 69 });
 			Biomes.Add("mushroom", new[] { 59, 1, 161, 53, 70, 71, -1, -1, -1 });
 			Biomes.Add("normal", new[] { 0, 1, 161, 53, 2, 3, 73, 52, -1 });
+			Biomes.Add("forest", new[] { 0, 1, 161, 53, 2, 3, 73, 52, -1 });
 			Biomes.Add("snow", new[] { 147, 161, 161, 53, 147, -1, -1, -1, -1 });
 			#endregion
 			#region Colors
@@ -562,6 +568,51 @@ namespace WorldEdit
 					return;
 				}
 			}
+		}
+
+		private void Activate(CommandArgs e)
+		{
+			if (e.Parameters.Count != 1)
+			{
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //activate <sign / chest / itemframe>");
+				return;
+			}
+
+			PlayerInfo info = e.Player.GetPlayerInfo();
+			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
+			{
+				e.Player.SendErrorMessage("Invalid selection.");
+				return;
+			}
+
+			int Action;
+			switch (e.Parameters[0].ToLowerInvariant())
+			{
+				case "sign":
+					{
+						Action = 0;
+						break;
+					}
+				case "chest":
+					{
+						Action = 1;
+						break;
+					}
+				case "item":
+				case "frame":
+				case "itemframe":
+					{
+						Action = 2;
+						break;
+					}
+				default:
+					{
+						e.Player.SendErrorMessage("Invalid activation type '{0}'.", e.Parameters[0]);
+						return;
+					}
+			}
+
+			CommandQueue.Add(new Activate(info.X, info.Y, info.X2, info.Y2, e.Player, Action));
 		}
 
 		private void All(CommandArgs e)
@@ -1262,21 +1313,10 @@ namespace WorldEdit
 							return;
 						}
 
-						string OldClipboard = Path.Combine("worldedit", String.Format("clipboard-{0}.dat", e.Player.User.ID));
-						string NewClipboard = Path.Combine("worldedit", String.Format("clipboard-new-{0}.dat", e.Player.User.ID));
-
-						if (File.Exists(Old))
-						{
-							File.Copy(Old, OldClipboard, true);
-							if (File.Exists(NewClipboard))
-							{ File.Delete(NewClipboard); }
-						}
-						else
-						{
-							File.Copy(New, NewClipboard, true);
-							if (File.Exists(OldClipboard))
-							{ File.Delete(OldClipboard); }
-						}
+						string clipboard = Path.Combine("worldedit", String.Format("clipboard-{0}.dat", e.Player.User.ID));
+						
+						if (File.Exists(Old)) Tools.Convert(Old);
+						File.Copy(New, clipboard, true);
 
 						e.Player.SendSuccessMessage("Loaded schematic '{0}' to clipboard.", e.Parameters[1]);
 					}
@@ -1290,10 +1330,9 @@ namespace WorldEdit
 							return;
 						}
 
-						string OldClipboard = Path.Combine("worldedit", String.Format("clipboard-{0}.dat", e.Player.User.ID));
-						string NewClipboard = Path.Combine("worldedit", String.Format("clipboard-new-{0}.dat", e.Player.User.ID));
-
-						if ((!File.Exists(OldClipboard)) && (!File.Exists(NewClipboard)))
+						string clipboard = Path.Combine("worldedit", String.Format("clipboard-{0}.dat", e.Player.User.ID));
+						
+						if (!File.Exists(clipboard))
 						{
 							e.Player.SendErrorMessage("Invalid clipboard!");
 							return;
@@ -1309,23 +1348,10 @@ namespace WorldEdit
 						string Old = Path.Combine("worldedit", String.Format("schematic-{0}.dat", e.Parameters[1]));
 						string New = Path.Combine("worldedit", String.Format("schematic-new-{0}.dat", e.Parameters[1]));
 
-						if (File.Exists(OldClipboard))
-						{
-							if (e.Parameters[1].StartsWith("new-"))
-							{
-								e.Player.SendErrorMessage("Name of schematic with old struct should not start with 'new-'");
-								return;
-							}
-							File.Copy(OldClipboard, Old, true);
-							if (File.Exists(New))
-							{ File.Delete(New); }
-						}
-						else
-						{
-							File.Copy(NewClipboard, New, true);
-							if (File.Exists(Old))
-							{ File.Delete(Old); }
-						}
+						File.Copy(clipboard, New, true);
+
+						if (File.Exists(Old))
+						{ File.Delete(Old); }
 
 						e.Player.SendSuccessMessage("Saved clipboard to schematic '{0}'.", e.Parameters[1]);
 					}
@@ -1445,81 +1471,23 @@ namespace WorldEdit
 				return;
 			}
 
-			object[] grassTiles = new object[]
+			if (!Biomes.Keys.Contains(e.Parameters[0].ToLowerInvariant()) || (e.Parameters[0].ToLowerInvariant() == "snow"))
 			{
-				"corrupt",
-				23,
-				"flesh",
-				199,
-				"crimson",
-				199,
-				"normal",
-				2,
-				"hallowed",
-				109,
-				"jungle",
-				60,
-				"mushroom",
-				70
-			};
-
-			string grass = string.Empty;
-			List<string> grasss = new List<string>();
-			int isid = -1;
-			int id = 0;
-			if (!int.TryParse(e.Parameters[0], out isid))
-				isid = -1;
-
-			if (isid != -1)
-			{
-				foreach (object g in grassTiles)
-				{
-					id++;
-					if (g.GetType() == (0).GetType())
-					{
-						if ((int)g == isid)
-						{
-							grass = (string)grassTiles[id - 2];
-							break;
-						}
-					}
-				}
-			}
-			else
-			{
-				foreach (object g in grassTiles)
-				{
-					id++;
-					if (g is string s)
-					{
-						if (s.Contains(e.Parameters[0].ToLower()))
-						{
-							grasss.Add(s);
-						}
-					}
-				}
-			}
-
-			if (grass == string.Empty && grasss.Count == 0)
 				e.Player.SendErrorMessage("Invalid grass '{0}'!", e.Parameters[0]);
-			else if (grasss.Count > 1)
-				e.Player.SendErrorMessage("More then one grass matched!");
-			else
-			{
-				Expression expression = null;
-				if (e.Parameters.Count > 1)
-				{
-					if (!Parser.TryParseTree(e.Parameters.Skip(1), out expression))
-					{
-						e.Player.SendErrorMessage("Invalid expression!");
-						return;
-					}
-				}
-				if (isid == -1 && grasss.Count == 1)
-					grass = grasss[0];
-
-				CommandQueue.Add(new SetGrass(info.X, info.Y, info.X2, info.Y2, e.Player, grass, expression));
+				return;
 			}
+			
+			Expression expression = null;
+			if (e.Parameters.Count > 1)
+			{
+				if (!Parser.TryParseTree(e.Parameters.Skip(1), out expression))
+				{
+					e.Player.SendErrorMessage("Invalid expression!");
+					return;
+				}
+			}
+
+			CommandQueue.Add(new SetGrass(info.X, info.Y, info.X2, info.Y2, e.Player, e.Parameters[0].ToLowerInvariant(), expression));
 		}
 
 		private void SetWire(CommandArgs e)

@@ -26,7 +26,7 @@ namespace WorldEdit.Commands
 		public override void Execute()
 		{
 			string clipboardPath = Tools.GetClipboardPath(plr.User.ID);
-			bool NewStruct = Tools.NewClipboardStruct(clipboardPath);
+
 			using (var reader = new BinaryReader(new GZipStream(new FileStream(clipboardPath, FileMode.Open), CompressionMode.Decompress)))
 			{
 				reader.ReadInt32();
@@ -51,64 +51,50 @@ namespace WorldEdit.Commands
 				}
 
 				Tools.PrepareUndo(x, y, x2, y2, plr);
-				if (NewStruct)
+
+				for (int i = x; i <= x2; i++)
 				{
-					for (int i = x; i <= x2; i++)
+					for (int j = y; j <= y2; j++)
 					{
-						for (int j = y; j <= y2; j++)
+						var Tile = reader.ReadTile();
+						if (i >= 0 && j >= 0 && i < Main.maxTilesX && j < Main.maxTilesY && (expression == null || expression.Evaluate((mode_MainBlocks) ? Main.tile[i, j] : Tile.Item1)))
 						{
-							var Tile = reader.ReadTileNew();
-							if (i >= 0 && j >= 0 && i < Main.maxTilesX && j < Main.maxTilesY && (expression == null || expression.Evaluate((mode_MainBlocks) ? Main.tile[i, j] : Tile.Item1)))
+							if ((Tile.Item2 != null) || (Tile.Item3 != null)
+							|| (Tile.Item4 != null))
 							{
-								if ((Tile.Item2 != null) || (Tile.Item3 != null)
-								|| (Tile.Item4 != null))
+								Main.tile[i, j] = new Tile();
+								Main.tile[i + 1, j] = new Tile();
+								Main.tile[i, j + 1] = new Tile();
+								Main.tile[i + 1, j + 1] = new Tile();
+							}
+							Main.tile[i, j] = Tile.Item1;
+							if (Tile.Item2 != null)
+							{
+								int SignID = Sign.ReadSign(i, j);
+								string Text = Tile.Item2;
+								if (SignID != -1)
+								{ Sign.TextSign(SignID, Text); }
+							}
+							if (Tile.Item3 != null)
+							{
+								int FrameID = TEItemFrame.Place(i, j);
+								if (FrameID != -1)
 								{
-									Main.tile[i, j] = new Tile();
-									Main.tile[i + 1, j] = new Tile();
-									Main.tile[i, j + 1] = new Tile();
-									Main.tile[i + 1, j + 1] = new Tile();
-								}
-								Main.tile[i, j] = Tile.Item1;
-								if (Tile.Item2 != null)
-								{
-									int SignID = Sign.ReadSign(i, j);
-									string Text = Tile.Item2;
-									if (SignID != -1)
-									{ Sign.TextSign(SignID, Text); }
-								}
-								if (Tile.Item3 != null)
-								{
-									int FrameID = TEItemFrame.Place(i, j);
-									if (FrameID != -1)
-									{
-										WorldGen.PlaceObject(i, j, Terraria.ID.TileID.ItemFrame);
-										TEItemFrame frame = (TEItemFrame)TileEntity.ByID[FrameID];
-										frame.item = Tile.Item3;
-									}
-								}
-								if (Tile.Item4 != null)
-								{
-									int ChestID = Chest.CreateChest(i, j);
-									if (ChestID != -1)
-									{
-										WorldGen.PlaceChest(i, j);
-										for (int a = 0; a < 40; a++)
-										{ Main.chest[ChestID].item[a] = Tile.Item4[a]; }
-									}
+									WorldGen.PlaceObject(i, j, Terraria.ID.TileID.ItemFrame);
+									TEItemFrame frame = (TEItemFrame)TileEntity.ByID[FrameID];
+									frame.item = Tile.Item3;
 								}
 							}
-						}
-					}
-				}
-				else
-				{
-					for (int i = x; i <= x2; i++)
-					{
-						for (int j = y; j <= y2; j++)
-						{
-							Tile tile = reader.ReadTileOld();
-							if (i >= 0 && j >= 0 && i < Main.maxTilesX && j < Main.maxTilesY && (expression == null || expression.Evaluate((mode_MainBlocks) ? Main.tile[i, j] : tile)))
-								Main.tile[i, j] = tile;
+							if (Tile.Item4 != null)
+							{
+								int ChestID = Chest.CreateChest(i, j);
+								if (ChestID != -1)
+								{
+									WorldGen.PlaceChest(i, j);
+									for (int a = 0; a < 40; a++)
+									{ Main.chest[ChestID].item[a] = Tile.Item4[a]; }
+								}
+							}
 						}
 					}
 				}

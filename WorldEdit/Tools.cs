@@ -17,25 +17,9 @@ namespace WorldEdit
 		private const int BUFFER_SIZE = 1048576;
 		private const int MAX_UNDOS = 50;
 
-		public static string GetClipboardPath(int accountID, bool Any = true, bool NewStruct = true)
+		public static string GetClipboardPath(int accountID)
 		{
-			string Old = Path.Combine("worldedit", String.Format("clipboard-{0}.dat", accountID));
-			string New = Path.Combine("worldedit", String.Format("clipboard-new-{0}.dat", accountID));
-
-			if (Any)
-			{
-				if (File.Exists(Old)) return Old;
-				else return New;
-			}
-			else
-			{
-				if (NewStruct) return Old;
-				else return Old;
-			}
-		}
-		public static bool NewClipboardStruct(string Clipboard)
-		{
-			return (Path.GetFileName(Clipboard).StartsWith("clipboard-new-"));
+			return Path.Combine("worldedit", String.Format("clipboard-{0}.dat", accountID));
 		}
 		public static bool CorrectName(string Name)
 		{
@@ -107,8 +91,7 @@ namespace WorldEdit
 		}
 		public static bool HasClipboard(int accountID)
 		{
-			return (File.Exists(Path.Combine("worldedit", String.Format("clipboard-{0}.dat", accountID)))
-				|| File.Exists(Path.Combine("worldedit", String.Format("clipboard-new-{0}.dat", accountID))));
+			return File.Exists(Path.Combine("worldedit", String.Format("clipboard-{0}.dat", accountID)));
 		}
 		public static Tuple<Tile, string, Item, Item[]>[,] LoadWorldDataNew(string path)
 		{
@@ -128,12 +111,12 @@ namespace WorldEdit
 				for (int i = 0; i < width; i++)
 				{
 					for (int j = 0; j < height; j++)
-						tile[i, j] = ReadTileNew(reader);
+						tile[i, j] = ReadTile(reader);
 				}
 				return tile;
 			}
 		}
-		public static Tile[,] LoadWorldDataOld(string path)
+		private static Tuple<Tile[,], int, int> LoadWorldDataOld(string path)
 		{
 			Tile[,] tile;
 			// GZipStream is already buffered, but it's much faster to have a 1 MB buffer.
@@ -151,9 +134,12 @@ namespace WorldEdit
 				for (int i = 0; i < width; i++)
 				{
 					for (int j = 0; j < height; j++)
+					{
 						tile[i, j] = ReadTileOld(reader);
+					}
 				}
-				return tile;
+
+				return new Tuple<Tile[,], int, int>(tile, width, height);
 			}
 		}
 		public static void LoadWorldSection(string path)
@@ -173,7 +159,7 @@ namespace WorldEdit
 				{
 					for (int j = y; j < y + height; j++)
 					{
-						var Tile = reader.ReadTileNew();
+						var Tile = reader.ReadTile();
 						if ((Tile.Item2 != null) || (Tile.Item3 != null)
 							|| (Tile.Item4 != null))
 						{
@@ -241,7 +227,7 @@ namespace WorldEdit
 				File.Delete(fileName);
 			File.Delete(Path.Combine("worldedit", String.Format("undo-{0}-{1}.dat", plr.User.ID, undoLevel - MAX_UNDOS)));
 		}
-		public static Tuple<Tile, string, Item, Item[]> ReadTileNew(this BinaryReader reader)
+		public static Tuple<Tile, string, Item, Item[]> ReadTile(this BinaryReader reader)
 		{
 			Tile tile = new Tile();
 			string sign = null;
@@ -302,7 +288,7 @@ namespace WorldEdit
 			}
 			return new Tuple<Tile, string, Item, Item[]>(tile, sign, item, items);
 		}
-		public static Tile ReadTileOld(this BinaryReader reader)
+		private static Tile ReadTileOld(this BinaryReader reader)
 		{
 			Tile tile = new Tile();
 			tile.sTileHeader = reader.ReadInt16();
@@ -393,11 +379,11 @@ namespace WorldEdit
 				for (int i = x; i <= x2; i++)
 				{
 					for (int j = y; j <= y2; j++)
-						writer.WriteTileNew((Main.tile[i, j] ?? new Tile()), i, j);
+						writer.Write((Main.tile[i, j] ?? new Tile()), i, j);
 				}
 			}
 		}
-		public static void WriteTileNew(this BinaryWriter writer, ITile tile, int X, int Y)
+		public static void Write(this BinaryWriter writer, ITile tile, int X, int Y)
 		{
 			writer.Write(tile.sTileHeader);
 			writer.Write(tile.bTileHeader);
@@ -482,7 +468,7 @@ namespace WorldEdit
 				}
 			}
 		}
-		public static void WriteTileNew(this BinaryWriter writer, Tuple<Tile, string, Item, Item[]> tile)
+		public static void Write(this BinaryWriter writer, Tuple<Tile, string, Item, Item[]> tile)
 		{
 			writer.Write(tile.Item1.sTileHeader);
 			writer.Write(tile.Item1.bTileHeader);
@@ -496,55 +482,55 @@ namespace WorldEdit
 					writer.Write(tile.Item1.frameX);
 					writer.Write(tile.Item1.frameY);
 				}
-				if ((tile.Item1.type == Terraria.ID.TileID.Signs)
-					|| (tile.Item1.type == Terraria.ID.TileID.AnnouncementBox)
-					|| (tile.Item1.type == Terraria.ID.TileID.Tombstones))
-				{
-					if ((tile.Item1.frameX == 0) && (tile.Item1.frameY == 0))
-					{
-						if (tile.Item2 != null)
-						{ writer.Write(tile.Item2); }
-						else { writer.Write(-1); }
-					}
-					else { writer.Write(-1); }
-				}
-				else if (tile.Item1.type == Terraria.ID.TileID.ItemFrame)
-				{
-					if ((tile.Item1.frameX == 0) && (tile.Item1.frameY == 0))
-					{
-						if (tile.Item3 != null)
-						{
-							writer.Write(tile.Item3.netID);
-							writer.Write(tile.Item3.prefix);
-						}
-						else { writer.Write(-1); }
-					}
-					else { writer.Write(-1); }
-				}
-				else if ((tile.Item1.type == Terraria.ID.TileID.Containers)
-					|| (tile.Item1.type == Terraria.ID.TileID.Dressers))
-				{
-					if ((tile.Item1.frameX == 0) && (tile.Item1.frameY == 0))
-					{
-						if (tile.Item4 != null)
-						{
-							writer.Write(40);
-							foreach (Item i in tile.Item4)
-							{
-								writer.Write(i.netID);
-								writer.Write(i.stack);
-								writer.Write(i.prefix);
-							}
-						}
-						else { writer.Write(-1); }
-					}
-					else { writer.Write(-1); }
-				}
 			}
 			writer.Write(tile.Item1.wall);
 			writer.Write(tile.Item1.liquid);
+			if ((tile.Item1.type == Terraria.ID.TileID.Signs)
+				|| (tile.Item1.type == Terraria.ID.TileID.AnnouncementBox)
+				|| (tile.Item1.type == Terraria.ID.TileID.Tombstones))
+			{
+				if ((tile.Item1.frameX == 0) && (tile.Item1.frameY == 0))
+				{
+					if (tile.Item2 != null)
+					{ writer.Write(tile.Item2); }
+					else { writer.Write(-1); }
+				}
+				else { writer.Write(-1); }
+			}
+			else if (tile.Item1.type == Terraria.ID.TileID.ItemFrame)
+			{
+				if ((tile.Item1.frameX == 0) && (tile.Item1.frameY == 0))
+				{
+					if (tile.Item3 != null)
+					{
+						writer.Write(tile.Item3.netID);
+						writer.Write(tile.Item3.prefix);
+					}
+					else { writer.Write(-1); }
+				}
+				else { writer.Write(-1); }
+			}
+			else if ((tile.Item1.type == Terraria.ID.TileID.Containers)
+				|| (tile.Item1.type == Terraria.ID.TileID.Dressers))
+			{
+				if ((tile.Item1.frameX == 0) && (tile.Item1.frameY == 0))
+				{
+					if (tile.Item4 != null)
+					{
+						writer.Write(40);
+						foreach (Item i in tile.Item4)
+						{
+							writer.Write(i.netID);
+							writer.Write(i.stack);
+							writer.Write(i.prefix);
+						}
+					}
+					else { writer.Write(-1); }
+				}
+				else { writer.Write(-1); }
+			}
 		}
-		public static void WriteTileOld(this BinaryWriter writer, ITile tile)
+		private static void WriteTileOld(this BinaryWriter writer, ITile tile)
 		{
 			writer.Write(tile.sTileHeader);
 			writer.Write(tile.bTileHeader);
@@ -561,6 +547,32 @@ namespace WorldEdit
 			}
 			writer.Write(tile.wall);
 			writer.Write(tile.liquid);
+		}
+		public static void Convert(string file)
+		{
+			string newfile = file.Substring(0, (file.LastIndexOf('\\') + 1)) + "schematic-new-" + file.Substring(file.LastIndexOf('\\') + 11);
+			if (File.Exists(newfile)) File.Delete(newfile);
+
+			var Old = LoadWorldDataOld(file);
+
+			Tile[,] tile = Old.Item1;
+			using (var writer =
+					new BinaryWriter(
+						new BufferedStream(
+							new GZipStream(File.Open(file, FileMode.Create), CompressionMode.Compress), BUFFER_SIZE)))
+			{
+				writer.Write(0);
+				writer.Write(0);
+				writer.Write(Old.Item2);
+				writer.Write(Old.Item3);
+				for (int i = 0; i < Old.Item2; i++)
+				{
+					for (int j = 0; j < Old.Item3; j++)
+					{ writer.Write(new Tuple<Tile, string, Item, Item[]>(tile[i, j], null, null, null)); }
+				}
+			}
+
+			File.Move(file, newfile);
 		}
 		public static bool Undo(int accountID)
 		{
