@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.IO.Compression;
 using Terraria;
 using TShockAPI;
@@ -18,8 +19,9 @@ namespace WorldEdit.Commands
 
 		public override void Execute()
 		{
-			string clipboardPath = Tools.GetClipboardPath(plr.User.Name);
-			Tile[,] tiles = Tools.LoadWorldData(clipboardPath);
+			string clipboardPath = Tools.GetClipboardPath(plr.User.ID);
+			
+			Tuple<Tile, string, Item, Item[]>[,] tiles = Tools.LoadWorldDataNew(clipboardPath);
 			int width = tiles.GetLength(0);
 			int height = tiles.GetLength(1);
 
@@ -30,7 +32,7 @@ namespace WorldEdit.Commands
 			{
 				writer.Write(0);
 				writer.Write(0);
-
+				// TODO: don't rotate furniture
 				switch (((degrees / 90) % 4 + 4) % 4)
 				{
 					case 0:
@@ -48,7 +50,30 @@ namespace WorldEdit.Commands
 						for (int j = height - 1; j >= 0; j--)
 						{
 							for (int i = 0; i < width; i++)
-								writer.Write(tiles[i, j]);
+							{
+								if (tiles[i, j].Item1.slope() == 0)
+									writer.Write(tiles[i, j]);
+								else if (tiles[i, j].Item1.slope() == 1)
+								{
+									tiles[i, j].Item1.slope(3);
+									writer.Write(tiles[i, j]);
+								}
+								else if (tiles[i, j].Item1.slope() == 2)
+								{
+									tiles[i, j].Item1.slope(1);
+									writer.Write(tiles[i, j]);
+								}
+								else if (tiles[i, j].Item1.slope() == 3)
+								{
+									tiles[i, j].Item1.slope(4);
+									writer.Write(tiles[i, j]);
+								}
+								else if (tiles[i, j].Item1.slope() == 4)
+								{
+									tiles[i, j].Item1.slope(2);
+									writer.Write(tiles[i, j]);
+								}
+							}
 						}
 						break;
 					case 2:
@@ -57,7 +82,30 @@ namespace WorldEdit.Commands
 						for (int i = width - 1; i >= 0; i--)
 						{
 							for (int j = height - 1; j >= 0; j--)
-								writer.Write(tiles[i, j]);
+							{
+								if (tiles[i, j].Item1.slope() == 0)
+									writer.Write(tiles[i, j]);
+								else if (tiles[i, j].Item1.slope() == 1)
+								{
+									tiles[i, j].Item1.slope(4);
+									writer.Write(tiles[i, j]);
+								}
+								else if (tiles[i, j].Item1.slope() == 2)
+								{
+									tiles[i, j].Item1.slope(3);
+									writer.Write(tiles[i, j]);
+								}
+								else if (tiles[i, j].Item1.slope() == 3)
+								{
+									tiles[i, j].Item1.slope(2);
+									writer.Write(tiles[i, j]);
+								}
+								else if (tiles[i, j].Item1.slope() == 4)
+								{
+									tiles[i, j].Item1.slope(1);
+									writer.Write(tiles[i, j]);
+								}
+							}
 						}
 						break;
 					case 3:
@@ -66,10 +114,34 @@ namespace WorldEdit.Commands
 						for (int j = 0; j < height; j++)
 						{
 							for (int i = width - 1; i >= 0; i--)
-								writer.Write(tiles[i, j]);
+							{
+								if (tiles[i, j].Item1.slope() == 0)
+									writer.Write(tiles[i, j]);
+								else if (tiles[i, j].Item1.slope() == 1)
+								{
+									tiles[i, j].Item1.slope(2);
+									writer.Write(tiles[i, j]);
+								}
+								else if (tiles[i, j].Item1.slope() == 2)
+								{
+									tiles[i, j].Item1.slope(4);
+									writer.Write(tiles[i, j]);
+								}
+								else if (tiles[i, j].Item1.slope() == 3)
+								{
+									tiles[i, j].Item1.slope(1);
+									writer.Write(tiles[i, j]);
+								}
+								else if (tiles[i, j].Item1.slope() == 4)
+								{
+									tiles[i, j].Item1.slope(3);
+									writer.Write(tiles[i, j]);
+								}
+							}
 						}
 						break;
 				}
+
 			}
 
 			plr.SendSuccessMessage("Rotated clipboard {0} degrees.", degrees);

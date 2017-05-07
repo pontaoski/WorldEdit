@@ -60,12 +60,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\Activate.cs" />
+    <Compile Include="Commands\FixGhosts.cs" />
     <Compile Include="Commands\Inactive.cs" />
     <Compile Include="Commands\Biome.cs" />
     <Compile Include="Commands\Cut.cs" />
     <Compile Include="Commands\FixHalves.cs" />
     <Compile Include="Commands\FixSlopes.cs" />
     <Compile Include="Commands\Mow.cs" />
+    <Compile Include="Commands\Outline.cs" />
+    <Compile Include="Commands\OutlineWall.cs" />
     <Compile Include="Commands\PaintWall.cs" />
     <Compile Include="Commands\Copy.cs" />
     <Compile Include="Commands\Drain.cs" />
@@ -76,8 +80,13 @@
     <Compile Include="Commands\Paste.cs" />
     <Compile Include="Commands\Redo.cs" />
     <Compile Include="Commands\Rotate.cs" />
+    <Compile Include="Commands\Scale.cs" />
+    <Compile Include="Commands\SetGrass.cs" />
     <Compile Include="Commands\SetWall.cs" />
     <Compile Include="Commands\SetWire.cs" />
+    <Compile Include="Commands\Slope.cs" />
+    <Compile Include="Commands\SlopeDelete.cs" />
+    <Compile Include="Commands\Smooth.cs" />
     <Compile Include="Commands\Undo.cs" />
     <Compile Include="Commands\WECommand.cs" />
     <Compile Include="Expressions\AndExpression.cs" />

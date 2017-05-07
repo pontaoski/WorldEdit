@@ -4,24 +4,24 @@ namespace WorldEdit.Commands
 {
 	public class Redo : WECommand
 	{
-		private string accountName;
+		private int accountID;
 		private int steps;
 
-		public Redo(TSPlayer plr, string accountName, int steps)
+		public Redo(TSPlayer plr, int accountID, int steps)
 			: base(0, 0, 0, 0, plr)
 		{
-			this.accountName = accountName;
+			this.accountID = accountID;
 			this.steps = steps;
 		}
 
 		public override void Execute()
 		{
 			int i = -1;
-			while (++i < steps && Tools.Redo(accountName)) ;
+			while (++i < steps && Tools.Redo(accountID)) ;
 			if (i == 0)
 				plr.SendErrorMessage("Failed to redo any actions.");
 			else
-				plr.SendSuccessMessage("Redid {0}'s last {1}action{2}.", accountName, i == 1 ? "" : i + " ", i == 1 ? "" : "s");
+				plr.SendSuccessMessage("Redid {0}'s last {1}action{2}.", ((accountID == 0) ? "ServerConsole" : TShock.Users.GetUserByID(accountID).Name), i == 1 ? "" : i + " ", i == 1 ? "" : "s");
 		}
 	}
 }

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.IO.Compression;
 using Terraria;
 using TShockAPI;
@@ -20,8 +21,9 @@ namespace WorldEdit.Commands
 
 		public override void Execute()
 		{
-			string clipboardPath = Tools.GetClipboardPath(plr.User.Name);
-			Tile[,] tiles = Tools.LoadWorldData(clipboardPath);
+			string clipboardPath = Tools.GetClipboardPath(plr.User.ID);
+			
+			Tuple<Tile, string, Item, Item[]>[,] tiles = Tools.LoadWorldDataNew(clipboardPath);
 
 			int width = tiles.GetLength(0);
 			int height = tiles.GetLength(1);
@@ -41,10 +43,54 @@ namespace WorldEdit.Commands
 				writer.Write(width);
 				writer.Write(height);
 
+				// TODO: don't flip furniture
 				for (int i = flipX ? width - 1 : 0; i != endX; i += incX)
 				{
 					for (int j = flipY ? height - 1 : 0; j != endY; j += incY)
-						writer.Write(tiles[i, j]);
+					{
+						if (tiles[i, j].Item1.slope() == 0)
+							writer.Write(tiles[i, j]);
+						else if (tiles[i, j].Item1.slope() == 1)
+						{
+							if (flipX && flipY)
+								tiles[i, j].Item1.slope(4);
+							else if (flipX)
+								tiles[i, j].Item1.slope(2);
+							else if (flipY)
+								tiles[i, j].Item1.slope(3);
+							writer.Write(tiles[i, j]);
+						}
+						else if (tiles[i, j].Item1.slope() == 2)
+						{
+							if (flipX && flipY)
+								tiles[i, j].Item1.slope(3);
+							else if (flipX)
+								tiles[i, j].Item1.slope(1);
+							else if (flipY)
+								tiles[i, j].Item1.slope(4);
+							writer.Write(tiles[i, j]);
+						}
+						else if (tiles[i, j].Item1.slope() == 3)
+						{
+							if (flipX && flipY)
+								tiles[i, j].Item1.slope(2);
+							else if (flipX)
+								tiles[i, j].Item1.slope(4);
+							else if (flipY)
+								tiles[i, j].Item1.slope(1);
+							writer.Write(tiles[i, j]);
+						}
+						else if (tiles[i, j].Item1.slope() == 4)
+						{
+							if (flipX && flipY)
+								tiles[i, j].Item1.slope(1);
+							else if (flipX)
+								tiles[i, j].Item1.slope(3);
+							else if (flipY)
+								tiles[i, j].Item1.slope(2);
+							writer.Write(tiles[i, j]);
+						}
+					}
 				}
 			}
 

@@ -18,25 +18,26 @@ namespace WorldEdit.Commands
 
 		public override void Execute()
 		{
-			foreach (string fileName in Directory.EnumerateFiles("worldedit", String.Format("redo-{0}-*.dat", plr.User.Name)))
+			foreach (string fileName in Directory.EnumerateFiles("worldedit", String.Format("redo-{0}-*.dat", plr.User.ID)))
 				File.Delete(fileName);
 
 			if (WorldEdit.Database.GetSqlType() == SqlType.Mysql)
-				WorldEdit.Database.Query("INSERT IGNORE INTO WorldEdit VALUES (@0, -1, -1)", plr.User.Name);
+				WorldEdit.Database.Query("INSERT IGNORE INTO WorldEdit VALUES (@0, -1, -1)", plr.User.ID);
 			else
-				WorldEdit.Database.Query("INSERT OR IGNORE INTO WorldEdit VALUES (@0, 0, 0)", plr.User.Name);
-			WorldEdit.Database.Query("UPDATE WorldEdit SET RedoLevel = -1 WHERE Account = @0", plr.User.Name);
-			WorldEdit.Database.Query("UPDATE WorldEdit SET UndoLevel = UndoLevel + 1 WHERE Account = @0", plr.User.Name);
+				WorldEdit.Database.Query("INSERT OR IGNORE INTO WorldEdit VALUES (@0, 0, 0)", plr.User.ID);
+			WorldEdit.Database.Query("UPDATE WorldEdit SET RedoLevel = -1 WHERE Account = @0", plr.User.ID);
+			WorldEdit.Database.Query("UPDATE WorldEdit SET UndoLevel = UndoLevel + 1 WHERE Account = @0", plr.User.ID);
 
 			int undoLevel = 0;
-			using (var reader = WorldEdit.Database.QueryReader("SELECT UndoLevel FROM WorldEdit WHERE Account = @0", plr.User.Name))
+			using (var reader = WorldEdit.Database.QueryReader("SELECT UndoLevel FROM WorldEdit WHERE Account = @0", plr.User.ID))
 			{
 				if (reader.Read())
 					undoLevel = reader.Get<int>("UndoLevel");
 			}
+			
+			string clipboard = Tools.GetClipboardPath(plr.User.ID);
 
-			string clipboardPath = Tools.GetClipboardPath(plr.User.Name);
-			string undoPath = Path.Combine("worldedit", String.Format("undo-{0}-{1}.dat", plr.User.Name, undoLevel));
+			string undoPath = Path.Combine("worldedit", String.Format("undo-{0}-{1}.dat", plr.User.ID, undoLevel));
 			// GZipStream is already buffered, but it's much faster to have a 1 MB buffer.
 			using (var writer =
 				new BinaryWriter(
@@ -52,13 +53,33 @@ namespace WorldEdit.Commands
 				{
 					for (int j = y; j <= y2; j++)
 					{
-						writer.Write(Main.tile[i, j]);
+						writer.Write(Main.tile[i, j], i, j);
+						var tile = Main.tile[i, j];
+						if (((tile.type == Terraria.ID.TileID.Signs)
+							|| (tile.type == Terraria.ID.TileID.Tombstones)
+							|| (tile.type == Terraria.ID.TileID.AnnouncementBox)
+							|| (tile.type == Terraria.ID.TileID.Containers)
+							|| (tile.type == Terraria.ID.TileID.Dressers)
+							|| (tile.type == Terraria.ID.TileID.ItemFrame))
+							&& ((tile.frameX % 36 == 0) && (tile.frameY == 0)))
+						{
+							if ((tile.type == Terraria.ID.TileID.Signs)
+								|| (tile.type == Terraria.ID.TileID.Tombstones)
+								|| (tile.type == Terraria.ID.TileID.AnnouncementBox))
+							{ Sign.KillSign(i, j); }
+							if ((tile.type == Terraria.ID.TileID.Containers)
+								|| (tile.type == Terraria.ID.TileID.Dressers))
+							{ Chest.DestroyChest(i, j); }
+							if (tile.type == Terraria.ID.TileID.ItemFrame)
+							{ Terraria.GameContent.Tile_Entities.TEItemFrame.Kill(i, j); }
+						}
 						Main.tile[i, j] = new Tile();
 					}
 				}
 			}
-			File.Delete(clipboardPath);
-			File.Copy(undoPath, clipboardPath);
+
+			if (File.Exists(clipboard)) File.Delete(clipboard);
+			File.Copy(undoPath, clipboard);
 
 			ResetSection();
 			plr.SendSuccessMessage("Cut selection. ({0})", (x2 - x + 1) * (y2 - y + 1));

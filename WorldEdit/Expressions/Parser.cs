@@ -189,13 +189,39 @@ namespace WorldEdit.Expressions
 				case "water":
 					return test = t => t.liquid > 0 && t.liquidType() == 0;
 				case "wire":
+				case "wire1":
+				case "wirered":
+				case "redwire":
 					return test = t => t.wire();
 				case "wire2":
+				case "wireblue":
+				case "bluewire":
 					return test = t => t.wire2();
 				case "wire3":
+				case "wiregreen":
+				case "greenwire":
 					return test = t => t.wire3();
 				case "wire4":
+				case "wireyellow":
+				case "yellowwire":
 					return test = t => t.wire4();
+				case "a":
+				case "active":
+					return test = t => t.active() && !t.inActive();
+				case "na":
+				case "nactive":
+					return test = t => t.inActive();
+				case "s":
+				case "slope":
+					{
+						if (String.IsNullOrEmpty(rhs))
+							return test = t => (t.slope() != 0);
+
+						int slope = Tools.GetSlopeID(rhs);
+						if (slope == -1)
+							throw new ArgumentException();
+						return test = t => (t.active() && t.slope() == (byte)slope) != negated;
+					}
 				default:
 					throw new ArgumentException("Invalid test.");
 			}
