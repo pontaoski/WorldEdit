@@ -49,7 +49,7 @@ namespace WorldEdit.Commands
 					for (int j = flipY ? height - 1 : 0; j != endY; j += incY)
 					{
 						if (tiles[i, j].Item1.slope() == 0)
-							writer.Write(tiles[i, j]);
+							writer.Write(Tools.TileData(tiles[i, j].Item1));
 						else if (tiles[i, j].Item1.slope() == 1)
 						{
 							if (flipX && flipY)
@@ -58,7 +58,7 @@ namespace WorldEdit.Commands
 								tiles[i, j].Item1.slope(2);
 							else if (flipY)
 								tiles[i, j].Item1.slope(3);
-							writer.Write(tiles[i, j]);
+							writer.Write(Tools.TileData(tiles[i, j].Item1));
 						}
 						else if (tiles[i, j].Item1.slope() == 2)
 						{
@@ -68,7 +68,7 @@ namespace WorldEdit.Commands
 								tiles[i, j].Item1.slope(1);
 							else if (flipY)
 								tiles[i, j].Item1.slope(4);
-							writer.Write(tiles[i, j]);
+							writer.Write(Tools.TileData(tiles[i, j].Item1));
 						}
 						else if (tiles[i, j].Item1.slope() == 3)
 						{
@@ -78,7 +78,7 @@ namespace WorldEdit.Commands
 								tiles[i, j].Item1.slope(4);
 							else if (flipY)
 								tiles[i, j].Item1.slope(1);
-							writer.Write(tiles[i, j]);
+							writer.Write(Tools.TileData(tiles[i, j].Item1));
 						}
 						else if (tiles[i, j].Item1.slope() == 4)
 						{
@@ -88,7 +88,7 @@ namespace WorldEdit.Commands
 								tiles[i, j].Item1.slope(3);
 							else if (flipY)
 								tiles[i, j].Item1.slope(2);
-							writer.Write(tiles[i, j]);
+							writer.Write(Tools.TileData(tiles[i, j].Item1));
 						}
 					}
 				}

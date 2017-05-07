@@ -116,7 +116,9 @@ namespace WorldEdit
 				return tile;
 			}
 		}
-		private static Tuple<Tile[,], int, int> LoadWorldDataOld(string path)
+		public static Tuple<Tile, string, Item, Item[]> TileData(Tile Tile, string Sign = null, Item ItemFrame = null, Item[] Chest = null)
+		{ return new Tuple<Tile, string, Item, Item[]>(Tile, Sign, ItemFrame, Chest); }
+		private static Tile[,] LoadWorldDataOld(string path)
 		{
 			Tile[,] tile;
 			// GZipStream is already buffered, but it's much faster to have a 1 MB buffer.
@@ -139,7 +141,7 @@ namespace WorldEdit
 					}
 				}
 
-				return new Tuple<Tile[,], int, int>(tile, width, height);
+				return tile;
 			}
 		}
 		public static void LoadWorldSection(string path)
@@ -286,7 +288,7 @@ namespace WorldEdit
 					}
 				}
 			}
-			return new Tuple<Tile, string, Item, Item[]>(tile, sign, item, items);
+			return TileData(tile, sign, item, items);
 		}
 		private static Tile ReadTileOld(this BinaryReader reader)
 		{
@@ -553,9 +555,8 @@ namespace WorldEdit
 			string newfile = file.Substring(0, (file.LastIndexOf('\\') + 1)) + "schematic-new-" + file.Substring(file.LastIndexOf('\\') + 11);
 			if (File.Exists(newfile)) File.Delete(newfile);
 
-			var Old = LoadWorldDataOld(file);
+			var tile = LoadWorldDataOld(file);
 
-			Tile[,] tile = Old.Item1;
 			using (var writer =
 					new BinaryWriter(
 						new BufferedStream(
@@ -563,12 +564,12 @@ namespace WorldEdit
 			{
 				writer.Write(0);
 				writer.Write(0);
-				writer.Write(Old.Item2);
-				writer.Write(Old.Item3);
-				for (int i = 0; i < Old.Item2; i++)
+				writer.Write(tile.GetLength(0));
+				writer.Write(tile.GetLength(1));
+				for (int i = 0; i < tile.GetLength(0); i++)
 				{
-					for (int j = 0; j < Old.Item3; j++)
-					{ writer.Write(new Tuple<Tile, string, Item, Item[]>(tile[i, j], null, null, null)); }
+					for (int j = 0; j < tile.GetLength(1); j++)
+					{ writer.Write(TileData(tile[i, j])); }
 				}
 			}
 

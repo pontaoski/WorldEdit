@@ -52,26 +52,26 @@ namespace WorldEdit.Commands
 							for (int i = 0; i < width; i++)
 							{
 								if (tiles[i, j].Item1.slope() == 0)
-									writer.Write(tiles[i, j]);
+									writer.Write(Tools.TileData(tiles[i, j].Item1));
 								else if (tiles[i, j].Item1.slope() == 1)
 								{
 									tiles[i, j].Item1.slope(3);
-									writer.Write(tiles[i, j]);
+									writer.Write(Tools.TileData(tiles[i, j].Item1));
 								}
 								else if (tiles[i, j].Item1.slope() == 2)
 								{
 									tiles[i, j].Item1.slope(1);
-									writer.Write(tiles[i, j]);
+									writer.Write(Tools.TileData(tiles[i, j].Item1));
 								}
 								else if (tiles[i, j].Item1.slope() == 3)
 								{
 									tiles[i, j].Item1.slope(4);
-									writer.Write(tiles[i, j]);
+									writer.Write(Tools.TileData(tiles[i, j].Item1));
 								}
 								else if (tiles[i, j].Item1.slope() == 4)
 								{
 									tiles[i, j].Item1.slope(2);
-									writer.Write(tiles[i, j]);
+									writer.Write(Tools.TileData(tiles[i, j].Item1));
 								}
 							}
 						}
@@ -84,26 +84,26 @@ namespace WorldEdit.Commands
 							for (int j = height - 1; j >= 0; j--)
 							{
 								if (tiles[i, j].Item1.slope() == 0)
-									writer.Write(tiles[i, j]);
+									writer.Write(Tools.TileData(tiles[i, j].Item1));
 								else if (tiles[i, j].Item1.slope() == 1)
 								{
 									tiles[i, j].Item1.slope(4);
-									writer.Write(tiles[i, j]);
+									writer.Write(Tools.TileData(tiles[i, j].Item1));
 								}
 								else if (tiles[i, j].Item1.slope() == 2)
 								{
 									tiles[i, j].Item1.slope(3);
-									writer.Write(tiles[i, j]);
+									writer.Write(Tools.TileData(tiles[i, j].Item1));
 								}
 								else if (tiles[i, j].Item1.slope() == 3)
 								{
 									tiles[i, j].Item1.slope(2);
-									writer.Write(tiles[i, j]);
+									writer.Write(Tools.TileData(tiles[i, j].Item1));
 								}
 								else if (tiles[i, j].Item1.slope() == 4)
 								{
 									tiles[i, j].Item1.slope(1);
-									writer.Write(tiles[i, j]);
+									writer.Write(Tools.TileData(tiles[i, j].Item1));
 								}
 							}
 						}
@@ -116,26 +116,26 @@ namespace WorldEdit.Commands
 							for (int i = width - 1; i >= 0; i--)
 							{
 								if (tiles[i, j].Item1.slope() == 0)
-									writer.Write(tiles[i, j]);
+									writer.Write(Tools.TileData(tiles[i, j].Item1));
 								else if (tiles[i, j].Item1.slope() == 1)
 								{
 									tiles[i, j].Item1.slope(2);
-									writer.Write(tiles[i, j]);
+									writer.Write(Tools.TileData(tiles[i, j].Item1));
 								}
 								else if (tiles[i, j].Item1.slope() == 2)
 								{
 									tiles[i, j].Item1.slope(4);
-									writer.Write(tiles[i, j]);
+									writer.Write(Tools.TileData(tiles[i, j].Item1));
 								}
 								else if (tiles[i, j].Item1.slope() == 3)
 								{
 									tiles[i, j].Item1.slope(1);
-									writer.Write(tiles[i, j]);
+									writer.Write(Tools.TileData(tiles[i, j].Item1));
 								}
 								else if (tiles[i, j].Item1.slope() == 4)
 								{
 									tiles[i, j].Item1.slope(3);
-									writer.Write(tiles[i, j]);
+									writer.Write(Tools.TileData(tiles[i, j].Item1));
 								}
 							}
 						}
