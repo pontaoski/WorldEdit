@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using System;
 using System.Collections.Generic;
 using Terraria;
 using TShockAPI;
@@ -54,7 +53,7 @@ namespace WorldEdit.Commands
 					bool XmY = Main.tile[i, j - 1].active();
 					bool XpY = Main.tile[i, j + 1].active();
 
-					if (XY && expression.Evaluate((Tile)Main.tile[i, j]))
+					if (XY && expression.Evaluate(Main.tile[i, j]))
 					{
 						if (!mXmY)
 						{
