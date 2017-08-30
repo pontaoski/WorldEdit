@@ -237,7 +237,7 @@ namespace WorldEdit
 			{
 				HelpText = "Converts biomes in the worldedit selection."
 			});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.copy", Copy, "/copy")
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.copy", Copy, "/copy", "/c")
 			{
 				HelpText = "Copies the worldedit selection to the clipboard."
 			});
@@ -282,31 +282,31 @@ namespace WorldEdit
 				AllowServer = false,
 				HelpText = "Sets the worldedit selection to a radius around you."
 			});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.outline", Outline, "/outline")
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.outline", Outline, "/outline", "/ol")
 			{
 				HelpText = "Sets block outline around blocks in area."
 			});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.outlinewall", OutlineWall, "/outlinewall")
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.outlinewall", OutlineWall, "/outlinewall", "/olw")
 			{
 				HelpText = "Sets wall outline around walls in area."
 			});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.paint", Paint, "/paint")
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.paint", Paint, "/paint", "/pa")
 			{
 				HelpText = "Paints tiles in the worldedit selection."
 			});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.paintwall", PaintWall, "/paintwall")
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.paintwall", PaintWall, "/paintwall", "/paw")
 			{
 				HelpText = "Paints walls in the worldedit selection."
 			});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.paste", Paste, "/paste")
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.paste", Paste, "/paste", "/p")
 			{
 				HelpText = "Pastes the clipboard to the worldedit selection."
 			});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", Point1, "/point1", "/p1")
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", Point1, "/point1", "/p1", "p1")
 			{
 				HelpText = "Sets the positions of the worldedit selection's first point."
 			});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", Point2, "/point2", "/p2")
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", Point2, "/point2", "/p2", "p2")
 			{
 				HelpText = "Sets the positions of the worldedit selection's second point."
 			});
@@ -326,7 +326,7 @@ namespace WorldEdit
 			{
 				HelpText = "Rotates the worldedit clipboard."
 			});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.schematic", Schematic, "/schematic", "/schem")
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.schematic", Schematic, "/schematic", "/schem", "sc")
 			{
 				HelpText = "Manages worldedit schematics."
 			});
@@ -342,11 +342,11 @@ namespace WorldEdit
 			{
 				HelpText = "Sets certain grass in the worldedit selection."
 			});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.setwall", SetWall, "/setwall")
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.setwall", SetWall, "/setwall", "/swa")
 			{
 				HelpText = "Sets walls in the worldedit selection."
 			});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.setwire", SetWire, "/setwire")
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.setwire", SetWire, "/setwire", "/swi")
 			{
 				HelpText = "Sets wires in the worldedit selection."
 			});
@@ -354,7 +354,7 @@ namespace WorldEdit
 			{
 				HelpText = "Slopes tiles in the worldedit selection."
 			});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.delslope", SlopeDelete, "/delslope")
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.delslope", SlopeDelete, "/delslope", "/delslopes", "/dslope", "/dslopes")
 			{
 				HelpText = "Removes slopes in the worldedit selection."
 			});
@@ -362,7 +362,7 @@ namespace WorldEdit
 			{
 				HelpText = "Smooths blocks in the worldedit selection."
 			});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.inactive", Inactive, "/inactive")
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.inactive", Inactive, "/inactive", "/ia")
 			{
 				HelpText = "Sets the inactive status in the worldedit selection."
 			});
@@ -374,13 +374,17 @@ namespace WorldEdit
 			{
 				HelpText = "Undoes a number of worldedit actions."
 			});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.scale", Scale, "/scale")
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.scale", Scale, "/scale", "/size")
 			{
 				HelpText = "Scale the clipboard"
 			});
-			#endregion
-			#region Database
-			switch (TShock.Config.StorageType.ToLowerInvariant())
+            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.actuator", Actuator, "/actuator")
+            {
+                HelpText = "Sets actuators in the worldedit selection."
+            });
+            #endregion
+            #region Database
+            switch (TShock.Config.StorageType.ToLowerInvariant())
 			{
 				case "mysql":
 					string[] host = TShock.Config.MySqlHost.Split(':');
@@ -608,18 +612,21 @@ namespace WorldEdit
 
 			byte action;
 			switch (e.Parameters[0].ToLowerInvariant())
-			{
-				case "sign":
+            {
+                case "s":
+                case "sign":
 					{
 						action = 0;
 						break;
-					}
-				case "chest":
+                    }
+                case "c":
+                case "chest":
 					{
 						action = 1;
 						break;
-					}
-				case "item":
+                    }
+                case "i":
+                case "item":
 				case "frame":
 				case "itemframe":
 					{
@@ -635,6 +642,35 @@ namespace WorldEdit
 
 			_commandQueue.Add(new Activate(info.X, info.Y, info.X2, info.Y2, e.Player, action));
 		}
+
+        private void Actuator(CommandArgs e)
+        {
+            string param = (e.Parameters.Count == 0) ? "" : e.Parameters[0].ToLowerInvariant();
+            if (param != "off" && param != "on")
+            {
+                e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //actuator <on/off> [=> boolean expr...]");
+                return;
+            }
+            PlayerInfo info = e.Player.GetPlayerInfo();
+            if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
+            {
+                e.Player.SendErrorMessage("Invalid selection.");
+                return;
+            }
+            bool remove = (param == "off");
+
+            Expression expression = null;
+            if (e.Parameters.Count > 1)
+            {
+                if (!Parser.TryParseTree(e.Parameters.Skip(1), out expression))
+                {
+                    e.Player.SendErrorMessage("Invalid expression!");
+                    return;
+                }
+            }
+
+            _commandQueue.Add(new Actuator(info.X, info.Y, info.X2, info.Y2, e.Player, expression, remove));
+        }
 
 		private void All(CommandArgs e)
 		{
@@ -989,36 +1025,51 @@ namespace WorldEdit
 			else
 			{
 				int alignment = 0;
-				if (e.Parameters.Count == 1)
-				{
-					foreach (char c in e.Parameters[0].ToLowerInvariant())
-					{
-						if (c == 'l')
-							alignment &= 2;
-						else if (c == 'r')
-							alignment |= 1;
-						else if (c == 't')
-							alignment &= 1;
-						else if (c == 'b')
-							alignment |= 2;
-						else
-						{
-							e.Player.SendErrorMessage("Invalid paste alignment '{0}'!", c);
-							return;
-						}
-					}
-				}
+                bool mode_MainBlocks = true;
+                Expression expression = null;
+                int Skip = 0;
 
-				Expression expression = null;
-				if (e.Parameters.Count > 1)
+                if (e.Parameters.Count > Skip)
 				{
-					if (!Parser.TryParseTree(e.Parameters.Skip(1), out expression))
-					{
-						e.Player.SendErrorMessage("Invalid expression!");
-						return;
-					}
-				}
-				_commandQueue.Add(new Paste(info.X, info.Y, e.Player, alignment, expression));
+                    if (!e.Parameters[Skip].ToLowerInvariant().StartsWith("-")
+                        && !e.Parameters[Skip].ToLowerInvariant().StartsWith("="))
+                    {
+                        foreach (char c in e.Parameters[0].ToLowerInvariant())
+                        {
+                            if (c == 'l')
+                                alignment &= 2;
+                            else if (c == 'r')
+                                alignment |= 1;
+                            else if (c == 't')
+                                alignment &= 1;
+                            else if (c == 'b')
+                                alignment |= 2;
+                            else
+                            {
+                                e.Player.SendErrorMessage("Invalid paste alignment '{0}'!", c);
+                                return;
+                            }
+                        }
+                        Skip++;
+                    }
+
+                    if ((e.Parameters.Count > Skip) && ((e.Parameters[Skip].ToLowerInvariant() == "-f")
+                        || (e.Parameters[Skip].ToLowerInvariant() == "-file")))
+                    {
+                        mode_MainBlocks = false;
+                        Skip++;
+                    }
+
+                    if (e.Parameters.Count > Skip)
+                    {
+                        if (!Parser.TryParseTree(e.Parameters.Skip(Skip), out expression))
+                        {
+                            e.Player.SendErrorMessage("Invalid expression!");
+                            return;
+                        }
+                    }
+                }
+				_commandQueue.Add(new Paste(info.X, info.Y, e.Player, alignment, expression, mode_MainBlocks));
 			}
 		}
 
@@ -1276,10 +1327,10 @@ namespace WorldEdit
 					return;
 				case "help":
 					e.Player.SendSuccessMessage("Schematics Subcommands:");
-					e.Player.SendInfoMessage("//schem delete/del <name>\r\n"
-										   + "//schem list [page]\r\n"
-										   + "//schem load/l <name>\r\n"
-										   + "//schem save/s <name>\r\n");
+					e.Player.SendInfoMessage("/sc delete/del <name>\r\n"
+										   + "/sc list [page]\r\n"
+										   + "/sc load/l <name>\r\n"
+										   + "/sc save/s <name>");
 					return;
 				case "list":
 					{
@@ -1323,7 +1374,7 @@ namespace WorldEdit
 						}
 						else
 						{
-							e.Player.SendErrorMessage("Invalid schematic '{0}'!");
+							e.Player.SendErrorMessage("Invalid schematic '{0}'!", e.Parameters[1]);
 							return;
 						}
 

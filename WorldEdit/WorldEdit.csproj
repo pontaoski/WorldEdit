@@ -61,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\Activate.cs" />
+    <Compile Include="Commands\Actuator.cs" />
     <Compile Include="Commands\FixGhosts.cs" />
     <Compile Include="Commands\Inactive.cs" />
     <Compile Include="Commands\Biome.cs" />

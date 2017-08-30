@@ -139,23 +139,40 @@ namespace WorldEdit.Expressions
 		{
 			Test test;
 			switch (lhs)
-			{
-				case "honey":
-					return test = t => t.liquid > 0 && t.liquidType() == 2;
-				case "lava":
+            {
+                case "lh":
+                case "honey":
+                    return test = t => t.liquid > 0 && t.liquidType() == 2;
+                case "nlh":
+                case "nhoney":
+                    return test = t => t.liquidType() != 2;
+                case "ll":
+                case "lava":
 					return test = t => t.liquid > 0 && t.liquidType() == 1;
-				case "liquid":
-					return test = t => t.liquid > 0;
-				case "t":
+                case "nll":
+                case "nlava":
+                    return test = t => t.liquidType() != 1;
+                case "li":
+                case "liquid":
+                    return test = t => t.liquid > 0;
+                case "nli":
+                case "nliquid":
+                    return test = t => t.liquid == 0;
+                case "t":
 				case "tile":
-					if (string.IsNullOrEmpty(rhs))
-						return test = t => t.active();
+                    {
+                        if (string.IsNullOrEmpty(rhs))
+                            return test = t => t.active();
 
-					List<int> tiles = Tools.GetTileID(rhs);
-					if (tiles.Count == 0 || tiles.Count > 1)
-						throw new ArgumentException();
-					return test = t => (t.active() && t.type == tiles[0]) != negated;
-				case "tp":
+                        List<int> tiles = Tools.GetTileID(rhs);
+                        if (tiles.Count == 0 || tiles.Count > 1)
+                            throw new ArgumentException();
+                        return test = t => (t.active() && t.type == tiles[0]) != negated;
+                    }
+                case "nt":
+                case "ntile":
+                    return test = t => !t.active();
+                case "tp":
 				case "tilepaint":
 					{
 						if (string.IsNullOrEmpty(rhs))
@@ -165,17 +182,25 @@ namespace WorldEdit.Expressions
 						if (colors.Count == 0 || colors.Count > 1)
 							throw new ArgumentException();
 						return test = t => (t.active() && t.color() == colors[0]) != negated;
-					}
-				case "w":
+                    }
+                case "ntp":
+                case "ntilepaint":
+                    return test = t => t.color() == 0;
+                case "w":
 				case "wall":
-					if (string.IsNullOrEmpty(rhs))
-						return test = t => t.wall != 0;
+                    {
+                        if (string.IsNullOrEmpty(rhs))
+                            return test = t => t.wall != 0;
 
-					var walls = Tools.GetTileID(rhs);
-					if (walls.Count == 0 || walls.Count > 1)
-						throw new ArgumentException();
-					return test = t => (t.wall == walls[0]) != negated;
-				case "wp":
+                        var walls = Tools.GetTileID(rhs);
+                        if (walls.Count == 0 || walls.Count > 1)
+                            throw new ArgumentException();
+                        return test = t => (t.wall == walls[0]) != negated;
+                    }
+                case "nw":
+                case "nwall":
+                    return test = t => t.wall == 0;
+                case "wp":
 				case "wallpaint":
 					{
 						if (string.IsNullOrEmpty(rhs))
@@ -185,44 +210,77 @@ namespace WorldEdit.Expressions
 						if (colors.Count == 0 || colors.Count > 1)
 							throw new ArgumentException();
 						return test = t => (t.wall > 0 && t.wallColor() == colors[0]) != negated;
-					}
-				case "water":
-					return test = t => t.liquid > 0 && t.liquidType() == 0;
-				case "wire":
+                    }
+                case "nwp":
+                case "nwallpaint":
+                    return test = t => t.wallColor() == 0;
+                case "lw":
+                case "water":
+                    return test = t => t.liquid > 0 && t.liquidType() == 0;
+                case "nlw":
+                case "nwater":
+                    return test = t => t.liquidType() != 0;
+                case "wire":
 				case "wire1":
 				case "wirered":
 				case "redwire":
 					return test = t => t.wire();
-				case "wire2":
+                case "nwire":
+                case "nwire1":
+                case "nwirered":
+                case "nredwire":
+                    return test = t => !t.wire();
+                case "wire2":
 				case "wireblue":
 				case "bluewire":
 					return test = t => t.wire2();
-				case "wire3":
+                case "nwire2":
+                case "nwireblue":
+                case "nbluewire":
+                    return test = t => !t.wire2();
+                case "wire3":
 				case "wiregreen":
 				case "greenwire":
 					return test = t => t.wire3();
-				case "wire4":
+                case "nwire3":
+                case "nwiregreen":
+                case "ngreenwire":
+                    return test = t => !t.wire3();
+                case "wire4":
 				case "wireyellow":
 				case "yellowwire":
 					return test = t => t.wire4();
-				case "a":
+                case "nwire4":
+                case "nwireyellow":
+                case "nyellowwire":
+                    return test = t => !t.wire4();
+                case "a":
 				case "active":
 					return test = t => t.active() && !t.inActive();
-				case "na":
+                case "na":
 				case "nactive":
 					return test = t => t.inActive();
 				case "s":
 				case "slope":
 					{
 						if (string.IsNullOrEmpty(rhs))
-							return test = t => (t.slope() != 0);
+							return test = t => ((t.slope() != 0) || t.halfBrick());
 
 						int slope = Tools.GetSlopeID(rhs);
 						if (slope == -1)
 							throw new ArgumentException();
-						return test = t => (t.active() && t.slope() == (byte)slope) != negated;
-					}
-				default:
+						return test = t => (t.active() && ((slope == 1) ? t.halfBrick() : (t.slope() == (byte)slope))) != negated;
+                    }
+                case "ns":
+                case "nslope":
+                    return test = t => ((t.slope() == 0) && !t.halfBrick());
+                case "ac":
+                case "actuator":
+                    return test = t => t.actuator();
+                case "nac":
+                case "nactuator":
+                    return test = t => !t.actuator();
+                default:
 					throw new ArgumentException("Invalid test.");
 			}
 		}

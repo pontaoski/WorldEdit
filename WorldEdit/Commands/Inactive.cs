@@ -21,7 +21,7 @@ namespace WorldEdit.Commands {
 					for(int i = x;i <= x2;i++) {
 						for(int j = y;j <= y2;j++) {
 							var tile = Main.tile[i, j];
-							if(tile.active() && select(i, j, plr) && expression.Evaluate(tile)) {
+							if(tile.active() && !tile.inActive() && select(i, j, plr) && expression.Evaluate(tile)) {
 								tile.inActive(true);
 								edits++;
 							}
@@ -34,7 +34,7 @@ namespace WorldEdit.Commands {
 					for(int i = x;i <= x2;i++) {
 						for(int j = y;j <= y2;j++) {
 							var tile = Main.tile[i, j];
-							if(select(i, j, plr) && expression.Evaluate(tile)) {
+							if(tile.inActive() && select(i, j, plr) && expression.Evaluate(tile)) {
 								tile.inActive(false);
 								edits++;
 							}
