@@ -79,6 +79,7 @@
     <Compile Include="Commands\Flood.cs" />
     <Compile Include="Commands\Paint.cs" />
     <Compile Include="Commands\Paste.cs" />
+    <Compile Include="Commands\PasteSchematic.cs" />
     <Compile Include="Commands\Redo.cs" />
     <Compile Include="Commands\Rotate.cs" />
     <Compile Include="Commands\Scale.cs" />

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Terraria;
 
 namespace WorldEdit
@@ -10,9 +11,10 @@ namespace WorldEdit
 		private int _y = -1;
 		private int _y2 = -1;
 
-		public const string Key = "WorldEdit_Data";
+        public const string Key = "WorldEdit_Data";
 
-		public int Point = 0;
+        public Dictionary<string, WorldSectionData> LoadedSchematics = new Dictionary<string, WorldSectionData>();
+        public int Point = 0;
 		public Selection Select = null;
 		public int X
 		{

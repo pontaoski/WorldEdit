@@ -1325,13 +1325,6 @@ namespace WorldEdit
 						e.Player.SendErrorMessage("Deleted schematic '{0}'.", e.Parameters[1]);
 					}
 					return;
-				case "help":
-					e.Player.SendSuccessMessage("Schematics Subcommands:");
-					e.Player.SendInfoMessage("/sc delete/del <name>\r\n"
-										   + "/sc list [page]\r\n"
-										   + "/sc load/l <name>\r\n"
-										   + "/sc save/s <name>");
-					return;
 				case "list":
 					{
 						if (e.Parameters.Count > 2)
@@ -1412,9 +1405,124 @@ namespace WorldEdit
 						e.Player.SendSuccessMessage("Saved clipboard to schematic '{0}'.", e.Parameters[1]);
 					}
 					return;
+                case "r":
+                case "read":
+                    {
+                        if (e.Player != TSPlayer.Server)
+                        {
+                            e.Player.SendErrorMessage("//schematic read is for server console only.\n" +
+                                                      "Instead, you should use //schematic load.");
+                            return;
+                        }
+
+                        if (e.Parameters.Count != 2)
+                        {
+                            e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //schematic read <name>");
+                            return;
+                        }
+
+                        var path = Path.Combine("worldedit", string.Format(fileFormat, e.Parameters[1]));
+                        
+                        if (!File.Exists(path))
+                        {
+                            e.Player.SendErrorMessage("Invalid schematic '{0}'!", e.Parameters[1]);
+                            return;
+                        }
+
+                        PlayerInfo info = e.Player.GetPlayerInfo();
+                        WorldSectionData data = Tools.LoadWorldData(path);
+                        if (info.LoadedSchematics.ContainsKey(e.Parameters[1]))
+                        { info.LoadedSchematics[e.Parameters[1]] = data; }
+                        else { info.LoadedSchematics.Add(e.Parameters[1], data); }
+
+                        e.Player.SendSuccessMessage("Read schematic '{0}'.", e.Parameters[1]);
+                    }
+                    return;
+                case "p":
+                case "paste":
+                    {
+                        if (e.Player != TSPlayer.Server)
+                        {
+                            e.Player.SendErrorMessage("//schematic paste is for server console only.\n" +
+                                                      "Instead, you should use //schematic load and //paste.");
+                            return;
+                        }
+
+                        if (e.Parameters.Count != 2)
+                        {
+                            e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //schematic paste <name> [alignment] [-f] [=> boolean expr...]");
+                            return;
+                        }
+
+                        PlayerInfo info = e.Player.GetPlayerInfo();
+                        if (!info.LoadedSchematics.ContainsKey(e.Parameters[1]))
+                        {
+                            e.Player.SendErrorMessage("Invalid schematic '{0}'!", e.Parameters[1]);
+                            return;
+                        }
+                        if (info.X == -1 || info.Y == -1)
+                            e.Player.SendErrorMessage("Invalid first point!");
+                        else
+                        {
+                            WorldSectionData data = info.LoadedSchematics[e.Parameters[1]];
+                            int alignment = 0;
+                            bool mode_MainBlocks = true;
+                            Expression expression = null;
+                            int Skip = 2;
+
+                            if (e.Parameters.Count > Skip)
+                            {
+                                if (!e.Parameters[Skip].ToLowerInvariant().StartsWith("-")
+                                    && !e.Parameters[Skip].ToLowerInvariant().StartsWith("="))
+                                {
+                                    foreach (char c in e.Parameters[0].ToLowerInvariant())
+                                    {
+                                        if (c == 'l')
+                                            alignment &= 2;
+                                        else if (c == 'r')
+                                            alignment |= 1;
+                                        else if (c == 't')
+                                            alignment &= 1;
+                                        else if (c == 'b')
+                                            alignment |= 2;
+                                        else
+                                        {
+                                            e.Player.SendErrorMessage("Invalid paste alignment '{0}'!", c);
+                                            return;
+                                        }
+                                    }
+                                    Skip++;
+                                }
+
+                                if ((e.Parameters.Count > Skip) && ((e.Parameters[Skip].ToLowerInvariant() == "-f")
+                                    || (e.Parameters[Skip].ToLowerInvariant() == "-file")))
+                                {
+                                    mode_MainBlocks = false;
+                                    Skip++;
+                                }
+
+                                if (e.Parameters.Count > Skip)
+                                {
+                                    if (!Parser.TryParseTree(e.Parameters.Skip(Skip), out expression))
+                                    {
+                                        e.Player.SendErrorMessage("Invalid expression!");
+                                        return;
+                                    }
+                                }
+                            }
+                            _commandQueue.Add(new PasteSchematic(info.X, info.Y, e.Player, data, alignment, expression, mode_MainBlocks));
+                        }
+                    }
+                    return;
 				default:
-					e.Player.SendErrorMessage("Invalid subcommand.");
-					return;
+                    e.Player.SendSuccessMessage("Schematics Subcommands:");
+                    e.Player.SendInfoMessage("/sc delete/del <name>\r\n"
+                                           + "/sc list [page]\r\n"
+                                           + "/sc load/l <name>\r\n"
+                                           + "/sc save/s <name>"
+                                           + "/sc read/r <name>"
+                                           + "/sc paste/p <name> [alignment] [-f] [=> boolean expr...]");
+                    return;
 			}
 		}
 
