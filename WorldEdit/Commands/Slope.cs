@@ -45,6 +45,7 @@ namespace WorldEdit.Commands
 						var tile = Main.tile[i, j];
 						if (tile.active() && select(i, j, plr) && expression.Evaluate(tile))
 						{
+                            if (tile.halfBrick()) { tile.halfBrick(false); }
 							tile.slope(slope);
 							edits++;
 						}

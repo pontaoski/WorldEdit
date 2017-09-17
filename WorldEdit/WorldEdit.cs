@@ -1448,7 +1448,7 @@ namespace WorldEdit
                             return;
                         }
 
-                        if (e.Parameters.Count != 2)
+                        if (e.Parameters.Count < 2)
                         {
                             e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //schematic paste <name> [alignment] [-f] [=> boolean expr...]");
                             return;
