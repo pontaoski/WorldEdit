@@ -1397,7 +1397,7 @@ namespace WorldEdit
 
 						if (!File.Exists(path))
 						{
-							e.Player.SendErrorMessage("Invalid schematic '{0}'!");
+							e.Player.SendErrorMessage("Invalid schematic '{0}'!", e.Parameters[1]);
 							return;
 						}
 
