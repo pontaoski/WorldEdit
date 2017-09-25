@@ -13,20 +13,22 @@ namespace WorldEdit.Commands
 		private readonly int alignment;
 		private readonly Expression expression;
         private readonly bool mode_MainBlocks;
+        private readonly string path;
+        private readonly bool prepareUndo;
 
-		public Paste(int x, int y, TSPlayer plr, int alignment, Expression expression, bool mode_MainBlocks)
+        public Paste(int x, int y, TSPlayer plr, string path, int alignment, Expression expression, bool mode_MainBlocks, bool prepareUndo)
 			: base(x, y, int.MaxValue, int.MaxValue, plr)
 		{
 			this.alignment = alignment;
 			this.expression = expression;
             this.mode_MainBlocks = mode_MainBlocks;
-		}
+            this.path = path;
+            this.prepareUndo = prepareUndo;
+        }
 
 		public override void Execute()
 		{
-			var clipboardPath = Tools.GetClipboardPath(plr.User.ID);
-
-			var data = Tools.LoadWorldData(clipboardPath);
+            WorldSectionData data = Tools.LoadWorldData(path);
 
 			var width = data.Width - 1;
 			var height = data.Height - 1;
@@ -46,7 +48,7 @@ namespace WorldEdit.Commands
 				y -= height;
 			}
 
-			Tools.PrepareUndo(x, y, x2, y2, plr);
+            if (prepareUndo) { Tools.PrepareUndo(x, y, x2, y2, plr); }
 
 			for (var i = x; i <= x2; i++)
 			{

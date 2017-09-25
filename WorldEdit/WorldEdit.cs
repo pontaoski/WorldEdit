@@ -302,7 +302,11 @@ namespace WorldEdit
 			{
 				HelpText = "Pastes the clipboard to the worldedit selection."
 			});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", Point1, "/point1", "/p1", "p1")
+            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.spaste", SPaste, "/spaste", "/sp")
+            {
+                HelpText = "Pastes the clipboard to the worldedit selection with certain conditions."
+            });
+            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", Point1, "/point1", "/p1", "p1")
 			{
 				HelpText = "Sets the positions of the worldedit selection's first point."
 			});
@@ -1069,11 +1073,87 @@ namespace WorldEdit
                         }
                     }
                 }
-				_commandQueue.Add(new Paste(info.X, info.Y, e.Player, alignment, expression, mode_MainBlocks));
+                _commandQueue.Add(new Paste(info.X, info.Y, e.Player, Tools.GetClipboardPath(e.Player.User.ID), alignment, expression, mode_MainBlocks, true));
 			}
-		}
+        }
 
-		private void Point1(CommandArgs e)
+        private void SPaste(CommandArgs e)
+        {
+            PlayerInfo info = e.Player.GetPlayerInfo();
+            e.Player.SendInfoMessage("X: {0}, Y: {1}", info.X, info.Y);
+            if (info.X == -1 || info.Y == -1)
+                e.Player.SendErrorMessage("Invalid first point!");
+            else if (!Tools.HasClipboard(e.Player.User.ID))
+                e.Player.SendErrorMessage("Invalid clipboard!");
+            else if (e.Parameters.Count < 1)
+                e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //spaste [alignment] [-flag -flag ...] [=> boolean expr...]");
+            else
+            {
+                int alignment = 0;
+                Expression expression = null;
+                int Skip = 0;
+                bool tiles = true;
+                bool tilePaints = true;
+                bool emptyTiles = true;
+                bool walls = true;
+                bool wallPaints = true;
+                bool wires = true;
+                bool liquids = true;
+
+                if (e.Parameters.Count > Skip)
+                {
+                    if (!e.Parameters[Skip].ToLowerInvariant().StartsWith("-"))
+                    {
+                        foreach (char c in e.Parameters[Skip].ToLowerInvariant())
+                        {
+                            if (c == 'l')
+                                alignment &= 2;
+                            else if (c == 'r')
+                                alignment |= 1;
+                            else if (c == 't')
+                                alignment &= 1;
+                            else if (c == 'b')
+                                alignment |= 2;
+                            else
+                            {
+                                e.Player.SendErrorMessage("Invalid paste alignment '{0}'!", c);
+                                return;
+                            }
+                        }
+                        Skip++;
+                    }
+
+                    List<string> InvalidFlags = new List<string>();
+                    while ((e.Parameters.Count > Skip) && (e.Parameters[Skip] != "=>"))
+                    {
+                        switch (e.Parameters[Skip].ToLower())
+                        {
+                            case "-t": { tiles = false; break; }
+                            case "-tp": { tilePaints = false; break; }
+                            case "-et": { emptyTiles = false; break; }
+                            case "-w": { walls = false; break; }
+                            case "-wp": { wallPaints = false; break; }
+                            case "-wi": { wires = false; break; }
+                            case "-l": { liquids = false; break; }
+                            default: { InvalidFlags.Add(e.Parameters[Skip]); break; }
+                        }
+                        Skip++;
+                    }
+
+                    if (e.Parameters.Count > Skip)
+                    {
+                        if (!Parser.TryParseTree(e.Parameters.Skip(Skip), out expression))
+                        {
+                            e.Player.SendErrorMessage("Invalid expression!");
+                            return;
+                        }
+                    }
+                }
+                _commandQueue.Add(new SPaste(info.X, info.Y, e.Player, alignment, expression, tiles, tilePaints, emptyTiles, walls, wallPaints, wires, liquids));
+            }
+        }
+
+        private void Point1(CommandArgs e)
 		{
 			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (e.Parameters.Count == 0)
@@ -1279,9 +1359,9 @@ namespace WorldEdit
 
 		private void Scale(CommandArgs e)
 		{
-			if (e.Parameters.Count != 1)
+			if ((e.Parameters.Count != 2) || ((e.Parameters[0] != "+") && (e.Parameters[0] != "-")))
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //scale <amount>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //scale <+/-> <amount>");
 				return;
 			}
 			if (!Tools.HasClipboard(e.Player.User.ID))
@@ -1289,12 +1369,12 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid clipboard!");
 				return;
 			}
-			if (!int.TryParse(e.Parameters[0], out int scale))
+			if (!int.TryParse(e.Parameters[1], out int scale))
 			{
 				e.Player.SendErrorMessage("Invalid amount!");
 				return;
 			}
-			_commandQueue.Add(new Scale(e.Player, scale));
+			_commandQueue.Add(new Scale(e.Player, (e.Parameters[0] == "+"), scale));
 		}
 
 		private void Schematic(CommandArgs e)
@@ -1405,39 +1485,6 @@ namespace WorldEdit
 						e.Player.SendSuccessMessage("Saved clipboard to schematic '{0}'.", e.Parameters[1]);
 					}
 					return;
-                case "r":
-                case "read":
-                    {
-                        if (e.Player != TSPlayer.Server)
-                        {
-                            e.Player.SendErrorMessage("//schematic read is for server console only.\n" +
-                                                      "Instead, you should use //schematic load.");
-                            return;
-                        }
-
-                        if (e.Parameters.Count != 2)
-                        {
-                            e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //schematic read <name>");
-                            return;
-                        }
-
-                        var path = Path.Combine("worldedit", string.Format(fileFormat, e.Parameters[1]));
-                        
-                        if (!File.Exists(path))
-                        {
-                            e.Player.SendErrorMessage("Invalid schematic '{0}'!", e.Parameters[1]);
-                            return;
-                        }
-
-                        PlayerInfo info = e.Player.GetPlayerInfo();
-                        WorldSectionData data = Tools.LoadWorldData(path);
-                        if (info.LoadedSchematics.ContainsKey(e.Parameters[1]))
-                        { info.LoadedSchematics[e.Parameters[1]] = data; }
-                        else { info.LoadedSchematics.Add(e.Parameters[1], data); }
-
-                        e.Player.SendSuccessMessage("Read schematic '{0}'.", e.Parameters[1]);
-                    }
-                    return;
                 case "p":
                 case "paste":
                     {
@@ -1454,17 +1501,17 @@ namespace WorldEdit
                             return;
                         }
 
-                        PlayerInfo info = e.Player.GetPlayerInfo();
-                        if (!info.LoadedSchematics.ContainsKey(e.Parameters[1]))
+                        string path = Path.Combine("worldedit", string.Format(fileFormat, e.Parameters[1]));
+                        if (!File.Exists(path))
                         {
                             e.Player.SendErrorMessage("Invalid schematic '{0}'!", e.Parameters[1]);
                             return;
                         }
+                        PlayerInfo info = e.Player.GetPlayerInfo();
                         if (info.X == -1 || info.Y == -1)
                             e.Player.SendErrorMessage("Invalid first point!");
                         else
                         {
-                            WorldSectionData data = info.LoadedSchematics[e.Parameters[1]];
                             int alignment = 0;
                             bool mode_MainBlocks = true;
                             Expression expression = null;
@@ -1510,17 +1557,16 @@ namespace WorldEdit
                                     }
                                 }
                             }
-                            _commandQueue.Add(new PasteSchematic(info.X, info.Y, e.Player, data, alignment, expression, mode_MainBlocks));
+                            _commandQueue.Add(new Paste(info.X, info.Y, e.Player, path, alignment, expression, mode_MainBlocks, false));
                         }
                     }
                     return;
 				default:
                     e.Player.SendSuccessMessage("Schematics Subcommands:");
-                    e.Player.SendInfoMessage("/sc delete/del <name>\r\n"
-                                           + "/sc list [page]\r\n"
-                                           + "/sc load/l <name>\r\n"
-                                           + "/sc save/s <name>"
-                                           + "/sc read/r <name>"
+                    e.Player.SendInfoMessage("/sc delete/del <name>\n"
+                                           + "/sc list [page]\n"
+                                           + "/sc load/l <name>\n"
+                                           + "/sc save/s <name>\n"
                                            + "/sc paste/p <name> [alignment] [-f] [=> boolean expr...]");
                     return;
 			}

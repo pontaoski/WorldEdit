@@ -79,7 +79,6 @@
     <Compile Include="Commands\Flood.cs" />
     <Compile Include="Commands\Paint.cs" />
     <Compile Include="Commands\Paste.cs" />
-    <Compile Include="Commands\PasteSchematic.cs" />
     <Compile Include="Commands\Redo.cs" />
     <Compile Include="Commands\Rotate.cs" />
     <Compile Include="Commands\Scale.cs" />
@@ -89,6 +88,7 @@
     <Compile Include="Commands\Slope.cs" />
     <Compile Include="Commands\SlopeDelete.cs" />
     <Compile Include="Commands\Smooth.cs" />
+    <Compile Include="Commands\SPaste.cs" />
     <Compile Include="Commands\Undo.cs" />
     <Compile Include="Commands\WECommand.cs" />
     <Compile Include="Expressions\AndExpression.cs" />

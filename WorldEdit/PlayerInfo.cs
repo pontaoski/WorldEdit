@@ -12,8 +12,7 @@ namespace WorldEdit
 		private int _y2 = -1;
 
         public const string Key = "WorldEdit_Data";
-
-        public Dictionary<string, WorldSectionData> LoadedSchematics = new Dictionary<string, WorldSectionData>();
+        
         public int Point = 0;
 		public Selection Select = null;
 		public int X
