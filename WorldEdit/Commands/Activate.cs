@@ -16,6 +16,7 @@ namespace WorldEdit.Commands
 
 		public override void Execute()
 		{
+            if (!CanUseCommand()) { return; }
 			string message;
 			switch (_action)
 			{

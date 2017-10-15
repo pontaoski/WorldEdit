@@ -16,8 +16,9 @@ namespace WorldEdit.Commands
 		}
 
 		public override void Execute()
-		{
-			int edits = 0;
+        {
+            if (!CanUseCommand()) { return; }
+            int edits = 0;
 			if (biome1 != biome2)
 			{
 				Tools.PrepareUndo(x, y, x2, y2, plr);

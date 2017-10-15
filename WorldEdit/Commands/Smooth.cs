@@ -27,7 +27,16 @@ namespace WorldEdit.Commands
 			if (y2 < 2) y2 = 2;
 			else if (y2 > (Main.maxTilesY - 3)) y2 = (Main.maxTilesY - 3);
 
-			Tools.PrepareUndo(x, y, x2, y2, plr);
+            if (Plus)
+            {
+                if (!CanUseCommand(x - 1, y - 1, x2 + 1, y2 + 1)) { return; }
+                Tools.PrepareUndo(x - 1, y - 1, x2 + 1, y2 + 1, plr);
+            }
+            else
+            {
+                if (!CanUseCommand()) { return; }
+                Tools.PrepareUndo(x, y, x2, y2, plr);
+            }
 			int edits = 0;
 			for (int i = x; i <= x2; i++)
 			{

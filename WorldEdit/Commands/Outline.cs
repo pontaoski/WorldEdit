@@ -33,7 +33,8 @@ namespace WorldEdit.Commands
 			if (y2 < 1) y2 = 1;
 			else if (y2 > (Main.maxTilesY - 2)) y2 = (Main.maxTilesY - 2);
 
-			Tools.PrepareUndo(x - 1, y - 1, x2 + 1, y2 + 1, plr);
+            if (!CanUseCommand(x - 1, y - 1, x2 + 1, y2 + 1)) { return; }
+            Tools.PrepareUndo(x - 1, y - 1, x2 + 1, y2 + 1, plr);
 			int edits = 0;
 			List<Point> tiles = new List<Point>();
 

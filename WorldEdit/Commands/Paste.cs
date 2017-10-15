@@ -48,6 +48,7 @@ namespace WorldEdit.Commands
 				y -= height;
 			}
 
+            if (!CanUseCommand()) { return; }
             if (prepareUndo) { Tools.PrepareUndo(x, y, x2, y2, plr); }
 
 			for (var i = x; i <= x2; i++)

@@ -718,6 +718,11 @@ namespace WorldEdit
 
 		private void Cut(CommandArgs e)
 		{
+            if (!e.Player.IsLoggedIn)
+            {
+                e.Player.SendErrorMessage("You have to be logged in to use this command.");
+                return;
+            }
 			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 				e.Player.SendErrorMessage("Invalid selection.");
@@ -796,8 +801,13 @@ namespace WorldEdit
 		}
 
 		private void Flip(CommandArgs e)
-		{
-			if (e.Parameters.Count != 1)
+        {
+            if (!e.Player.IsLoggedIn)
+            {
+                e.Player.SendErrorMessage("You have to be logged in to use this command.");
+                return;
+            }
+            if (e.Parameters.Count != 1)
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //flip <direction>");
 			else if (!Tools.HasClipboard(e.Player.User.ID))
 				e.Player.SendErrorMessage("Invalid clipboard!");
@@ -1019,8 +1029,13 @@ namespace WorldEdit
 		}
 
 		private void Paste(CommandArgs e)
-		{
-			PlayerInfo info = e.Player.GetPlayerInfo();
+        {
+            if (!e.Player.IsLoggedIn)
+            {
+                e.Player.SendErrorMessage("You have to be logged in to use this command.");
+                return;
+            }
+            PlayerInfo info = e.Player.GetPlayerInfo();
 			e.Player.SendInfoMessage("X: {0}, Y: {1}", info.X, info.Y);
 			if (info.X == -1 || info.Y == -1)
 				e.Player.SendErrorMessage("Invalid first point!");
@@ -1079,6 +1094,11 @@ namespace WorldEdit
 
         private void SPaste(CommandArgs e)
         {
+            if (!e.Player.IsLoggedIn)
+            {
+                e.Player.SendErrorMessage("You have to be logged in to use this command.");
+                return;
+            }
             PlayerInfo info = e.Player.GetPlayerInfo();
             e.Player.SendInfoMessage("X: {0}, Y: {1}", info.X, info.Y);
             if (info.X == -1 || info.Y == -1)
@@ -1220,8 +1240,13 @@ namespace WorldEdit
 		}
 
 		private void Redo(CommandArgs e)
-		{
-			if (e.Parameters.Count > 2)
+        {
+            if (!e.Player.IsLoggedIn)
+            {
+                e.Player.SendErrorMessage("You have to be logged in to use this command.");
+                return;
+            }
+            if (e.Parameters.Count > 2)
 			{
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //redo [steps] [account]");
 				return;
@@ -1234,8 +1259,13 @@ namespace WorldEdit
 			else
 			{
 				if (e.Parameters.Count > 1)
-				{
-					User User = TShock.Users.GetUserByName(e.Parameters[1]);
+                {
+                    if (!e.Player.HasPermission("worldedit.usage.otheraccounts"))
+                    {
+                        e.Player.SendErrorMessage("You do not have permission to redo other player's actions.");
+                        return;
+                    }
+                    User User = TShock.Users.GetUserByName(e.Parameters[1]);
 					if (User == null)
 					{
 						e.Player.SendErrorMessage("Invalid account name!");
@@ -1338,8 +1368,13 @@ namespace WorldEdit
 		}
 
 		private void Rotate(CommandArgs e)
-		{
-			if (e.Parameters.Count != 1)
+        {
+            if (!e.Player.IsLoggedIn)
+            {
+                e.Player.SendErrorMessage("You have to be logged in to use this command.");
+                return;
+            }
+            if (e.Parameters.Count != 1)
 			{
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //rotate <angle>");
 				return;
@@ -1358,8 +1393,13 @@ namespace WorldEdit
 		}
 
 		private void Scale(CommandArgs e)
-		{
-			if ((e.Parameters.Count != 2) || ((e.Parameters[0] != "+") && (e.Parameters[0] != "-")))
+        {
+            if (!e.Player.IsLoggedIn)
+            {
+                e.Player.SendErrorMessage("You have to be logged in to use this command.");
+                return;
+            }
+            if ((e.Parameters.Count != 2) || ((e.Parameters[0] != "+") && (e.Parameters[0] != "-")))
 			{
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //scale <+/-> <amount>");
 				return;
@@ -1378,16 +1418,26 @@ namespace WorldEdit
 		}
 
 		private void Schematic(CommandArgs e)
-		{
-			const string fileFormat = "schematic-{0}.dat";
+        {
+            if (!e.Player.IsLoggedIn)
+            {
+                e.Player.SendErrorMessage("You have to be logged in to use this command.");
+                return;
+            }
+            const string fileFormat = "schematic-{0}.dat";
 
 			string subCmd = e.Parameters.Count == 0 ? "help" : e.Parameters[0].ToLowerInvariant();
 			switch (subCmd)
 			{
 				case "del":
 				case "delete":
-					{
-						if (e.Parameters.Count != 2)
+                    {
+                        if (!e.Player.HasPermission("worldedit.schematic.delete"))
+                        {
+                            e.Player.SendErrorMessage("You do not have permission to delete schematics.");
+                            return;
+                        }
+                        if (e.Parameters.Count != 2)
 						{
 							e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //schematic delete <name>");
 							return;
@@ -1456,8 +1506,13 @@ namespace WorldEdit
 					return;
 				case "s":
 				case "save":
-					{
-						if (e.Parameters.Count != 2)
+                    {
+                        if (!e.Player.HasPermission("worldedit.schematic.save"))
+                        {
+                            e.Player.SendErrorMessage("You do not have permission to save schematics.");
+                            return;
+                        }
+                        if (e.Parameters.Count != 2)
 						{
 							e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //schematic save <name>");
 							return;
@@ -1479,6 +1534,12 @@ namespace WorldEdit
 						}
 
 						var path = Path.Combine("worldedit", string.Format(fileFormat, e.Parameters[1]));
+                        
+                        if (File.Exists(path) && !e.Player.HasPermission("worldedit.schematic.overwrite"))
+                        {
+                            e.Player.SendErrorMessage("You do not have permission to overwrite schematics.");
+                            return;
+                        }
 
 						File.Copy(clipboard, path, true);
 
@@ -1929,8 +1990,13 @@ namespace WorldEdit
 		}
 
 		private void Undo(CommandArgs e)
-		{
-			if (e.Parameters.Count > 2)
+        {
+            if (!e.Player.IsLoggedIn)
+            {
+                e.Player.SendErrorMessage("You have to be logged in to use this command.");
+                return;
+            }
+            if (e.Parameters.Count > 2)
 			{
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //undo [steps] [account]");
 				return;
@@ -1941,8 +2007,13 @@ namespace WorldEdit
 			if (e.Parameters.Count > 0 && (!int.TryParse(e.Parameters[0], out steps) || steps <= 0))
 				e.Player.SendErrorMessage("Invalid undo steps '{0}'!", e.Parameters[0]);
 			else if (e.Parameters.Count > 1)
-			{
-				User User = TShock.Users.GetUserByName(e.Parameters[1]);
+            {
+                if (!e.Player.HasPermission("worldedit.usage.otheraccounts"))
+                {
+                    e.Player.SendErrorMessage("You do not have permission to undo other player's actions.");
+                    return;
+                }
+                User User = TShock.Users.GetUserByName(e.Parameters[1]);
 				if (User == null)
 				{
 					e.Player.SendErrorMessage("Invalid account name!");

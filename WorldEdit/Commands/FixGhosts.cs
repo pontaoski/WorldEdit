@@ -13,8 +13,9 @@ namespace WorldEdit.Commands
 		}
 
 		public override void Execute()
-		{
-			Tools.PrepareUndo(x, y, x2, y2, plr);
+        {
+            if (!CanUseCommand()) { return; }
+            Tools.PrepareUndo(x, y, x2, y2, plr);
 			int signs = 0;
 			int frames = 0;
 			int chests = 0;

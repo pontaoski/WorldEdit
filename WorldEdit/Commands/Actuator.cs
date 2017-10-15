@@ -18,6 +18,7 @@ namespace WorldEdit.Commands
 
         public override void Execute()
         {
+            if (!CanUseCommand()) { return; }
             int edits = 0;
             for (int i = x; i <= x2; i++)
             {
