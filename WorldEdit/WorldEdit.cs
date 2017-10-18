@@ -718,7 +718,7 @@ namespace WorldEdit
 
 		private void Cut(CommandArgs e)
 		{
-            if (!e.Player.IsLoggedIn)
+            if ((e.Player != TSPlayer.Server) && !e.Player.IsLoggedIn)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -802,7 +802,7 @@ namespace WorldEdit
 
 		private void Flip(CommandArgs e)
         {
-            if (!e.Player.IsLoggedIn)
+            if ((e.Player != TSPlayer.Server) && !e.Player.IsLoggedIn)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -1030,7 +1030,7 @@ namespace WorldEdit
 
 		private void Paste(CommandArgs e)
         {
-            if (!e.Player.IsLoggedIn)
+            if ((e.Player != TSPlayer.Server) && !e.Player.IsLoggedIn)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -1094,7 +1094,7 @@ namespace WorldEdit
 
         private void SPaste(CommandArgs e)
         {
-            if (!e.Player.IsLoggedIn)
+            if ((e.Player != TSPlayer.Server) && !e.Player.IsLoggedIn)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -1241,7 +1241,7 @@ namespace WorldEdit
 
 		private void Redo(CommandArgs e)
         {
-            if (!e.Player.IsLoggedIn)
+            if ((e.Player != TSPlayer.Server) && !e.Player.IsLoggedIn)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -1369,7 +1369,7 @@ namespace WorldEdit
 
 		private void Rotate(CommandArgs e)
         {
-            if (!e.Player.IsLoggedIn)
+            if ((e.Player != TSPlayer.Server) && !e.Player.IsLoggedIn)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -1394,7 +1394,7 @@ namespace WorldEdit
 
 		private void Scale(CommandArgs e)
         {
-            if (!e.Player.IsLoggedIn)
+            if ((e.Player != TSPlayer.Server) && !e.Player.IsLoggedIn)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -1419,7 +1419,7 @@ namespace WorldEdit
 
 		private void Schematic(CommandArgs e)
         {
-            if (!e.Player.IsLoggedIn)
+            if ((e.Player != TSPlayer.Server) && !e.Player.IsLoggedIn)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -1991,7 +1991,7 @@ namespace WorldEdit
 
 		private void Undo(CommandArgs e)
         {
-            if (!e.Player.IsLoggedIn)
+            if ((e.Player != TSPlayer.Server) && !e.Player.IsLoggedIn)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
