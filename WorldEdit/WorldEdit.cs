@@ -1549,7 +1549,7 @@ namespace WorldEdit
                 case "p":
                 case "paste":
                     {
-                        if (e.Player != TSPlayer.Server)
+                        if (!e.Player.HasPermission("worldedit.schematic.paste"))
                         {
                             e.Player.SendErrorMessage("//schematic paste is for server console only.\n" +
                                                       "Instead, you should use //schematic load and //paste.");
