@@ -718,7 +718,7 @@ namespace WorldEdit
 
 		private void Cut(CommandArgs e)
 		{
-            if ((e.Player != TSPlayer.Server) && !e.Player.IsLoggedIn)
+            if (e.Player.User == null)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -802,7 +802,7 @@ namespace WorldEdit
 
 		private void Flip(CommandArgs e)
         {
-            if ((e.Player != TSPlayer.Server) && !e.Player.IsLoggedIn)
+            if (e.Player.User == null)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -1030,7 +1030,7 @@ namespace WorldEdit
 
 		private void Paste(CommandArgs e)
         {
-            if ((e.Player != TSPlayer.Server) && !e.Player.IsLoggedIn)
+            if (e.Player.User == null)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -1094,7 +1094,7 @@ namespace WorldEdit
 
         private void SPaste(CommandArgs e)
         {
-            if ((e.Player != TSPlayer.Server) && !e.Player.IsLoggedIn)
+            if (e.Player.User == null)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -1241,7 +1241,7 @@ namespace WorldEdit
 
 		private void Redo(CommandArgs e)
         {
-            if ((e.Player != TSPlayer.Server) && !e.Player.IsLoggedIn)
+            if (e.Player.User == null)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -1369,7 +1369,7 @@ namespace WorldEdit
 
 		private void Rotate(CommandArgs e)
         {
-            if ((e.Player != TSPlayer.Server) && !e.Player.IsLoggedIn)
+            if (e.Player.User == null)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -1394,7 +1394,7 @@ namespace WorldEdit
 
 		private void Scale(CommandArgs e)
         {
-            if ((e.Player != TSPlayer.Server) && !e.Player.IsLoggedIn)
+            if (e.Player.User == null)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -1419,11 +1419,6 @@ namespace WorldEdit
 
 		private void Schematic(CommandArgs e)
         {
-            if ((e.Player != TSPlayer.Server) && !e.Player.IsLoggedIn)
-            {
-                e.Player.SendErrorMessage("You have to be logged in to use this command.");
-                return;
-            }
             const string fileFormat = "schematic-{0}.dat";
 
 			string subCmd = e.Parameters.Count == 0 ? "help" : e.Parameters[0].ToLowerInvariant();
@@ -1480,8 +1475,13 @@ namespace WorldEdit
 					return;
 				case "l":
 				case "load":
-					{
-						if (e.Parameters.Count != 2)
+                    {
+                        if (e.Player.User == null)
+                        {
+                            e.Player.SendErrorMessage("You have to be logged in to use this command.");
+                            return;
+                        }
+                        else if (e.Parameters.Count != 2)
 						{
 							e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //schematic load <name>");
 							return;
@@ -1507,12 +1507,17 @@ namespace WorldEdit
 				case "s":
 				case "save":
                     {
-                        if (!e.Player.HasPermission("worldedit.schematic.save"))
+                        if (e.Player.User == null)
+                        {
+                            e.Player.SendErrorMessage("You have to be logged in to use this command.");
+                            return;
+                        }
+                        else if (!e.Player.HasPermission("worldedit.schematic.save"))
                         {
                             e.Player.SendErrorMessage("You do not have permission to save schematics.");
                             return;
                         }
-                        if (e.Parameters.Count != 2)
+                        else if (e.Parameters.Count != 2)
 						{
 							e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //schematic save <name>");
 							return;
@@ -1991,7 +1996,7 @@ namespace WorldEdit
 
 		private void Undo(CommandArgs e)
         {
-            if ((e.Player != TSPlayer.Server) && !e.Player.IsLoggedIn)
+            if (e.Player.User == null)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
