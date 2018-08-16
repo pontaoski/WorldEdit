@@ -1,8 +1,5 @@
 ﻿using OTAPI.Tile;
 using Terraria;
-using Terraria.DataStructures;
-using Terraria.GameContent.Tile_Entities;
-using Terraria.ID;
 using TShockAPI;
 using WorldEdit.Expressions;
 
@@ -59,6 +56,16 @@ namespace WorldEdit.Commands
             }
 
             if (!CanUseCommand()) { return; }
+
+            if (x < 0) { x = 0; }
+            if (x2 < 0) { x2 = 0; }
+            if (y < 0) { y = 0; }
+            if (y2 < 0) { y2 = 0; }
+            if (x >= Main.maxTilesX) { x = Main.maxTilesX - 1; }
+            if (x2 >= Main.maxTilesX) { x2 = Main.maxTilesX - 1; }
+            if (y >= Main.maxTilesY) { y = Main.maxTilesY - 1; }
+            if (y2 >= Main.maxTilesY) { y2 = Main.maxTilesY - 1; }
+
             Tools.PrepareUndo(x, y, x2, y2, plr);
 
             for (var i = x; i <= x2; i++)
@@ -122,61 +129,7 @@ namespace WorldEdit.Commands
                 }
             }
 
-            foreach (var sign in data.Signs)
-            {
-                var id = Sign.ReadSign(sign.X + x, sign.Y + y);
-                if (id == -1)
-                {
-                    continue;
-                }
-
-                Sign.TextSign(id, sign.Text);
-            }
-
-            foreach (var itemFrame in data.ItemFrames)
-            {
-                var ifX = itemFrame.X + x;
-                var ifY = itemFrame.Y + y;
-
-                var id = TEItemFrame.Place(ifX, ifY);
-                if (id == -1)
-                {
-                    continue;
-                }
-
-                WorldGen.PlaceObject(ifX, ifY, TileID.ItemFrame);
-                var frame = (TEItemFrame)TileEntity.ByID[id];
-
-                frame.item = new Item();
-                frame.item.netDefaults(itemFrame.Item.NetId);
-                frame.item.stack = itemFrame.Item.Stack;
-                frame.item.prefix = itemFrame.Item.PrefixId;
-            }
-
-            foreach (var chest in data.Chests)
-            {
-                int chestX = chest.X + x, chestY = chest.Y + y;
-
-                int id;
-                if ((id = Chest.FindChest(chestX, chestY)) == -1 &&
-                    (id = Chest.CreateChest(chestX, chestY)) == -1)
-                {
-                    continue;
-                }
-
-                WorldGen.PlaceChest(chestX, chestY);
-                for (var index = 0; index < chest.Items.Length; index++)
-                {
-                    var netItem = chest.Items[index];
-                    var item = new Item();
-                    item.netDefaults(netItem.NetId);
-                    item.stack = netItem.Stack;
-                    item.prefix = netItem.PrefixId;
-                    Main.chest[id].item[index] = item;
-
-                }
-            }
-
+            Tools.LoadWorldSection(data, x, y, false);
             ResetSection();
             plr.SendSuccessMessage("Pasted clipboard to selection.");
         }

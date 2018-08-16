@@ -68,6 +68,7 @@
     <Compile Include="Commands\Cut.cs" />
     <Compile Include="Commands\FixHalves.cs" />
     <Compile Include="Commands\FixSlopes.cs" />
+    <Compile Include="Commands\KillEmpty.cs" />
     <Compile Include="Commands\Mow.cs" />
     <Compile Include="Commands\Outline.cs" />
     <Compile Include="Commands\OutlineWall.cs" />

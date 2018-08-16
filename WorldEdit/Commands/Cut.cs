@@ -36,38 +36,12 @@ namespace WorldEdit.Commands
 			string undoPath = Path.Combine("worldedit", string.Format("undo-{0}-{1}.dat", plr.User.ID, undoLevel));
 
 			Tools.SaveWorldSection(x, y, x2, y2, undoPath);
+            Tools.ClearObjects(x, y, x2, y2);
 
 			for (int i = x; i <= x2; i++)
 			{
 				for (int j = y; j <= y2; j++)
-				{
-					var tile = Main.tile[i, j];
-					switch (tile.type)
-					{
-						case Terraria.ID.TileID.Signs:
-						case Terraria.ID.TileID.Tombstones:
-						case Terraria.ID.TileID.AnnouncementBox:
-							if (tile.frameX % 36 == 0 && tile.frameY == 0)
-							{
-								Sign.KillSign(i, j);
-							}
-							break;
-						case Terraria.ID.TileID.Containers:
-						case Terraria.ID.TileID.Dressers:
-							if (tile.frameX % 36 == 0 && tile.frameY == 0)
-							{
-								Chest.DestroyChest(i, j);
-							}
-							break;
-						case Terraria.ID.TileID.ItemFrame:
-							if (tile.frameX % 36 == 0 && tile.frameY == 0)
-							{
-								Terraria.GameContent.Tile_Entities.TEItemFrame.Kill(i, j);
-							}
-							break;
-					}
-					Main.tile[i, j] = new Tile();
-				}
+				{ Main.tile[i, j] = new Tile(); }
 			}
 
 			if (File.Exists(clipboard)) File.Delete(clipboard);

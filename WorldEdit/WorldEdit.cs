@@ -273,7 +273,11 @@ namespace WorldEdit
 			{
 				HelpText = "Floods liquids in the worldedit selection."
 			});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.mow", Mow, "/mow")
+            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.killempty", KillEmpty, "/killempty")
+            {
+                HelpText = "Deletes empty signs and/or chests (only entities, doesn't remove tiles)."
+            });
+            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.mow", Mow, "/mow")
 			{
 				HelpText = "Mows grass, thorns, and vines in the worldedit selection."
 			});
@@ -603,7 +607,7 @@ namespace WorldEdit
 		{
 			if (e.Parameters.Count != 1)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //activate <sign/chest/itemframe>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //activate <sign/chest/itemframe/sensor/dummy/all>");
 				return;
 			}
 
@@ -637,6 +641,27 @@ namespace WorldEdit
 						action = 2;
 						break;
 					}
+                case "l":
+                case "logic":
+                case "sensor":
+                case "logicsensor":
+                    {
+                        action = 3;
+                        break;
+                    }
+                case "d":
+                case "dummy":
+                case "targetdummy":
+                    {
+                        action = 4;
+                        break;
+                    }
+                case "a":
+                case "all":
+                    {
+                        action = 255;
+                        break;
+                    }
 				default:
 					{
 						e.Player.SendErrorMessage("Invalid activation type '{0}'.", e.Parameters[0]);
@@ -830,6 +855,44 @@ namespace WorldEdit
 				_commandQueue.Add(new Flip(e.Player, flipX, flipY));
 			}
 		}
+
+        private void KillEmpty(CommandArgs e)
+        {
+            byte action;
+            switch (e.Parameters.ElementAtOrDefault(0)?.ToLower())
+            {
+                case "s":
+                case "sign":
+                case "signs":
+                    {
+                        action = 0;
+                        break;
+                    }
+                case "c":
+                case "chest":
+                case "chests":
+                    {
+                        action = 1;
+                        break;
+                    }
+                case "a":
+                case "all":
+                    {
+                        action = 255;
+                        break;
+                    }
+                default:
+                    {
+                        e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //killempty <signs/chests/all>");
+                        return;
+                    }
+            }
+
+            PlayerInfo info = e.Player.GetPlayerInfo();
+            if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
+                e.Player.SendErrorMessage("Invalid selection!");
+            _commandQueue.Add(new KillEmpty(info.X, info.Y, info.X2, info.Y2, e.Player, action));
+        }
 
 		private void Mow(CommandArgs e)
 		{
@@ -1517,9 +1580,13 @@ namespace WorldEdit
                             e.Player.SendErrorMessage("You do not have permission to save schematics.");
                             return;
                         }
-                        else if (e.Parameters.Count != 2)
+
+                        string _1 = e.Parameters.ElementAtOrDefault(1)?.ToLower();
+                        bool force = ((_1 == "-force") || (_1 == "-f"));
+                        string name = e.Parameters.ElementAtOrDefault(force ? 2 : 1);
+                        if (string.IsNullOrWhiteSpace(name))
 						{
-							e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //schematic save <name>");
+							e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //schematic save [-force/-f] <name>");
 							return;
 						}
 
@@ -1531,24 +1598,33 @@ namespace WorldEdit
 							return;
 						}
 
-						if (!Tools.IsCorrectName(e.Parameters[1]))
+						if (!Tools.IsCorrectName(name))
 						{
 							e.Player.SendErrorMessage("Name should not contain these symbols: \"{0}\".",
 								string.Join("\", \"", Path.GetInvalidFileNameChars()));
 							return;
 						}
 
-						var path = Path.Combine("worldedit", string.Format(fileFormat, e.Parameters[1]));
-                        
-                        if (File.Exists(path) && !e.Player.HasPermission("worldedit.schematic.overwrite"))
+						var path = Path.Combine("worldedit", string.Format(fileFormat, name));
+
+                        if (File.Exists(path))
                         {
-                            e.Player.SendErrorMessage("You do not have permission to overwrite schematics.");
-                            return;
+                            if (!e.Player.HasPermission("worldedit.schematic.overwrite"))
+                            {
+                                e.Player.SendErrorMessage("You do not have permission to overwrite schematics.");
+                                return;
+                            }
+                            else if (!force)
+                            {
+                                e.Player.SendErrorMessage($"Schematic '{name}' already exists, " +
+                                    $"write '//schematic save <-force/-f> {name}' to overwrite it.");
+                                return;
+                            }
                         }
 
 						File.Copy(clipboard, path, true);
 
-						e.Player.SendSuccessMessage("Saved clipboard to schematic '{0}'.", e.Parameters[1]);
+						e.Player.SendSuccessMessage("Saved clipboard to schematic '{0}'.", name);
 					}
 					return;
                 case "p":

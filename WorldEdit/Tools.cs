@@ -10,265 +10,357 @@ using TShockAPI.DB;
 using Terraria.GameContent.Tile_Entities;
 using Terraria.DataStructures;
 using Terraria.ID;
+using Microsoft.Xna.Framework;
 
 namespace WorldEdit
 {
-	public static class Tools
-	{
-		internal const int BUFFER_SIZE = 1048576;
-		private const int MAX_UNDOS = 50;
+    public static class Tools
+    {
+        internal const int BUFFER_SIZE = 1048576;
+        private const int MAX_UNDOS = 50;
 
-		private static readonly char[] InvalidFileNameChars = Path.GetInvalidFileNameChars();
+        public static bool InMapBoundaries(int X, int Y) =>
+            ((X >= 0) && (Y >= 0) && (X < Main.maxTilesX) && (Y < Main.maxTilesY));
 
-		public static string GetClipboardPath(int accountID)
-		{
-			return Path.Combine(WorldEdit.WorldEditFolderName, string.Format("clipboard-{0}.dat", accountID));
-		}
-		public static bool IsCorrectName(string name)
-		{
-			return name.All(c => !InvalidFileNameChars.Contains(c));
-		}
-		public static List<int> GetColorID(string color)
-		{
-			int ID;
-			if (int.TryParse(color, out ID) && ID >= 0 && ID < Main.numTileColors)
-				return new List<int> { ID };
+        private static readonly char[] InvalidFileNameChars = Path.GetInvalidFileNameChars();
 
-			var list = new List<int>();
-			foreach (var kvp in WorldEdit.Colors)
+        public static string GetClipboardPath(int accountID)
+        {
+            return Path.Combine(WorldEdit.WorldEditFolderName, string.Format("clipboard-{0}.dat", accountID));
+        }
+        public static bool IsCorrectName(string name)
+        {
+            return name.All(c => !InvalidFileNameChars.Contains(c));
+        }
+        public static List<int> GetColorID(string color)
+        {
+            int ID;
+            if (int.TryParse(color, out ID) && ID >= 0 && ID < Main.numTileColors)
+                return new List<int> { ID };
+
+            var list = new List<int>();
+            foreach (var kvp in WorldEdit.Colors)
+            {
+                if (kvp.Key == color)
+                    return new List<int> { kvp.Value };
+                if (kvp.Key.StartsWith(color))
+                    list.Add(kvp.Value);
+            }
+            return list;
+        }
+        public static List<int> GetTileID(string tile)
+        {
+            int ID;
+            if (int.TryParse(tile, out ID) && ID >= 0 && ID < Main.maxTileSets)
+                return new List<int> { ID };
+
+            var list = new List<int>();
+            foreach (var kvp in WorldEdit.Tiles)
+            {
+                if (kvp.Key == tile)
+                    return new List<int> { kvp.Value };
+                if (kvp.Key.StartsWith(tile))
+                    list.Add(kvp.Value);
+            }
+            return list;
+        }
+        public static List<int> GetWallID(string wall)
+        {
+            int ID;
+            if (int.TryParse(wall, out ID) && ID >= 0 && ID < Main.maxWallTypes)
+                return new List<int> { ID };
+
+            var list = new List<int>();
+            foreach (var kvp in WorldEdit.Walls)
+            {
+                if (kvp.Key == wall)
+                    return new List<int> { kvp.Value };
+                if (kvp.Key.StartsWith(wall))
+                    list.Add(kvp.Value);
+            }
+            return list;
+        }
+        public static int GetSlopeID(string slope)
+        {
+            int ID;
+            if (int.TryParse(slope, out ID) && ID >= 0 && ID < 6)
+                return ID;
+
+            if (!WorldEdit.Slopes.TryGetValue(slope, out int Slope)) { return -1; }
+
+            return Slope;
+        }
+
+        public static bool HasClipboard(int accountID)
+        {
+            return File.Exists(GetClipboardPath(accountID));
+        }
+
+        #region LoadWorldSectionData
+
+        public static WorldSectionData LoadWorldData(string path)
+        {
+            using (var reader =
+                new BinaryReader(
+                    new BufferedStream(
+                        new GZipStream(File.Open(path, FileMode.Open), CompressionMode.Decompress), BUFFER_SIZE)))
+            {
+                var x = reader.ReadInt32();
+                var y = reader.ReadInt32();
+                var width = reader.ReadInt32();
+                var height = reader.ReadInt32();
+                var worldData = new WorldSectionData(width, height) { X = x, Y = y };
+
+                for (var i = 0; i < width; i++)
+                {
+                    for (var j = 0; j < height; j++)
+                        worldData.Tiles[i, j] = reader.ReadTile();
+                }
+
+                try
+                {
+                    var signCount = reader.ReadInt32();
+                    worldData.Signs = new WorldSectionData.SignData[signCount];
+                    for (var i = 0; i < signCount; i++)
+                    {
+                        worldData.Signs[i] = reader.ReadSign();
+                    }
+
+                    var chestCount = reader.ReadInt32();
+                    worldData.Chests = new WorldSectionData.ChestData[chestCount];
+                    for (var i = 0; i < chestCount; i++)
+                    {
+                        worldData.Chests[i] = reader.ReadChest();
+                    }
+
+                    var itemFrameCount = reader.ReadInt32();
+                    worldData.ItemFrames = new WorldSectionData.ItemFrameData[itemFrameCount];
+                    for (var i = 0; i < itemFrameCount; i++)
+                    {
+                        worldData.ItemFrames[i] = reader.ReadItemFrame();
+                    }
+                }
+                catch (EndOfStreamException) // old version file
+                { }
+
+                try
+                {
+                    var logicSensorCount = reader.ReadInt32();
+                    worldData.LogicSensors = new WorldSectionData.LogicSensorData[logicSensorCount];
+                    for (var i = 0; i < logicSensorCount; i++)
+                    {
+                        worldData.LogicSensors[i] = reader.ReadLogicSensor();
+                    }
+
+                    var trainingDummyCount = reader.ReadInt32();
+                    worldData.TrainingDummies = new WorldSectionData.TrainingDummyData[trainingDummyCount];
+                    for (var i = 0; i < trainingDummyCount; i++)
+                    {
+                        worldData.TrainingDummies[i] = reader.ReadTrainingDummy();
+                    }
+                }
+                catch (EndOfStreamException) // old version file
+                { }
+
+                return worldData;
+            }
+        }
+
+        private static Tile ReadTile(this BinaryReader reader)
+        {
+            var tile = new Tile
+            {
+                sTileHeader = reader.ReadInt16(),
+                bTileHeader = reader.ReadByte(),
+                bTileHeader2 = reader.ReadByte()
+            };
+
+            // Tile type
+            if (tile.active())
+            {
+                tile.type = reader.ReadUInt16();
+                if (Main.tileFrameImportant[tile.type])
+                {
+                    tile.frameX = reader.ReadInt16();
+                    tile.frameY = reader.ReadInt16();
+                }
+            }
+            tile.wall = reader.ReadByte();
+            tile.liquid = reader.ReadByte();
+            return tile;
+        }
+
+        private static WorldSectionData.SignData ReadSign(this BinaryReader reader)
+        {
+            return new WorldSectionData.SignData
+            {
+                X = reader.ReadInt32(),
+                Y = reader.ReadInt32(),
+                Text = reader.ReadString()
+            };
+        }
+
+        private static WorldSectionData.ChestData ReadChest(this BinaryReader reader)
+        {
+            var x = reader.ReadInt32();
+            var y = reader.ReadInt32();
+
+            var count = reader.ReadInt32();
+            var items = new NetItem[count];
+
+            for (var i = 0; i < count; i++)
+            {
+                items[i] = new NetItem(reader.ReadInt32(), reader.ReadInt32(), reader.ReadByte());
+            }
+
+            return new WorldSectionData.ChestData
+            {
+                Items = items,
+                X = x,
+                Y = y
+            };
+        }
+
+        private static WorldSectionData.ItemFrameData ReadItemFrame(this BinaryReader reader)
+        {
+            return new WorldSectionData.ItemFrameData
+            {
+                X = reader.ReadInt32(),
+                Y = reader.ReadInt32(),
+                Item = new NetItem(reader.ReadInt32(), reader.ReadInt32(), reader.ReadByte())
+            };
+        }
+
+        private static WorldSectionData.LogicSensorData ReadLogicSensor(this BinaryReader reader)
+        {
+            return new WorldSectionData.LogicSensorData
+            {
+                X = reader.ReadInt32(),
+                Y = reader.ReadInt32(),
+                Type = (TELogicSensor.LogicCheckType)reader.ReadInt32()
+            };
+        }
+
+        private static WorldSectionData.TrainingDummyData ReadTrainingDummy(this BinaryReader reader)
+        {
+            return new WorldSectionData.TrainingDummyData
+            {
+                X = reader.ReadInt32(),
+                Y = reader.ReadInt32()
+            };
+        }
+
+        #endregion
+
+        public static int ClearSigns(int x, int y, int x2, int y2, bool emptyOnly)
+        {
+            int signs = 0;
+            Rectangle area = new Rectangle(x, y, x2 - x, y2 - y);
+            foreach (Sign sign in Main.sign)
+            {
+                if (sign == null) continue;
+                if (area.Contains(sign.x, sign.y)
+                    && (!emptyOnly || string.IsNullOrWhiteSpace(sign.text)))
+                {
+                    signs++;
+                    Sign.KillSign(sign.x, sign.y);
+                }
+            }
+            return signs;
+        }
+
+        public static int ClearChests(int x, int y, int x2, int y2, bool emptyOnly)
+        {
+            int chests = 0;
+            Rectangle area = new Rectangle(x, y, x2 - x, y2 - y);
+            foreach (Chest chest in Main.chest)
+            {
+                if (chest == null) continue;
+                if (area.Contains(chest.x, chest.y)
+                    && (!emptyOnly || chest.item.All(i => (i?.netID == 0))))
+                {
+                    chests++;
+                    Chest.DestroyChest(chest.x, chest.y);
+                }
+            }
+            return chests;
+        }
+
+        public static void ClearObjects(int x, int y, int x2, int y2)
+        {
+            ClearSigns(x, y, x2, y2, false);
+            ClearChests(x, y, x2, y2, false);
+            for (int i = x; i <= x2; i++)
+            {
+                for (int j = y; j <= y2; j++)
+                {
+                    if (TEItemFrame.Find(i, j) != -1)
+                    { TEItemFrame.Kill(i, j); }
+                    if (TELogicSensor.Find(i, j) != -1)
+                    { TELogicSensor.Kill(i, j); }
+                    if (TETrainingDummy.Find(i, j) != -1)
+                    { TETrainingDummy.Kill(i, j); }
+                }
+            }
+        }
+
+        public static void LoadWorldSection(string path, int? X = null, int? Y = null, bool Tiles = true) =>
+            LoadWorldSection(LoadWorldData(path), X, Y, Tiles);
+
+        public static void LoadWorldSection(WorldSectionData Data, int? X = null, int? Y = null, bool Tiles = true)
+		{
+            int x = (X ?? Data.X), y = (Y ?? Data.Y);
+
+            if (Tiles)
+            {
+                for (var i = 0; i < Data.Width; i++)
+                {
+                    for (var j = 0; j < Data.Height; j++)
+                    {
+                        int _x = i + x, _y = j + y;
+                        if (!InMapBoundaries(_x, _y)) { continue; }
+                        Main.tile[_x, _y] = Data.Tiles[i, j];
+                        Main.tile[_x, _y].skipLiquid(true);
+                    }
+                }
+            }
+
+            ClearObjects(x, y, x + Data.Width, y + Data.Height);
+
+            foreach (var sign in Data.Signs)
 			{
-				if (kvp.Key == color)
-					return new List<int> { kvp.Value };
-				if (kvp.Key.StartsWith(color))
-					list.Add(kvp.Value);
-			}
-			return list;
-		}
-		public static List<int> GetTileID(string tile)
-		{
-			int ID;
-			if (int.TryParse(tile, out ID) && ID >= 0 && ID < Main.maxTileSets)
-				return new List<int> { ID };
-
-			var list = new List<int>();
-			foreach (var kvp in WorldEdit.Tiles)
-			{
-				if (kvp.Key == tile)
-					return new List<int> { kvp.Value };
-				if (kvp.Key.StartsWith(tile))
-					list.Add(kvp.Value);
-			}
-			return list;
-		}
-		public static List<int> GetWallID(string wall)
-		{
-			int ID;
-			if (int.TryParse(wall, out ID) && ID >= 0 && ID < Main.maxWallTypes)
-				return new List<int> { ID };
-
-			var list = new List<int>();
-			foreach (var kvp in WorldEdit.Walls)
-			{
-				if (kvp.Key == wall)
-					return new List<int> { kvp.Value };
-				if (kvp.Key.StartsWith(wall))
-					list.Add(kvp.Value);
-			}
-			return list;
-		}
-		public static int GetSlopeID(string slope)
-		{
-			int ID;
-			if (int.TryParse(slope, out ID) && ID >= 0 && ID < 6)
-				return ID;
-
-			if (!WorldEdit.Slopes.TryGetValue(slope, out int Slope)) { return -1; }
-
-			return Slope;
-		}
-
-		public static bool HasClipboard(int accountID)
-		{
-			return File.Exists(GetClipboardPath(accountID));
-		}
-
-		#region LoadWorldSectionData
-
-		public static WorldSectionData LoadWorldData(string path)
-		{
-			using (var reader =
-				new BinaryReader(
-					new BufferedStream(
-						new GZipStream(File.Open(path, FileMode.Open), CompressionMode.Decompress), BUFFER_SIZE)))
-			{
-				var x = reader.ReadInt32();
-				var y = reader.ReadInt32();
-				var width = reader.ReadInt32();
-				var height = reader.ReadInt32();
-				var worldData = new WorldSectionData(width, height) { X = x, Y = y };
-
-				for (var i = 0; i < width; i++)
-				{
-					for (var j = 0; j < height; j++)
-						worldData.Tiles[i, j] = reader.ReadTile();
-				}
-
-				try
-				{
-					var signCount = reader.ReadInt32();
-					worldData.Signs = new WorldSectionData.SignData[signCount];
-					for (var i = 0; i < signCount; i++)
-					{
-						worldData.Signs[i] = reader.ReadSign();
-					}
-
-					var chestCount = reader.ReadInt32();
-					worldData.Chests = new WorldSectionData.ChestData[chestCount];
-					for (var i = 0; i < chestCount; i++)
-					{
-						worldData.Chests[i] = reader.ReadChest();
-					}
-
-					var itemFrameCount = reader.ReadInt32();
-					worldData.ItemFrames = new WorldSectionData.ItemFrameData[itemFrameCount];
-					for (var i = 0; i < itemFrameCount; i++)
-					{
-						worldData.ItemFrames[i] = reader.ReadItemFrame();
-					}
-
-					return worldData;
-				}
-				catch (EndOfStreamException) // old version file
-				{
-					return worldData;
-				}
-			}
-		}
-
-		private static Tile ReadTile(this BinaryReader reader)
-		{
-			var tile = new Tile
-			{
-				sTileHeader = reader.ReadInt16(),
-				bTileHeader = reader.ReadByte(),
-				bTileHeader2 = reader.ReadByte()
-			};
-
-			// Tile type
-			if (tile.active())
-			{
-				tile.type = reader.ReadUInt16();
-				if (Main.tileFrameImportant[tile.type])
-				{
-					tile.frameX = reader.ReadInt16();
-					tile.frameY = reader.ReadInt16();
-				}
-			}
-			tile.wall = reader.ReadByte();
-			tile.liquid = reader.ReadByte();
-			return tile;
-		}
-
-		private static WorldSectionData.SignData ReadSign(this BinaryReader reader)
-		{
-			return new WorldSectionData.SignData
-			{
-				X = reader.ReadInt32(),
-				Y = reader.ReadInt32(),
-				Text = reader.ReadString()
-			};
-		}
-
-		private static WorldSectionData.ChestData ReadChest(this BinaryReader reader)
-		{
-			var x = reader.ReadInt32();
-			var y = reader.ReadInt32();
-
-			var count = reader.ReadInt32();
-			var items = new NetItem[count];
-
-			for (var i = 0; i < count; i++)
-			{
-				items[i] = new NetItem(reader.ReadInt32(), reader.ReadInt32(), reader.ReadByte());
-			}
-
-			return new WorldSectionData.ChestData
-			{
-				Items = items,
-				X = x,
-				Y = y
-			};
-		}
-
-		private static WorldSectionData.ItemFrameData ReadItemFrame(this BinaryReader reader)
-		{
-			return new WorldSectionData.ItemFrameData
-			{
-				X = reader.ReadInt32(),
-				Y = reader.ReadInt32(),
-				Item = new NetItem(reader.ReadInt32(), reader.ReadInt32(), reader.ReadByte())
-			};
-		}
-
-		#endregion
-
-		public static void LoadWorldSection(string path)
-		{
-			var data = LoadWorldData(path);
-
-			for (var i = 0; i < data.Width; i++)
-			{
-				for (var j = 0; j < data.Height; j++)
-				{
-					Main.tile[i + data.X, j + data.Y] = data.Tiles[i, j];
-					Main.tile[i + data.X, j + data.Y].skipLiquid(true);
-				}
-			}
-
-			foreach (var sign in data.Signs)
-			{
-				var id = Sign.ReadSign(sign.X + data.X, sign.Y + data.Y);
-				if (id == -1)
-				{
-					continue;
-				}
-
+				var id = Sign.ReadSign(sign.X + x, sign.Y + y);
+                if ((id == -1) || !InMapBoundaries(sign.X, sign.Y))
+                { continue; }
 				Sign.TextSign(id, sign.Text);
 			}
 
-			foreach (var itemFrame in data.ItemFrames)
+			foreach (var itemFrame in Data.ItemFrames)
 			{
-				var x = itemFrame.X + data.X;
-				var y = itemFrame.Y + data.Y;
+				var id = TEItemFrame.Place(itemFrame.X + x, itemFrame.Y + y);
+				if (id == -1) { continue; }
 
-				var id = TEItemFrame.Place(x, y);
-				if (id == -1)
-				{
-					continue;
-				}
-
-				WorldGen.PlaceObject(x, y, TileID.ItemFrame);
-				var frame = (TEItemFrame) TileEntity.ByID[id];
-
-				frame.item = new Item();
+                var frame = (TEItemFrame) TileEntity.ByID[id];
+                if (!InMapBoundaries(frame.Position.X, frame.Position.Y))
+                { continue; }
+                frame.item = new Item();
 				frame.item.netDefaults(itemFrame.Item.NetId);
 				frame.item.stack = itemFrame.Item.Stack;
 				frame.item.prefix = itemFrame.Item.PrefixId;
 			}
 
-			foreach (var chest in data.Chests)
+			foreach (var chest in Data.Chests)
 			{
-				int chestX = chest.X + data.X, chestY = chest.Y + data.Y;
+				int chestX = chest.X + x, chestY = chest.Y + y;
 
 				int id;
 				if ((id = Chest.FindChest(chestX, chestY)) == -1 &&
 				    (id = Chest.CreateChest(chestX, chestY)) == -1)
-				{
-					continue;
-				}
+				{ continue; }
+                Chest _chest = Main.chest[id];
+                if (!InMapBoundaries(chest.X, chest.Y)) { continue; }
 
-				WorldGen.PlaceChest(chestX, chestY);
-				for (var index = 0; index < chest.Items.Length; index++)
+                for (var index = 0; index < chest.Items.Length; index++)
 				{
 					var netItem = chest.Items[index];
 					var item = new Item();
@@ -276,11 +368,30 @@ namespace WorldEdit
 					item.stack = netItem.Stack;
 					item.prefix = netItem.PrefixId;
 					Main.chest[id].item[index] = item;
-
 				}
-			}
+            }
 
-			ResetSection(data.X, data.Y, data.X + data.Width, data.Y + data.Height);
+            foreach (var logicSensor in Data.LogicSensors)
+            {
+                var id = TELogicSensor.Place(logicSensor.X + x, logicSensor.Y + y);
+                if (id == -1) { continue; }
+                var sensor = (TELogicSensor)TileEntity.ByID[id];
+                if (!InMapBoundaries(sensor.Position.X, sensor.Position.Y))
+                { continue; }
+                sensor.logicCheck = logicSensor.Type;
+            }
+
+            foreach (var trainingDummy in Data.TrainingDummies)
+            {
+                var id = TETrainingDummy.Place(trainingDummy.X + x, trainingDummy.Y + y);
+                if (id == -1) { continue; }
+                var dummy = (TETrainingDummy)TileEntity.ByID[id];
+                if (!InMapBoundaries(dummy.Position.X, dummy.Position.Y))
+                { continue; }
+                dummy.npc = -1;
+            }
+
+            ResetSection(x, y, x + Data.Width, y + Data.Height);
 		}
 
 		public static void PrepareUndo(int x, int y, int x2, int y2, TSPlayer plr)
@@ -355,10 +466,14 @@ namespace WorldEdit
 			int highY = Netplay.GetSectionY(y2);
 			foreach (RemoteClient sock in Netplay.Clients.Where(s => s.IsActive))
 			{
-				for (int i = lowX; i <= highX; i++)
+                int w = sock.TileSections.GetLength(0), h = sock.TileSections.GetLength(1);
+                for (int i = lowX; i <= highX; i++)
 				{
-					for (int j = lowY; j <= highY; j++)
-						sock.TileSections[i, j] = false;
+                    for (int j = lowY; j <= highY; j++)
+                    {
+                        if (i < 0 || j < 0 || i >= w || j >= h) { continue; }
+                        sock.TileSections[i, j] = false;
+                    }
 				}
 			}
 		}
@@ -406,8 +521,10 @@ namespace WorldEdit
 				Y = y,
 				Chests = new List<WorldSectionData.ChestData>(),
 				Signs = new List<WorldSectionData.SignData>(),
-				ItemFrames = new List<WorldSectionData.ItemFrameData>()
-			};
+				ItemFrames = new List<WorldSectionData.ItemFrameData>(),
+                LogicSensors = new List<WorldSectionData.LogicSensorData>(),
+                TrainingDummies = new List<WorldSectionData.TrainingDummyData>()
+            };
 
 			for (var i = x; i <= x2; i++)
 			{
