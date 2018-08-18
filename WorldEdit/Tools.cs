@@ -515,6 +515,8 @@ namespace WorldEdit
 			var width = x2 - x + 1;
 			var height = y2 - y + 1;
 
+            Console.WriteLine($"{x} - {y} - {x2} - {y2} - {width} - {height}");
+
 			var data = new WorldSectionData(width, height)
 			{
 				X = x,

@@ -9,8 +9,8 @@ namespace WorldEdit.Commands
         private Expression expression;
         private int inactiveType;
 
-        public Inactive(int x, int y, int x2, int y2, TSPlayer plr, int inacType, Expression expression)
-            : base(x, y, x2, y2, plr)
+        public Inactive(int x, int y, int x2, int y2, HardSelection hardSelection, TSPlayer plr, int inacType, Expression expression)
+            : base(x, y, x2, y2, hardSelection, plr)
         {
             this.inactiveType = inacType;
             this.expression = expression ?? new TestExpression(new Test(t => true));
@@ -29,7 +29,7 @@ namespace WorldEdit.Commands
                         for (int j = y; j <= y2; j++)
                         {
                             var tile = Main.tile[i, j];
-                            if (tile.active() && !tile.inActive() && select(i, j, plr) && expression.Evaluate(tile))
+                            if (tile.active() && !tile.inActive() && select(i, j, plr) && expression.Evaluate(tile) && hardSelection.InSelection(i, j))
                             {
                                 tile.inActive(true);
                                 edits++;

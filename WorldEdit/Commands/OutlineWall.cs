@@ -12,8 +12,8 @@ namespace WorldEdit.Commands
 		private int wallType;
 		private int color;
 
-		public OutlineWall(int x, int y, int x2, int y2, TSPlayer plr, int wallType, int color, Expression expression)
-			: base(x, y, x2, y2, plr)
+		public OutlineWall(int x, int y, int x2, int y2, HardSelection hardSelection, TSPlayer plr, int wallType, int color, Expression expression)
+			: base(x, y, x2, y2, hardSelection, plr)
 		{
 			this.wallType = wallType;
 			this.color = color;
@@ -52,7 +52,7 @@ namespace WorldEdit.Commands
 					bool XmY = Main.tile[i, j - 1].wall == 0;
 					bool XpY = Main.tile[i, j + 1].wall == 0;
 
-					if (XY && expression.Evaluate(Main.tile[i, j]))
+					if (XY && expression.Evaluate(Main.tile[i, j]) && hardSelection.InSelection(i, j))
 					{
 						if (mXmY)
 						{

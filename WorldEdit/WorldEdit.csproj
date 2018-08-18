@@ -101,6 +101,7 @@
     <Compile Include="Expressions\Token.cs" />
     <Compile Include="Expressions\XorExpression.cs" />
     <Compile Include="Extensions\TSPlayerExtensions.cs" />
+    <Compile Include="HardSelection.cs" />
     <Compile Include="PlayerInfo.cs" />
     <Compile Include="Commands\Set.cs" />
     <Compile Include="Tools.cs" />

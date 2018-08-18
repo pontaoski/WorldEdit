@@ -9,8 +9,8 @@ namespace WorldEdit.Commands
 		private Expression expression;
 		private bool Plus;
 
-		public Smooth(int x, int y, int x2, int y2, TSPlayer plr, Expression expression, bool Plus = false)
-			: base(x, y, x2, y2, plr)
+		public Smooth(int x, int y, int x2, int y2, HardSelection hardSelection, TSPlayer plr, Expression expression, bool Plus = false)
+			: base(x, y, x2, y2, hardSelection, plr)
 		{
 			this.expression = expression ?? new TestExpression(new Test(t => true));
 			this.Plus = Plus;
@@ -49,7 +49,7 @@ namespace WorldEdit.Commands
 					bool XmY = Main.tile[i, j - 1].active();
 					bool XpY = Main.tile[i, j + 1].active();
 
-					if (XY && slope && expression.Evaluate(Main.tile[i, j]))
+					if (XY && slope && expression.Evaluate(Main.tile[i, j]) && hardSelection.InSelection(i, j))
 					{
 						if (mXY && XmY && !XpY && !pXY)
 						{

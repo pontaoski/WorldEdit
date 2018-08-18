@@ -15,8 +15,12 @@ namespace WorldEdit.Commands
 		public int x2;
 		public int y;
 		public int y2;
+        public HardSelection hardSelection;
 
-		protected WECommand(int x, int y, int x2, int y2, TSPlayer plr)
+        protected WECommand(int x, int y, int x2, int y2, TSPlayer plr)
+            : this(x, y, x2, y2, null, plr) { }
+
+        protected WECommand(int x, int y, int x2, int y2, HardSelection hardSelection, TSPlayer plr)
 		{
 			this.plr = plr;
 			this.select = plr.GetPlayerInfo().Select ?? WorldEdit.Selections["normal"];
@@ -24,6 +28,7 @@ namespace WorldEdit.Commands
 			this.x2 = x2;
 			this.y = y;
 			this.y2 = y2;
+            this.hardSelection = hardSelection ?? new HardSelection();
 		}
 
 		public abstract void Execute();
@@ -104,7 +109,6 @@ namespace WorldEdit.Commands
 						tile.frameY = -1;
 						tile.liquidType(0);
 						tile.liquid = 0;
-						tile.slope(0);
 						tile.type = (ushort)tileType;
 					}
 					return;

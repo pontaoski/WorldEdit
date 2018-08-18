@@ -99,18 +99,36 @@ namespace WorldEdit
 								else if (info.Point == 3)
 								{
 									List<string> regions = TShock.Regions.InAreaRegionName(x, y).ToList();
-									if (regions.Count == 0)
-									{
-										TShock.Players[e.Msg.whoAmI].SendErrorMessage("No region exists there.");
-										return;
-									}
-									Region curReg = TShock.Regions.GetRegionByName(regions[0]);
-									info.X = curReg.Area.Left;
-									info.Y = curReg.Area.Top;
-									info.X2 = curReg.Area.Right;
-									info.Y2 = curReg.Area.Bottom;
-									TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set region.");
+                                    if (regions.Count == 0)
+                                    {
+                                        TShock.Players[e.Msg.whoAmI].SendErrorMessage("No region exists there.");
+                                    }
+                                    else
+                                    {
+                                        Region curReg = TShock.Regions.GetRegionByName(regions[0]);
+                                        info.X = curReg.Area.Left;
+                                        info.Y = curReg.Area.Top;
+                                        info.X2 = curReg.Area.Right;
+                                        info.Y2 = curReg.Area.Bottom;
+                                        TShock.Players[e.Msg.whoAmI].SendInfoMessage("Set region.");
+                                    }
 								}
+                                else if (info.Point == 4)
+                                {
+                                    if (!HardSelection.GetHardSelection(x, y,
+                                        info.HardSelectionExpression,
+                                        TShock.Players[e.Msg.whoAmI], out HardSelection selection))
+                                    {
+                                        TShock.Players[e.Msg.whoAmI].SendErrorMessage("Can't " +
+                                            "start counting hard selection from this tile.");
+                                    }
+                                    else
+                                    {
+                                        info.HardSelection = selection;
+                                        TShock.Players[e.Msg.whoAmI].SendSuccessMessage("Set hard selection.");
+                                    }
+                                    info.HardSelectionExpression = null;
+                                }
 								info.Point = 0;
 								e.Handled = true;
 								TShock.Players[e.Msg.whoAmI].SendTileSquare(x, y, 3);
@@ -134,8 +152,24 @@ namespace WorldEdit
 							int endY = reader.ReadInt16();
 
 							if (startX >= 0 && startY >= 0 && endX >= 0 && endY >= 0 && startX < Main.maxTilesX && startY < Main.maxTilesY && endX < Main.maxTilesX && endY < Main.maxTilesY)
-							{
-								if (startX == endX && startY == endY)
+                            {
+                                if (data.Point == 4)
+                                {
+                                    if (!HardSelection.GetHardSelection(startX, startY,
+                                        data.HardSelectionExpression,
+                                        TShock.Players[e.Msg.whoAmI], out HardSelection selection))
+                                    {
+                                        TShock.Players[e.Msg.whoAmI].SendErrorMessage("Can't " +
+                                            "start counting hard selection from this tile.");
+                                    }
+                                    else
+                                    {
+                                        data.HardSelection = selection;
+                                        TShock.Players[e.Msg.whoAmI].SendSuccessMessage("Set hard selection.");
+                                    }
+                                    data.HardSelectionExpression = null;
+                                }
+                                else if (startX == endX && startY == endY)
 								{
 									// Set a single point
 									if (data.Point == 1)
@@ -273,6 +307,10 @@ namespace WorldEdit
 			{
 				HelpText = "Floods liquids in the worldedit selection."
 			});
+            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.hard.selection", HardSelect, "/hardselection", "/hselect")
+            {
+                HelpText = "................................."
+            });
             TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.killempty", KillEmpty, "/killempty")
             {
                 HelpText = "Deletes empty signs and/or chests (only entities, doesn't remove tiles)."
@@ -698,7 +736,7 @@ namespace WorldEdit
                 }
             }
 
-            _commandQueue.Add(new Actuator(info.X, info.Y, info.X2, info.Y2, e.Player, expression, remove));
+            _commandQueue.Add(new Actuator(info.X, info.Y, info.X2, info.Y2, info.HardSelection, e.Player, expression, remove));
         }
 
 		private void All(CommandArgs e)
@@ -822,7 +860,7 @@ namespace WorldEdit
 			PlayerInfo info = e.Player.GetPlayerInfo();
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 				e.Player.SendErrorMessage("Invalid selection!");
-			_commandQueue.Add(new Flood(info.X, info.Y, info.X2, info.Y2, e.Player, liquid));
+			_commandQueue.Add(new Flood(info.X, info.Y, info.X2, info.Y2, info.HardSelection, e.Player, liquid));
 		}
 
 		private void Flip(CommandArgs e)
@@ -855,6 +893,64 @@ namespace WorldEdit
 				_commandQueue.Add(new Flip(e.Player, flipX, flipY));
 			}
 		}
+
+        private void HardSelect(CommandArgs e)
+        {
+            string error = "Invalid syntax! Proper syntax: //hardselection [<X> <Y>] => boolean expr...";
+            if (e.Parameters.Count < 2)
+            {
+                e.Player.SendErrorMessage(error);
+                return;
+            }
+
+            int skip = 0, x = -1, y = -1;
+            if (e.Parameters[0] != "=>")
+            {
+                if (e.Parameters.Count < 4)
+                {
+                    e.Player.SendErrorMessage(error);
+                    return;
+                }
+
+                if (!int.TryParse(e.Parameters[0], out x)
+                    || !int.TryParse(e.Parameters[1], out y)
+                    || x < 0 || y < 0 || x >= Main.maxTilesX || y >= Main.maxTilesY)
+                {
+                    e.Player.SendErrorMessage(error);
+                    return;
+                }
+                skip = 2;
+            }
+
+            if (!Parser.TryParseTree(e.Parameters.Skip(skip), out Expression expression))
+            {
+                e.Player.SendErrorMessage("Invalid expression!");
+                return;
+            }
+
+            PlayerInfo info = e.Player.GetPlayerInfo();
+            if (x != -1 && y != -1)
+            {
+                if (!HardSelection.GetHardSelection(x, y,
+                    expression, e.Player, out HardSelection selection))
+                {
+                    e.Player.SendErrorMessage("Can't " +
+                        "start counting hard selection from this tile.");
+                }
+                else
+                {
+                    info.HardSelection = selection;
+                    e.Player.SendSuccessMessage("Set hard selection.");
+                }
+                info.HardSelectionExpression = null;
+            }
+            else
+            {
+                info.HardSelectionExpression = expression;
+                info.Point = 4;
+                e.Player.SendInfoMessage("Modify a block to count hard selection.");
+            }
+        }
 
         private void KillEmpty(CommandArgs e)
         {
@@ -976,7 +1072,7 @@ namespace WorldEdit
 							return;
 						}
 					}
-					_commandQueue.Add(new Outline(info.X, info.Y, info.X2, info.Y2, e.Player, tiles[0], colors[0], state, expression));
+					_commandQueue.Add(new Outline(info.X, info.Y, info.X2, info.Y2, info.HardSelection, e.Player, tiles[0], colors[0], state, expression));
 				}
 			}
 		}
@@ -1018,7 +1114,7 @@ namespace WorldEdit
 							return;
 						}
 					}
-					_commandQueue.Add(new OutlineWall(info.X, info.Y, info.X2, info.Y2, e.Player, walls[0], colors[0], expression));
+					_commandQueue.Add(new OutlineWall(info.X, info.Y, info.X2, info.Y2, info.HardSelection, e.Player, walls[0], colors[0], expression));
 				}
 			}
 		}
@@ -1053,7 +1149,7 @@ namespace WorldEdit
 						return;
 					}
 				}
-				_commandQueue.Add(new Paint(info.X, info.Y, info.X2, info.Y2, e.Player, colors[0], expression));
+				_commandQueue.Add(new Paint(info.X, info.Y, info.X2, info.Y2, info.HardSelection, e.Player, colors[0], expression));
 			}
 		}
 
@@ -1087,7 +1183,7 @@ namespace WorldEdit
 						return;
 					}
 				}
-				_commandQueue.Add(new PaintWall(info.X, info.Y, info.X2, info.Y2, e.Player, colors[0], expression));
+				_commandQueue.Add(new PaintWall(info.X, info.Y, info.X2, info.Y2, info.HardSelection, e.Player, colors[0], expression));
 			}
 		}
 
@@ -1771,7 +1867,7 @@ namespace WorldEdit
 						return;
 					}
 				}
-				_commandQueue.Add(new Set(info.X, info.Y, info.X2, info.Y2, e.Player, tiles[0], expression));
+				_commandQueue.Add(new Set(info.X, info.Y, info.X2, info.Y2, info.HardSelection, e.Player, tiles[0], expression));
 			}
 		}
 
@@ -1805,7 +1901,7 @@ namespace WorldEdit
 						return;
 					}
 				}
-				_commandQueue.Add(new SetWall(info.X, info.Y, info.X2, info.Y2, e.Player, walls[0], expression));
+				_commandQueue.Add(new SetWall(info.X, info.Y, info.X2, info.Y2, info.HardSelection, e.Player, walls[0], expression));
 			}
 		}
 
@@ -1839,7 +1935,7 @@ namespace WorldEdit
 				}
 			}
 
-			_commandQueue.Add(new SetGrass(info.X, info.Y, info.X2, info.Y2, e.Player, e.Parameters[0].ToLowerInvariant(), expression));
+			_commandQueue.Add(new SetGrass(info.X, info.Y, info.X2, info.Y2, info.HardSelection, e.Player, e.Parameters[0].ToLowerInvariant(), expression));
 		}
 
 		private void SetWire(CommandArgs e)
@@ -1881,7 +1977,7 @@ namespace WorldEdit
 					return;
 				}
 			}
-			_commandQueue.Add(new SetWire(info.X, info.Y, info.X2, info.Y2, e.Player, wire, state, expression));
+			_commandQueue.Add(new SetWire(info.X, info.Y, info.X2, info.Y2, info.HardSelection, e.Player, wire, state, expression));
 		}
 
 		private void Slope(CommandArgs e)
@@ -1913,7 +2009,7 @@ namespace WorldEdit
 						return;
 					}
 				}
-				_commandQueue.Add(new Slope(info.X, info.Y, info.X2, info.Y2, e.Player, slope, expression));
+				_commandQueue.Add(new Slope(info.X, info.Y, info.X2, info.Y2, info.HardSelection, e.Player, slope, expression));
 			}
 		}
 
@@ -1946,7 +2042,7 @@ namespace WorldEdit
 				}
 			}
 
-			_commandQueue.Add(new SlopeDelete(info.X, info.Y, info.X2, info.Y2, e.Player, slope, expression));
+			_commandQueue.Add(new SlopeDelete(info.X, info.Y, info.X2, info.Y2, info.HardSelection, e.Player, slope, expression));
 		}
 
 		private void Smooth(CommandArgs e)
@@ -1978,7 +2074,7 @@ namespace WorldEdit
 				}
 			}
 
-			_commandQueue.Add(new Smooth(info.X, info.Y, info.X2, info.Y2, e.Player, expression, Plus));
+			_commandQueue.Add(new Smooth(info.X, info.Y, info.X2, info.Y2, info.HardSelection, e.Player, expression, Plus));
 		}
 
 		private void Inactive(CommandArgs e)
@@ -2015,7 +2111,7 @@ namespace WorldEdit
 					return;
 				}
 			}
-			_commandQueue.Add(new Inactive(info.X, info.Y, info.X2, info.Y2, e.Player, mode, expression));
+			_commandQueue.Add(new Inactive(info.X, info.Y, info.X2, info.Y2, info.HardSelection, e.Player, mode, expression));
 		}
 
 		private void Shift(CommandArgs e)

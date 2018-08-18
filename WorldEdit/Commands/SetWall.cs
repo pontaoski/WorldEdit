@@ -9,8 +9,8 @@ namespace WorldEdit.Commands
 		private Expression expression;
 		private int wallType;
 
-		public SetWall(int x, int y, int x2, int y2, TSPlayer plr, int wallType, Expression expression)
-			: base(x, y, x2, y2, plr)
+		public SetWall(int x, int y, int x2, int y2, HardSelection hardSelection, TSPlayer plr, int wallType, Expression expression)
+			: base(x, y, x2, y2, hardSelection, plr)
 		{
 			this.expression = expression ?? new TestExpression(new Test(t => true));
 			this.wallType = wallType;
@@ -26,7 +26,7 @@ namespace WorldEdit.Commands
 				for (int j = y; j <= y2; j++)
 				{
 					var tile = Main.tile[i, j];
-					if (tile.wall != wallType && select(i, j, plr) && expression.Evaluate(tile))
+					if (tile.wall != wallType && select(i, j, plr) && expression.Evaluate(tile) && hardSelection.InSelection(i, j))
 					{
 						tile.wall = (byte)wallType;
 						edits++;

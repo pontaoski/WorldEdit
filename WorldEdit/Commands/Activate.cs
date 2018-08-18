@@ -9,7 +9,7 @@ namespace WorldEdit.Commands
 	{
 		private readonly int _action;
 		public Activate(int x, int y, int x2, int y2, TSPlayer plr, byte action)
-			: base(x, y, x2, y2, plr)
+			: base(x, y, x2, y2, null, plr)
 		{
 			_action = action;
 		}
