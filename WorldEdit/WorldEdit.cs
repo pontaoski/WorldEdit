@@ -28,6 +28,7 @@ namespace WorldEdit
 	public class WorldEdit : TerrariaPlugin
 	{
 		public const string WorldEditFolderName = "worldedit";
+        public static Config Config = new Config();
 
 		public static Dictionary<string, int[]> Biomes = new Dictionary<string, int[]>();
 		public static Dictionary<string, int> Colors = new Dictionary<string, int>();
@@ -54,15 +55,24 @@ namespace WorldEdit
 			{
 				ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
 				ServerApi.Hooks.NetGetData.Deregister(this, OnGetData);
+                TShockAPI.Hooks.GeneralHooks.ReloadEvent -= OnReload;
 
-				_cancel.Cancel();
+                _cancel.Cancel();
 			}
 		}
 		public override void Initialize()
 		{
 			ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
 			ServerApi.Hooks.NetGetData.Register(this, OnGetData);
+            TShockAPI.Hooks.GeneralHooks.ReloadEvent += OnReload;
 		}
+        private static void OnReload(TShockAPI.Hooks.ReloadEventArgs e)
+        {
+            Config = Config.Read(Path.Combine(WorldEditFolderName, "config.json"));
+            Tools.MAX_UNDOS = Config.MaxUndoCount;
+            HardSelection.MaxPointCount = Config.MaxUndoCount;
+            e?.Player?.SendSuccessMessage("[WorldEdit] Successfully reloaded config.");
+        }
 
 		private static void OnGetData(GetDataEventArgs e)
 		{
@@ -250,6 +260,7 @@ namespace WorldEdit
 
 		private void OnInitialize(EventArgs e)
 		{
+            OnReload(null);
 			var lockFilePath = Path.Combine(WorldEditFolderName, "deleted.lock");
 
 			if (!Directory.Exists(WorldEditFolderName))
@@ -1676,6 +1687,22 @@ namespace WorldEdit
                             e.Player.SendErrorMessage("You do not have permission to save schematics.");
                             return;
                         }
+                        else if (Config.StartSchematicNamesWithCreatorUserID
+                            && e.Parameters.ElementAtOrDefault(1)?.ToLower() == "id")
+                        {
+                            string uname = (e.Parameters.Count > 2)
+                                                ? e.Parameters[2]
+                                                : e.Player.User.Name;
+                            User user = TShock.Users.GetUserByName(uname);
+                            if (user == null)
+                            {
+                                e.Player.SendErrorMessage($"Invalid user '{uname}'!");
+                                return;
+                            }
+
+                            e.Player.SendSuccessMessage($"{user.Name}'s ID: {user.ID}.");
+                            return;
+                        }
 
                         string _1 = e.Parameters.ElementAtOrDefault(1)?.ToLower();
                         bool force = ((_1 == "-force") || (_1 == "-f"));
@@ -1700,6 +1727,9 @@ namespace WorldEdit
 								string.Join("\", \"", Path.GetInvalidFileNameChars()));
 							return;
 						}
+
+                        if (Config.StartSchematicNamesWithCreatorUserID)
+                            name = $"{e.Player.User.ID}-{name}";
 
 						var path = Path.Combine("worldedit", string.Format(fileFormat, name));
 

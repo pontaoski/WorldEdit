@@ -9,7 +9,7 @@ namespace WorldEdit
 {
     public class HardSelection
     {
-        public static int MaxPointCount = 10000;
+        public static int MaxPointCount;
 
         internal bool dontCheck = false;
         internal List<WEPoint> Points = new List<WEPoint>();

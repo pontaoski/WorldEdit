@@ -17,7 +17,7 @@ namespace WorldEdit
     public static class Tools
     {
         internal const int BUFFER_SIZE = 1048576;
-        private const int MAX_UNDOS = 50;
+        internal static int MAX_UNDOS;
 
         public static bool InMapBoundaries(int X, int Y) =>
             ((X >= 0) && (Y >= 0) && (X < Main.maxTilesX) && (Y < Main.maxTilesY));
@@ -396,6 +396,9 @@ namespace WorldEdit
 
 		public static void PrepareUndo(int x, int y, int x2, int y2, TSPlayer plr)
 		{
+            if (WorldEdit.Config.DisableUndoSystemForUnrealPlayers && !plr.RealPlayer)
+                return;
+
 			if (WorldEdit.Database.GetSqlType() == SqlType.Mysql)
 				WorldEdit.Database.Query("INSERT IGNORE INTO WorldEdit VALUES (@0, -1, -1)", plr.User.ID);
 			else
@@ -419,8 +422,11 @@ namespace WorldEdit
 		}
 
 		public static bool Redo(int accountID)
-		{
-			int redoLevel = 0;
+        {
+            if (WorldEdit.Config.DisableUndoSystemForUnrealPlayers && accountID == 0)
+                return false;
+
+            int redoLevel = 0;
 			int undoLevel = 0;
 			using (var reader = WorldEdit.Database.QueryReader("SELECT RedoLevel, UndoLevel FROM WorldEdit WHERE Account = @0", accountID))
 			{
@@ -515,8 +521,6 @@ namespace WorldEdit
 			var width = x2 - x + 1;
 			var height = y2 - y + 1;
 
-            Console.WriteLine($"{x} - {y} - {x2} - {y2} - {width} - {height}");
-
 			var data = new WorldSectionData(width, height)
 			{
 				X = x,
@@ -540,8 +544,11 @@ namespace WorldEdit
 		}
 
 		public static bool Undo(int accountID)
-		{
-			int redoLevel, undoLevel;
+        {
+            if (WorldEdit.Config.DisableUndoSystemForUnrealPlayers && accountID == 0)
+                return false;
+
+            int redoLevel, undoLevel;
 			using (var reader = WorldEdit.Database.QueryReader("SELECT RedoLevel, UndoLevel FROM WorldEdit WHERE Account = @0", accountID))
 			{
 				if (reader.Read())

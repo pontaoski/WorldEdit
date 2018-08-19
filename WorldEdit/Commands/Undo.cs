@@ -16,6 +16,13 @@ namespace WorldEdit.Commands
 
 		public override void Execute()
 		{
+            if (WorldEdit.Config.DisableUndoSystemForUnrealPlayers
+                && (!plr.RealPlayer || (accountID == 0)))
+            {
+                plr.SendErrorMessage("Undo system is disabled for unreal players.");
+                return;
+            }
+
 			int i = -1;
 			while (++i < steps && Tools.Undo(accountID)) ;
 			if (i == 0)
