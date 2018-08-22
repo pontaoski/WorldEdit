@@ -9,7 +9,6 @@ using TShockAPI;
 using TShockAPI.DB;
 using Terraria.GameContent.Tile_Entities;
 using Terraria.DataStructures;
-using Terraria.ID;
 using Microsoft.Xna.Framework;
 
 namespace WorldEdit
@@ -584,5 +583,70 @@ namespace WorldEdit
 			File.Delete(undoPath);
 			return true;
 		}
-	}
+
+        public static bool CanSet(bool Tile, ITile tile, int type,
+            Selection selection, Expressions.Expression expression,
+            MagicWand magicWand, int x, int y, TSPlayer player) =>
+            Tile
+                ? ((((type >= 0) && (!tile.active() || (tile.type != type)))
+                 || ((type == -1) && tile.active())
+                 || ((type == -2) && ((tile.liquid == 0) || (tile.liquidType() != 1)))
+                 || ((type == -3) && ((tile.liquid == 0) || (tile.liquidType() != 2)))
+                 || ((type == -4) && ((tile.liquid == 0) || (tile.liquidType() != 0))))
+                 && selection(x, y, player) && expression.Evaluate(tile)
+                 && magicWand.InSelection(x, y))
+                : ((tile.wall != type) && selection(x, y, player)
+                 && expression.Evaluate(tile) && magicWand.InSelection(x, y));
+
+        public static WEPoint[] CreateLine(int x1, int y1, int x2, int y2)
+        {
+            int minX = Math.Min(x1, x2), minY, maxX, maxY;
+            if (minX == x1)
+            {
+                minY = y1;
+                maxX = x2;
+                maxY = y2;
+            }
+            else
+            {
+                minY = y2;
+                maxX = x1;
+                maxY = y1;
+            }
+            double xDiff = (maxX - minX), yDiff = (maxY - minY);
+            List<WEPoint> points = new List<WEPoint>();
+
+            if (xDiff > Math.Abs(yDiff))
+            {
+                double dY = (yDiff / xDiff), y = minY;
+                for (int x = minX; x <= maxX; x++)
+                {
+                    points.Add(new WEPoint((short)x, (short)Math.Floor(y + 0.5)));
+                    y += dY;
+                }
+            }
+            else
+            {
+                double dX = (xDiff / yDiff), x = minX;
+                if (maxY >= minY)
+                {
+                    for (int y = minY; y <= maxY; y++)
+                    {
+                        points.Add(new WEPoint((short)Math.Floor(x + 0.5), (short)y));
+                        x += dX;
+                    }
+                }
+                else
+                {
+                    for (int y = minY; y >= maxY; y--)
+                    {
+                        points.Add(new WEPoint((short)Math.Floor(x + 0.5), (short)y));
+                        x -= dX;
+                    }
+                }
+            }
+
+            return points.ToArray();
+        }
+    }
 }

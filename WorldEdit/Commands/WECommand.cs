@@ -15,12 +15,14 @@ namespace WorldEdit.Commands
 		public int x2;
 		public int y;
 		public int y2;
-        public HardSelection hardSelection;
+        public MagicWand magicWand;
+        public bool minMaxPoints;
 
         protected WECommand(int x, int y, int x2, int y2, TSPlayer plr)
             : this(x, y, x2, y2, null, plr) { }
 
-        protected WECommand(int x, int y, int x2, int y2, HardSelection hardSelection, TSPlayer plr)
+        protected WECommand(int x, int y, int x2, int y2, MagicWand magicWand,
+            TSPlayer plr, bool minMaxPoints = true)
 		{
 			this.plr = plr;
 			this.select = plr.GetPlayerInfo().Select ?? WorldEdit.Selections["normal"];
@@ -28,12 +30,14 @@ namespace WorldEdit.Commands
 			this.x2 = x2;
 			this.y = y;
 			this.y2 = y2;
-            this.hardSelection = hardSelection ?? new HardSelection();
+            this.magicWand = magicWand ?? new MagicWand();
+            this.minMaxPoints = minMaxPoints;
 		}
 
 		public abstract void Execute();
-		public void Position()
+		public void Position(bool force = false)
 		{
+            if (!force && !minMaxPoints) { return; }
 			int temp;
 			x = Math.Max(x, 0);
 			y = Math.Max(y, 0);
@@ -55,10 +59,10 @@ namespace WorldEdit.Commands
 		}
 		public void ResetSection()
 		{
-			int lowX = Netplay.GetSectionX(x);
-			int highX = Netplay.GetSectionX(x2);
-			int lowY = Netplay.GetSectionY(y);
-			int highY = Netplay.GetSectionY(y2);
+			int lowX = Netplay.GetSectionX(Math.Min(x, x2));
+			int highX = Netplay.GetSectionX(Math.Max(x, x2));
+			int lowY = Netplay.GetSectionY(Math.Min(y, y2));
+			int highY = Netplay.GetSectionY(Math.Max(y, y2));
 			foreach (RemoteClient sock in Netplay.Clients.Where(s => s.IsActive))
 			{
 				for (int i = lowX; i <= highX; i++)

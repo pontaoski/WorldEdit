@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Terraria;
 using TShockAPI;
@@ -7,14 +6,14 @@ using WorldEdit.Expressions;
 
 namespace WorldEdit
 {
-    public class HardSelection
+    public class MagicWand
     {
         public static int MaxPointCount;
 
         internal bool dontCheck = false;
         internal List<WEPoint> Points = new List<WEPoint>();
-        public HardSelection() => dontCheck = true;
-        public HardSelection(WEPoint[] Points)
+        public MagicWand() => dontCheck = true;
+        public MagicWand(WEPoint[] Points)
         {
             this.dontCheck = false;
             this.Points = Points?.ToList() ?? new List<WEPoint>();
@@ -22,10 +21,10 @@ namespace WorldEdit
         public bool InSelection(int X, int Y) =>
             dontCheck ? true : Points.Any(p => p.X == X && p.Y == Y);
         
-        public static bool GetHardSelection(int X, int Y, Expression Expression,
-            TSPlayer Player, out HardSelection HardSelection)
+        public static bool GetMagicWandSelection(int X, int Y, Expression Expression,
+            TSPlayer Player, out MagicWand MagicWand)
         {
-            HardSelection = new HardSelection();
+            MagicWand = new MagicWand();
             if (!Tools.InMapBoundaries(X, Y) || (Expression == null))
             { return false; }
             if (!Expression.Evaluate(Main.tile[X, Y]))
@@ -65,7 +64,7 @@ namespace WorldEdit
                 index++;
             }
 
-            HardSelection = new HardSelection(WEPoints.ToArray());
+            MagicWand = new MagicWand(WEPoints.ToArray());
             return true;
         }
     }

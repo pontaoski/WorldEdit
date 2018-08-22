@@ -48,7 +48,7 @@ namespace WorldEdit
 
 		public void ProcessTile(ITile tile, int x, int y)
 		{
-			Tiles[x, y] = tile;
+			Tiles[x, y] = (ITile)tile?.Clone();
 
 			if (!tile.active())
 			{

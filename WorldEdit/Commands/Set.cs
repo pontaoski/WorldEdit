@@ -9,8 +9,8 @@ namespace WorldEdit.Commands
 		private Expression expression;
 		private int tileType;
 
-		public Set(int x, int y, int x2, int y2, HardSelection hardSelection, TSPlayer plr, int tileType, Expression expression)
-			: base(x, y, x2, y2, hardSelection, plr)
+		public Set(int x, int y, int x2, int y2, MagicWand magicWand, TSPlayer plr, int tileType, Expression expression)
+			: base(x, y, x2, y2, magicWand, plr)
 		{
 			this.tileType = tileType;
 			this.expression = expression ?? new TestExpression(new Test(t => true));
@@ -25,14 +25,8 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					var tile = Main.tile[i, j];
-					if (((tileType >= 0 && (!tile.active() || tile.type != tileType)) ||
-						(tileType == -1 && tile.active()) ||
-						(tileType == -2 && (tile.liquid == 0 || tile.liquidType() != 1)) ||
-						(tileType == -3 && (tile.liquid == 0 || tile.liquidType() != 2)) ||
-						(tileType == -4 && (tile.liquid == 0 || tile.liquidType() != 0))) &&
-						select(i, j, plr) && expression.Evaluate(tile)
-                        && hardSelection.InSelection(i, j))
+					if (Tools.CanSet(true, Main.tile[i, j], tileType,
+                        select, expression, magicWand, i, j, plr))
 					{
 						SetTile(i, j, tileType);
 						edits++;

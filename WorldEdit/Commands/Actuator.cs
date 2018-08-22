@@ -9,8 +9,8 @@ namespace WorldEdit.Commands
         private readonly bool remove;
         private readonly Expression expression;
 
-        public Actuator(int x, int y, int x2, int y2, HardSelection hardSelection, TSPlayer plr, Expression expression, bool remove)
-            : base(x, y, x2, y2, hardSelection, plr)
+        public Actuator(int x, int y, int x2, int y2, MagicWand magicWand, TSPlayer plr, Expression expression, bool remove)
+            : base(x, y, x2, y2, magicWand, plr)
         {
             this.remove = remove;
             this.expression = expression ?? new TestExpression(new Test(t => true));
@@ -26,7 +26,7 @@ namespace WorldEdit.Commands
                 {
                     var tile = Main.tile[i, j];
                     if (tile.active() && (remove ? tile.actuator() : !tile.actuator())
-                        && select(i, j, plr) && expression.Evaluate(tile) && hardSelection.InSelection(i, j))
+                        && select(i, j, plr) && expression.Evaluate(tile) && magicWand.InSelection(i, j))
                     {
                         tile.actuator(!remove);
                         edits++;

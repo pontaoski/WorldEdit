@@ -3,11 +3,10 @@ using OTAPI.Tile;
 using TShockAPI;
 using Terraria;
 using System.Linq;
-using System;
 
 namespace WorldEdit.Commands
 {
-	public class Scale : WECommand
+    public class Scale : WECommand
     {
         private readonly bool _addition;
         private readonly int _scale;

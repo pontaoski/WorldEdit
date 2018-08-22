@@ -5,7 +5,7 @@ namespace WorldEdit
 {
     public class Config
     {
-        public int HardSelectionTileLimit = 10000;
+        public int MagicWandTileLimit = 10000;
         public int MaxUndoCount = 50;
         public bool DisableUndoSystemForUnrealPlayers = false;
         public bool StartSchematicNamesWithCreatorUserID = false;

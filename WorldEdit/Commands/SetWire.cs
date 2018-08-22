@@ -10,8 +10,8 @@ namespace WorldEdit.Commands
 		private bool state;
 		private int wire;
 
-		public SetWire(int x, int y, int x2, int y2, HardSelection hardSelection, TSPlayer plr, int wire, bool state, Expression expression)
-			: base(x, y, x2, y2, hardSelection, plr)
+		public SetWire(int x, int y, int x2, int y2, MagicWand magicWand, TSPlayer plr, int wire, bool state, Expression expression)
+			: base(x, y, x2, y2, magicWand, plr)
 		{
 			this.expression = expression ?? new TestExpression(new Test(t => true));
 			this.state = state;
@@ -31,7 +31,7 @@ namespace WorldEdit.Commands
 						for (int j = y; j <= y2; j++)
 						{
 							var tile = Main.tile[i, j];
-							if (tile.wire() != state && select(i, j, plr) && expression.Evaluate(tile) && hardSelection.InSelection(i, j))
+							if (tile.wire() != state && select(i, j, plr) && expression.Evaluate(tile) && magicWand.InSelection(i, j))
 							{
 								tile.wire(state);
 								edits++;

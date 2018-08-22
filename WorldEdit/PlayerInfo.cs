@@ -16,16 +16,15 @@ namespace WorldEdit
         
         public int Point = 0;
 		public Selection Select = null;
-        private HardSelection _hardSelection = null;
-        public Expression HardSelectionExpression = null;
+        private MagicWand _magicWand = null;
+        public Expression SavedExpression = null;
         public int X
 		{
 			get => _x;
             set
             {
                 _x = Math.Max(0, value);
-                _hardSelection = null;
-                HardSelectionExpression = null;
+                _magicWand = null;
             }
 		}
 		public int X2
@@ -34,8 +33,7 @@ namespace WorldEdit
             set
             {
                 _x2 = Math.Min(value, Main.maxTilesX - 1);
-                _hardSelection = null;
-                HardSelectionExpression = null;
+                _magicWand = null;
             }
 		}
 		public int Y
@@ -44,8 +42,7 @@ namespace WorldEdit
             set
             {
                 _y = Math.Max(0, value);
-                _hardSelection = null;
-                HardSelectionExpression = null;
+                _magicWand = null;
             }
 		}
 		public int Y2
@@ -54,22 +51,21 @@ namespace WorldEdit
             set
             {
                 _y2 = Math.Min(value, Main.maxTilesY - 1);
-                _hardSelection = null;
-                HardSelectionExpression = null;
+                _magicWand = null;
             }
 		}
-        public HardSelection HardSelection
+        public MagicWand MagicWand
         {
-            get => _hardSelection;
+            get => _magicWand;
             set
             {
-                _hardSelection = value ?? new HardSelection();
+                _magicWand = value ?? new MagicWand();
                 if (value == null)
                 { _x = _x2 = _y = _y2 = -1; }
                 else
                 {
-                    var _1 = _hardSelection.Points.OrderBy(p => p.X);
-                    var _2 = _hardSelection.Points.OrderBy(p => p.Y);
+                    var _1 = _magicWand.Points.OrderBy(p => p.X);
+                    var _2 = _magicWand.Points.OrderBy(p => p.Y);
                     _x = _1.First().X;
                     _x2 = _1.Last().X;
                     _y = _2.First().Y;

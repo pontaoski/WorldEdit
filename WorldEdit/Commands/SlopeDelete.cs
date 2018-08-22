@@ -9,8 +9,8 @@ namespace WorldEdit.Commands
 		private Expression expression;
 		private byte slope;
 
-		public SlopeDelete(int x, int y, int x2, int y2, HardSelection hardSelection, TSPlayer plr, int slope, Expression expression)
-			: base(x, y, x2, y2, hardSelection, plr)
+		public SlopeDelete(int x, int y, int x2, int y2, MagicWand magicWand, TSPlayer plr, int slope, Expression expression)
+			: base(x, y, x2, y2, magicWand, plr)
 		{
 			this.slope = (byte)slope;
 			this.expression = expression ?? new TestExpression(new Test(t => true));
@@ -28,7 +28,7 @@ namespace WorldEdit.Commands
 					for (int j = y; j <= y2; j++)
 					{
 						var tile = Main.tile[i, j];
-						if (tile.active() && select(i, j, plr) && expression.Evaluate(tile) && hardSelection.InSelection(i, j))
+						if (tile.active() && select(i, j, plr) && expression.Evaluate(tile) && magicWand.InSelection(i, j))
 						{
 							tile.slope(0);
 							tile.halfBrick(false);
