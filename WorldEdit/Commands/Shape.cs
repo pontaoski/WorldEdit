@@ -121,10 +121,85 @@ namespace WorldEdit.Commands
                     }
 
                 #endregion
+                #region Ellipse
+
                 case 2:
                     {
+                        #region Filled
+
+                        if (filled)
+                        {
+                            if (wall)
+                            {
+                                for (int i = x; i <= x2; i++)
+                                {
+                                    for (int j = y; j <= y2; j++)
+                                    {
+                                        if (Tools.CanSet(false, Main.tile[i, j], materialType,
+                                            select, expression, magicWand, i, j, plr)
+                                            && WorldEdit.Selections["ellipse"](i, j, plr))
+                                        {
+                                            Main.tile[i, j].wall = (byte)materialType;
+                                            edits++;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                for (int i = x; i <= x2; i++)
+                                {
+                                    for (int j = y; j <= y2; j++)
+                                    {
+                                        if (Tools.CanSet(true, Main.tile[i, j], materialType,
+                                            select, expression, magicWand, i, j, plr)
+                                            && WorldEdit.Selections["ellipse"](i, j, plr))
+                                        {
+                                            SetTile(i, j, materialType);
+                                            edits++;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        #endregion
+                        #region NotFilled
+
+                        else
+                        {
+                            WEPoint[] points = Tools.CreateEllipseOutline(x, y, x2, y2);
+                            if (wall)
+                            {
+                                foreach (WEPoint p in points)
+                                {
+                                    if (Tools.CanSet(false, Main.tile[p.X, p.Y], materialType,
+                                        select, expression, magicWand, p.X, p.Y, plr))
+                                    {
+                                        Main.tile[p.X, p.Y].wall = (byte)materialType;
+                                        edits++;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                foreach (WEPoint p in points)
+                                {
+                                    if (Tools.CanSet(true, Main.tile[p.X, p.Y], materialType,
+                                        select, expression, magicWand, p.X, p.Y, plr))
+                                    {
+                                        SetTile(p.X, p.Y, materialType);
+                                        edits++;
+                                    }
+                                }
+                            }
+                        }
+
+                        #endregion
                         break;
                     }
+
+                #endregion
                 #region IsoscelesTriangle, RightTriangle
 
                 case 3:
@@ -140,7 +215,7 @@ namespace WorldEdit.Commands
                                 case 0:
                                     {
                                         int center = x + ((x2 - x) / 2);
-                                        points = Tools.CreateLine(x, y2, center, y)
+                                        points = Tools.CreateLine(center, y, x, y2)
                                          .Concat(Tools.CreateLine(center + ((x2 - x) % 2), y, x2, y2))
                                          .ToArray();
                                         line1 = new WEPoint[]
@@ -158,7 +233,7 @@ namespace WorldEdit.Commands
                                 case 1:
                                     {
                                         int center = x + ((x2 - x) / 2);
-                                        points = Tools.CreateLine(x, y, center, y2)
+                                        points = Tools.CreateLine(center, y2, x, y)
                                          .Concat(Tools.CreateLine(center + ((x2 - x) % 2), y2, x2, y))
                                          .ToArray();
                                         line1 = new WEPoint[]
@@ -176,7 +251,7 @@ namespace WorldEdit.Commands
                                 case 2:
                                     {
                                         int center = y + ((y2 - y) / 2);
-                                        points = Tools.CreateLine(x2, y, x, center)
+                                        points = Tools.CreateLine(x, center, x2, y)
                                          .Concat(Tools.CreateLine(x, center + ((y2 - y) % 2), x2, y2))
                                          .ToArray();
                                         line1 = new WEPoint[]
@@ -194,7 +269,7 @@ namespace WorldEdit.Commands
                                 case 3:
                                     {
                                         int center = y + ((y2 - y) / 2);
-                                        points = Tools.CreateLine(x, y, x2, center)
+                                        points = Tools.CreateLine(x2, center, x, y)
                                          .Concat(Tools.CreateLine(x2, center + ((x2 - x) % 2), x, y2))
                                          .ToArray();
                                         line1 = new WEPoint[]
@@ -588,7 +663,7 @@ namespace WorldEdit.Commands
             }
 
             ResetSection();
-            plr.SendSuccessMessage("Set {0} shape. ({1})", wall ? "wall" : "tile", edits);
+            plr.SendSuccessMessage("Set {0}{1} shape. ({2})", filled ? "filled " : "", wall ? "wall" : "tile", edits);
         }
     }
 }

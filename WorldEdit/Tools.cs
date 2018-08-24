@@ -600,53 +600,111 @@ namespace WorldEdit
 
         public static WEPoint[] CreateLine(int x1, int y1, int x2, int y2)
         {
-            int minX = Math.Min(x1, x2), minY, maxX, maxY;
-            if (minX == x1)
-            {
-                minY = y1;
-                maxX = x2;
-                maxY = y2;
-            }
-            else
-            {
-                minY = y2;
-                maxX = x1;
-                maxY = y1;
-            }
-            double xDiff = (maxX - minX), yDiff = (maxY - minY);
-            List<WEPoint> points = new List<WEPoint>();
+            List<WEPoint> points = new List<WEPoint>()
+            { new WEPoint((short)x1, (short)y1) };
 
-            if (xDiff > Math.Abs(yDiff))
+            int diffX = x2 - x1, diffY = y2 - y1;
+            int signX = diffX > 0 ? 1 : diffX < 0 ? -1 : 0;
+            int signY = diffY > 0 ? 1 : diffY < 0 ? -1 : 0;
+            if (diffX < 0) { diffX = -diffX; }
+            if (diffY < 0) { diffY = -diffY; }
+
+            int pdX, pdY, es, el;
+            if (diffX > diffY)
             {
-                double dY = (yDiff / xDiff), y = minY;
-                for (int x = minX; x <= maxX; x++)
-                {
-                    points.Add(new WEPoint((short)x, (short)Math.Floor(y + 0.5)));
-                    y += dY;
-                }
+                pdX = signX;
+                pdY = 0;
+                es = diffY;
+                el = diffX;
             }
             else
             {
-                double dX = (xDiff / yDiff), x = minX;
-                if (maxY >= minY)
+                pdX = 0;
+                pdY = signY;
+                es = diffX;
+                el = diffY;
+            }
+
+            int x = x1, y = y1, error = el / 2, t = 0;
+
+            while (t < el)
+            {
+                error -= es;
+                if (error < 0)
                 {
-                    for (int y = minY; y <= maxY; y++)
-                    {
-                        points.Add(new WEPoint((short)Math.Floor(x + 0.5), (short)y));
-                        x += dX;
-                    }
+                    error += el;
+                    x += signX;
+                    y += signY;
                 }
                 else
                 {
-                    for (int y = minY; y >= maxY; y--)
+                    x += pdX;
+                    y += pdY;
+                }
+                t++;
+                points.Add(new WEPoint((short)x, (short)y));
+            }
+
+            return points.ToArray();
+        }
+
+        public static bool InEllipse(int x1, int y1, int x2, int y2, int x, int y)
+        {
+            Vector2 center = new Vector2((float)(x2 - x1) / 2, (float)(y2 - y1) / 2);
+            float rMax = Math.Max(center.X, center.Y), rMin = Math.Min(center.X, center.Y);
+            if (center.Y > center.X)
+            {
+                float temp = rMax;
+                rMax = rMin;
+                rMin = temp;
+            }
+            return InEllipse(x1, y1, center.X, center.Y, rMax, rMin, x, y);
+        }
+        private static bool InEllipse(int x1, int y1, float cX,
+            float cY, float rMax, float rMin, int x, int y) =>
+            Math.Pow(x - cX - x1, 2) / Math.Pow(rMax, 2)
+            + Math.Pow(y - cY - y1, 2) / Math.Pow(rMin, 2) <= 1;
+
+        public static WEPoint[] CreateEllipseOutline(int x1, int y1, int x2, int y2)
+        {
+            Vector2 center = new Vector2((float)(x2 - x1) / 2, (float)(y2 - y1) / 2);
+            float rMax = Math.Max(center.X, center.Y), rMin = Math.Min(center.X, center.Y);
+            if (center.Y > center.X)
+            {
+                float temp = rMax;
+                rMax = rMin;
+                rMin = temp;
+            }
+
+            List<WEPoint> points = new List<WEPoint>();
+            for (int i = x1; i <= (x2 - ((x2 - x1) / 2)); i++)
+            {
+                for (int j = y1; j <= (y2 - ((y2 - y1) / 2)); j++)
+                {
+                    if (InEllipse(x1, y1, center.X, center.Y, rMax, rMin, i, j))
                     {
-                        points.Add(new WEPoint((short)Math.Floor(x + 0.5), (short)y));
-                        x -= dX;
+                        if (points.Count > 0)
+                        {
+                            WEPoint point = points.Last();
+                            int e = j;
+                            while (point.Y - e >= 1)
+                            { addPoint(points, x1, y1, x2, y2, i, e++); }
+                        }
+                        addPoint(points, x1, y1, x2, y2, i, j);
+                        break;
                     }
                 }
             }
 
             return points.ToArray();
+        }
+        private static void addPoint(List<WEPoint> points,
+            int x1, int y1, int x2, int y2, int i, int j)
+        {
+            points.Add(new WEPoint((short)(x2 - i + x1), (short)j));
+            points.Add(new WEPoint((short)i, (short)(y2 - j + y1)));
+            points.Add(new WEPoint((short)(x2 - i + x1), (short)(y2 - j + y1)));
+            points.Add(new WEPoint((short)i, (short)j));
         }
     }
 }

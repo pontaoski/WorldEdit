@@ -38,7 +38,7 @@ namespace WorldEdit
 		public static Dictionary<string, int> Walls = new Dictionary<string, int>();
 		public static Dictionary<string, int> Slopes = new Dictionary<string, int>();
 
-		public override string Author => "Nyx Studios";
+		public override string Author => "Nyx Studios, massive upgrade by Anzhelika";
 		private readonly CancellationTokenSource _cancel = new CancellationTokenSource();
 		private readonly BlockingCollection<WECommand> _commandQueue = new BlockingCollection<WECommand>();
 		public override string Description => "Adds commands for mass editing of blocks.";
@@ -130,12 +130,12 @@ namespace WorldEdit
                                         TShock.Players[e.Msg.whoAmI], out MagicWand selection))
                                     {
                                         TShock.Players[e.Msg.whoAmI].SendErrorMessage("Can't " +
-                                            "start counting hard selection from this tile.");
+                                            "start counting magic wand selection from this tile.");
                                     }
                                     else
                                     {
                                         info.MagicWand = selection;
-                                        TShock.Players[e.Msg.whoAmI].SendSuccessMessage("Set hard selection.");
+                                        TShock.Players[e.Msg.whoAmI].SendSuccessMessage("Set magic wand selection.");
                                     }
                                     info.SavedExpression = null;
                                 }
@@ -170,12 +170,12 @@ namespace WorldEdit
                                         TShock.Players[e.Msg.whoAmI], out MagicWand selection))
                                     {
                                         TShock.Players[e.Msg.whoAmI].SendErrorMessage("Can't " +
-                                            "start counting hard selection from this tile.");
+                                            "start counting magic wand selection from this tile.");
                                     }
                                     else
                                     {
                                         data.MagicWand = selection;
-                                        TShock.Players[e.Msg.whoAmI].SendSuccessMessage("Set hard selection.");
+                                        TShock.Players[e.Msg.whoAmI].SendSuccessMessage("Set magic wand selection.");
                                     }
                                     data.SavedExpression = null;
                                 }
@@ -326,9 +326,9 @@ namespace WorldEdit
 			{
 				HelpText = "Floods liquids in the worldedit selection."
 			});
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.hard.selection", MagicWandTool, "/magicwand", "/mwand")
+            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.magic.wand", MagicWandTool, "/magicwand", "/mwand")
             {
-                HelpText = "................................."
+                HelpText = "Creates worldedit selection from contiguous tiles that are matching boolean expression."
             });
             TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.killempty", KillEmpty, "/killempty")
             {
@@ -431,7 +431,15 @@ namespace WorldEdit
             {
                 HelpText = "Draws line/rectangle/ellipse/triangle in the worldedit selection."
             });
+            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.shape", Shape, "/shapefill", "/shapef")
+            {
+                HelpText = "Draws line/rectangle/ellipse/triangle in the worldedit selection."
+            });
             TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.shape", Shape, "/shapewall", "/shapew")
+            {
+                HelpText = "Draws line/rectangle/ellipse/triangle in the worldedit selection."
+            });
+            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.shape", Shape, "/shapewallfill", "/shapewf")
             {
                 HelpText = "Draws line/rectangle/ellipse/triangle in the worldedit selection."
             });
@@ -561,23 +569,10 @@ namespace WorldEdit
 			Selections.Add("ellipse", (i, j, plr) =>
 			{
 				PlayerInfo info = plr.GetPlayerInfo();
-
-				int X = Math.Min(info.X, info.X2);
-				int Y = Math.Min(info.Y, info.Y2);
-				int X2 = Math.Max(info.X, info.X2);
-				int Y2 = Math.Max(info.Y, info.Y2);
-
-				Vector2 center = new Vector2((float)(X2 - X) / 2, (float)(Y2 - Y) / 2);
-				float major = Math.Max(center.X, center.Y);
-				float minor = Math.Min(center.X, center.Y);
-				if (center.Y > center.X)
-				{
-					float temp = major;
-					major = minor;
-					minor = temp;
-				}
-				return (i - center.X - X) * (i - center.X - X) / (major * major) + (j - center.Y - Y) * (j - center.Y - Y) / (minor * minor) <= 1;
-			});
+                return Tools.InEllipse(Math.Min(info.X, info.X2),
+                    Math.Min(info.Y, info.Y2), Math.Max(info.X, info.X2),
+                    Math.Max(info.Y, info.Y2), i, j);
+            });
             Selections.Add("normal", (i, j, plr) => true);
 			Selections.Add("border", (i, j, plr) =>
 			{
@@ -1040,12 +1035,12 @@ namespace WorldEdit
                     expression, e.Player, out MagicWand selection))
                 {
                     e.Player.SendErrorMessage("Can't " +
-                        "start counting hard selection from this tile.");
+                        "start counting magic wand selection from this tile.");
                 }
                 else
                 {
                     info.MagicWand = selection;
-                    e.Player.SendSuccessMessage("Set hard selection.");
+                    e.Player.SendSuccessMessage("Set magic wand selection.");
                 }
                 info.SavedExpression = null;
             }
@@ -1835,22 +1830,23 @@ namespace WorldEdit
                             e.Player.SendErrorMessage("You do not have permission to delete schematics.");
                             return;
                         }
-                        if (e.Parameters.Count != 2)
+                        if (e.Parameters.Count != 3
+                            || e.Parameters[1].ToLower() != "-confirm")
 						{
-							e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //schematic delete <name>");
+							e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //schematic delete -confirm <name>");
 							return;
 						}
 
-						string path = Path.Combine("worldedit", string.Format(fileFormat, e.Parameters[1]));
+						string path = Path.Combine("worldedit", string.Format(fileFormat, e.Parameters[2]));
 
 						if (!File.Exists(path))
 						{
-							e.Player.SendErrorMessage("Invalid schematic '{0}'!", e.Parameters[1]);
+							e.Player.SendErrorMessage("Invalid schematic '{0}'!", e.Parameters[2]);
 							return;
 						}
 
 						File.Delete(path);
-						e.Player.SendErrorMessage("Deleted schematic '{0}'.", e.Parameters[1]);
+						e.Player.SendErrorMessage("Deleted schematic '{0}'.", e.Parameters[2]);
 					}
 					return;
 				case "list":
@@ -2443,9 +2439,33 @@ namespace WorldEdit
         */
         private void Shape(CommandArgs e)
         {
-            bool wall = (e.Message.Split(' ')[0] != "/shape");
-            string error = $"Invalid syntax! Proper syntax: //shape{(wall ? "wall" : "")} " +
-                "[-filled/-f] <shape> [rotate type] [flip type] <tile/wall> [=> boolean expr...]";
+            bool wall = false, filled = false;
+            switch (e.Message.Split(' ')[0].Substring(6).ToLower())
+            {
+                case "f":
+                case "fill":
+                    {
+                        filled = true;
+                        break;
+                    }
+                case "w":
+                case "wall":
+                    {
+                        wall = true;
+                        break;
+                    }
+                case "wf":
+                case "wallfill":
+                    {
+                        wall = true;
+                        filled = true;
+                        break;
+                    }                    
+            }
+            
+            string error = $"Invalid syntax! Proper syntax: //shape" +
+                (wall ? "wall" : "") + (filled ? "fill" : "") +
+                " <shape> [rotate type] [flip type] <tile/wall> [=> boolean expr...]";
             if (e.Parameters.ElementAtOrDefault(0)?.ToLower() == "help")
             {
                 e.Player.SendInfoMessage("Allowed shape types: line/l, " +
@@ -2464,17 +2484,9 @@ namespace WorldEdit
                 e.Player.SendErrorMessage("Invalid selection!");
                 return;
             }
-
-            bool filled = false;
-            int typeparam = 0, type, rotateType = 0, flipType = 0;
-            if (e.Parameters[typeparam].ToLower() == "-filled"
-                || e.Parameters[typeparam].ToLower() == "-f")
-            {
-                filled = true;
-                typeparam++;
-            }
             
-            switch (e.Parameters[typeparam].ToLower())
+            int type, rotateType = 0, flipType = 0, param = 1;
+            switch (e.Parameters[0].ToLower())
             {
                 case "l":
                 case "line":
@@ -2500,14 +2512,13 @@ namespace WorldEdit
                 case "isoscelestriangle":
                     {
                         type = 3;
-                        typeparam++;
-                        if (e.Parameters.Count < typeparam + 1)
+                        if (e.Parameters.Count < param + 2)
                         {
                             e.Player.SendErrorMessage(error);
                             e.Player.SendInfoMessage("Allowed rotate types: up/u, down/d, left/l, right/r.");
                             return;
                         }
-                        switch (e.Parameters[typeparam])
+                        switch (e.Parameters[param])
                         {
                             case "u":
                             case "up":
@@ -2540,6 +2551,7 @@ namespace WorldEdit
                                     break;
                                 }
                         }
+                        param++;
                         break;
                     }
                 case "rt":
@@ -2547,15 +2559,14 @@ namespace WorldEdit
                 case "righttriangle":
                     {
                         type = 4;
-                        typeparam += 2;
-                        if (e.Parameters.Count < typeparam + 1)
+                        if (e.Parameters.Count < param + 3)
                         {
                             e.Player.SendErrorMessage(error);
                             e.Player.SendInfoMessage("Allowed rotate types: up/u, down/d.");
                             e.Player.SendInfoMessage("Allowed flip types: left/l, right/r.");
                             return;
                         }
-                        switch (e.Parameters[typeparam - 1])
+                        switch (e.Parameters[param])
                         {
                             case "u":
                             case "up":
@@ -2576,7 +2587,7 @@ namespace WorldEdit
                                     break;
                                 }
                         }
-                        switch (e.Parameters[typeparam])
+                        switch (e.Parameters[param + 1])
                         {
                             case "l":
                             case "left":
@@ -2597,6 +2608,7 @@ namespace WorldEdit
                                     break;
                                 }
                         }
+                        param += 2;
                         break;
                     }
                 default:
@@ -2607,7 +2619,7 @@ namespace WorldEdit
                     }
             }
 
-            if (e.Parameters.Count < typeparam + 1)
+            if (e.Parameters.Count < param)
             {
                 e.Player.SendErrorMessage(error);
                 return;
@@ -2616,10 +2628,10 @@ namespace WorldEdit
             int materialType;
             if (wall)
             {
-                var walls = Tools.GetWallID(e.Parameters[typeparam + 1].ToLowerInvariant());
+                var walls = Tools.GetWallID(e.Parameters[param].ToLowerInvariant());
                 if (walls.Count == 0)
                 {
-                    e.Player.SendErrorMessage("Invalid wall '{0}'!", e.Parameters[typeparam + 1]);
+                    e.Player.SendErrorMessage("Invalid wall '{0}'!", e.Parameters[param]);
                     return;
                 }
                 else if (walls.Count > 1)
@@ -2631,10 +2643,10 @@ namespace WorldEdit
             }
             else
             {
-                var tiles = Tools.GetTileID(e.Parameters[typeparam + 1].ToLowerInvariant());
+                var tiles = Tools.GetTileID(e.Parameters[param].ToLowerInvariant());
                 if (tiles.Count == 0)
                 {
-                    e.Player.SendErrorMessage("Invalid tile '{0}'!", e.Parameters[typeparam + 1]);
+                    e.Player.SendErrorMessage("Invalid tile '{0}'!", e.Parameters[param]);
                     return;
                 }
                 else if (tiles.Count > 1)
@@ -2646,9 +2658,9 @@ namespace WorldEdit
             }
 
             Expression expression = null;
-            if (e.Parameters.Count > typeparam + 2)
+            if (e.Parameters.Count > ++param)
             {
-                if (!Parser.TryParseTree(e.Parameters.Skip(typeparam + 2), out expression))
+                if (!Parser.TryParseTree(e.Parameters.Skip(param), out expression))
                 {
                     e.Player.SendErrorMessage("Invalid expression!");
                     return;

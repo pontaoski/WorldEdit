@@ -2,12 +2,12 @@
 using Terraria;
 using TShockAPI;
 using WorldEdit.Expressions;
+using WorldEdit.Extensions;
 
 namespace WorldEdit.Commands
 {
     public class Move : WECommand
     {
-        int alignment;
         int down;
         int right;
         Expression expression;
@@ -72,6 +72,13 @@ namespace WorldEdit.Commands
 
             Tools.LoadWorldSection(data, newX, newY, false);
             ResetSection();
+
+            PlayerInfo info = plr.GetPlayerInfo();
+            info.X = newX;
+            info.Y = newY;
+            info.X2 = newX2;
+            info.Y2 = newY2;
+
             plr.SendInfoMessage("Moved tiles ({0}).", edits);
         }
     }
