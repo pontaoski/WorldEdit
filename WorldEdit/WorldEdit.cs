@@ -28,6 +28,7 @@ namespace WorldEdit
 	public class WorldEdit : TerrariaPlugin
 	{
 		public const string WorldEditFolderName = "worldedit";
+        public static readonly string ConfigPath = Path.Combine(WorldEditFolderName, "config.json");
         public static Config Config = new Config();
 
 		public static Dictionary<string, int[]> Biomes = new Dictionary<string, int[]>();
@@ -68,7 +69,7 @@ namespace WorldEdit
 		}
         private static void OnReload(TShockAPI.Hooks.ReloadEventArgs e)
         {
-            Config = Config.Read(Path.Combine(WorldEditFolderName, "config.json"));
+            Config = Config.Read(ConfigPath);
             Tools.MAX_UNDOS = Config.MaxUndoCount;
             MagicWand.MaxPointCount = Config.MagicWandTileLimit;
             e?.Player?.SendSuccessMessage("[WorldEdit] Successfully reloaded config.");
@@ -269,8 +270,12 @@ namespace WorldEdit
 				File.Create(lockFilePath).Close();
 			}
 
-			#region Commands
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.activate", Activate, "/activate")
+            #region Commands
+            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.admin", EditConfig, "/worldedit", "/wedit")
+            {
+                HelpText = "Edits config options."
+            });
+            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.activate", Activate, "/activate")
 			{
 				HelpText = "Activates non-working signs, chests or item frames."
 			});
@@ -660,6 +665,120 @@ namespace WorldEdit
 				}
 			}
 		}
+
+        private void EditConfig(CommandArgs e)
+        {
+            if (e.Parameters.Count < 1 || e.Parameters.Count > 2)
+            {
+                e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //worldedit <option> [value]");
+                e.Player.SendInfoMessage("Config options: MagicWandTileLimit (wand), MaxUndoCount (undocount),\n" +
+                    "DisableUndoSystemForUnrealPlayers (undodisable), StartSchematicNamesWithCreatorUserID (schematic)");
+                return;
+            }
+
+            switch (e.Parameters.ElementAtOrDefault(0).ToLower())
+            {
+                case "wand":
+                case "magicwandtilelimit":
+                    {
+                        if (e.Parameters.Count == 1)
+                        {
+                            e.Player.SendSuccessMessage($"Magic wand tile limit " +
+                                $"is {Config.MagicWandTileLimit}.");
+                            return;
+                        }
+
+                        if (!int.TryParse(e.Parameters[1], out int limit)
+                            || (limit < 0))
+                        {
+                            e.Player.SendErrorMessage("Invalid syntax! Proper syntax: " +
+                                "//worldedit <magicwandtilelimit/wand> <amount>");
+                            return;
+                        }
+
+                        Config.MagicWandTileLimit = limit;
+                        Config.Write(ConfigPath);
+                        e.Player.SendSuccessMessage($"Magic wand tile limit set to {limit}.");
+                        break;
+                    }
+                case "undocount":
+                case "maxundocount":
+                    {
+                        if (e.Parameters.Count == 1)
+                        {
+                            e.Player.SendSuccessMessage($"Max undo count " +
+                                $"is {Config.MaxUndoCount}.");
+                            return;
+                        }
+
+                        if (!int.TryParse(e.Parameters[1], out int count)
+                            || (count < 0))
+                        {
+                            e.Player.SendErrorMessage("Invalid syntax! Proper syntax: " +
+                                "//worldedit <maxundocount/undocount> <amount>");
+                            return;
+                        }
+
+                        Config.MaxUndoCount = count;
+                        Config.Write(ConfigPath);
+                        e.Player.SendSuccessMessage($"Max undo count set to {count}.");
+                        break;
+                    }
+                case "undodisable":
+                case "disableundosystemforunrealplayers":
+                    {
+                        if (e.Parameters.Count == 1)
+                        {
+                            e.Player.SendSuccessMessage($"Disable undo system for unreal players " +
+                                $"is {Config.DisableUndoSystemForUnrealPlayers}.");
+                            return;
+                        }
+
+                        if (!bool.TryParse(e.Parameters[1], out bool disable))
+                        {
+                            e.Player.SendErrorMessage("Invalid syntax! Proper syntax: " +
+                                "//worldedit <disableundosystemforunrealplayers/" +
+                                "undodisable> <true/false>");
+                            return;
+                        }
+
+                        Config.DisableUndoSystemForUnrealPlayers = disable;
+                        Config.Write(ConfigPath);
+                        e.Player.SendSuccessMessage($"Disable undo system for unreal players set to {disable}.");
+                        break;
+                    }
+                case "schematic":
+                case "startschematicnameswithcreatoruserid":
+                    {
+                        if (e.Parameters.Count == 1)
+                        {
+                            e.Player.SendSuccessMessage($"Start schematic names with creator user id " +
+                                $"is {Config.StartSchematicNamesWithCreatorUserID}.");
+                            return;
+                        }
+
+                        if (!bool.TryParse(e.Parameters[1], out bool start))
+                        {
+                            e.Player.SendErrorMessage("Invalid syntax! Proper syntax: " +
+                                "//worldedit <startschematicnameswithcreatoruserid/" +
+                                "schematic> <true/false>");
+                            return;
+                        }
+
+                        Config.StartSchematicNamesWithCreatorUserID = start;
+                        Config.Write(ConfigPath);
+                        e.Player.SendSuccessMessage($"Start schematic names with creator user id set to {start}.");
+                        break;
+                    }
+                default:
+                    {
+                        e.Player.SendErrorMessage("Config options: MagicWandTileLimit (wand), " +
+                            "MaxUndoCount (undocount),\nDisableUndoSystemForUnrealPlayers (undodisable), " +
+                            "StartSchematicNamesWithCreatorUserID (schematic)");
+                        return;
+                    }
+            }
+        }
 
 		private void Activate(CommandArgs e)
 		{
