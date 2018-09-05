@@ -17,6 +17,7 @@ namespace WorldEdit.Commands
 		public override void Execute()
 		{
             if (!CanUseCommand()) { return; }
+            Tools.PrepareUndo(x, y, x2, y2, plr);
             int noMsg = 0;
             #region Signs
 
@@ -117,7 +118,12 @@ namespace WorldEdit.Commands
                         {
                             int sensor = TELogicSensor.Place(i, j);
                             if (sensor == -1) failure++;
-                            else success++;
+                            else
+                            {
+                                ((TELogicSensor)TELogicSensor.ByID[sensor]).logicCheck =
+                                    (TELogicSensor.LogicCheckType)((Main.tile[i, j].frameY / 18) + 1);
+                                success++;
+                            }
                         }
                     }
                 }

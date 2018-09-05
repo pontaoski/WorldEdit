@@ -13,7 +13,7 @@ namespace WorldEdit.Commands
         Expression expression;
 
         public Move(int x, int y, int x2, int y2, MagicWand magicWand, TSPlayer plr, int down, int right, Expression expression)
-            : base(x, y, x2, y2, magicWand, plr, false)
+            : base(x, y, x2, y2, magicWand, plr)
         {
             this.down = down;
             this.right = right;
@@ -31,10 +31,10 @@ namespace WorldEdit.Commands
             { newY = Main.maxTilesY - Math.Abs(y - y2) - 1; }
             int newX2 = newX + Math.Abs(x - x2), newY2 = newY + Math.Abs(y - y2);
             
-            int tX = Math.Min(Math.Min(x, x2), Math.Min(newX, newX2));
-            int tY = Math.Min(Math.Min(y, y2), Math.Min(newY, newY2));
-            int tX2 = Math.Max(Math.Max(x, x2), Math.Max(newX, newX2));
-            int tY2 = Math.Max(Math.Max(y, y2), Math.Max(newY, newY2));
+            int tX = Math.Min(x, Math.Min(newX, newX2));
+            int tY = Math.Min(y, Math.Min(newY, newY2));
+            int tX2 = Math.Max(x2, Math.Max(newX, newX2));
+            int tY2 = Math.Max(y2, Math.Max(newY, newY2));
 
             if (!CanUseCommand(tX, tY, tX2, tY2)) { return; }
             Tools.PrepareUndo(tX, tY, tX2, tY2, plr);

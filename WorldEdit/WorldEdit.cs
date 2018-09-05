@@ -31,7 +31,7 @@ namespace WorldEdit
         public static readonly string ConfigPath = Path.Combine(WorldEditFolderName, "config.json");
         public static Config Config = new Config();
 
-		public static Dictionary<string, int[]> Biomes = new Dictionary<string, int[]>();
+		public static Dictionary<string, Commands.Biomes.Biome> Biomes = new Dictionary<string, Commands.Biomes.Biome>();
 		public static Dictionary<string, int> Colors = new Dictionary<string, int>();
 		public static IDbConnection Database;
 		public static Dictionary<string, Selection> Selections = new Dictionary<string, Selection>();
@@ -408,7 +408,7 @@ namespace WorldEdit
 			{
 				HelpText = "Rotates the worldedit clipboard."
 			});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.schematic", Schematic, "/schematic", "/schem", "sc")
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.schematic", Schematic, "/schematic", "/schem", "/sc", "sc")
 			{
 				HelpText = "Manages worldedit schematics."
 			});
@@ -472,7 +472,11 @@ namespace WorldEdit
 			{
 				HelpText = "Shifts the worldedit selection in a direction."
 			});
-			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.history.undo", Undo, "/undo")
+            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.text", Text, "/text")
+            {
+                HelpText = "Creates text with alphabet statues in the worldedit selection."
+            });
+            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.history.undo", Undo, "/undo")
 			{
 				HelpText = "Undoes a number of worldedit actions."
 			});
@@ -536,22 +540,24 @@ namespace WorldEdit
 				new SqlColumn("Account", MySqlDbType.Int32) { Primary = true },
 				new SqlColumn("RedoLevel", MySqlDbType.Int32),
 				new SqlColumn("UndoLevel", MySqlDbType.Int32)));
-			#endregion
+            #endregion
 
-			#region Biomes
-			// Format: dirt, stone, ice, sand, grass, plants, tall plants, vines, thorn
-
-			Biomes.Add("crimson", new[] { TileID.Dirt, TileID.Crimstone, TileID.FleshIce, TileID.Crimsand, TileID.FleshGrass, -1, -1, TileID.CrimsonVines, TileID.CorruptThorns });
-			Biomes.Add("corruption", new[] { TileID.Dirt, TileID.Ebonstone, TileID.CorruptIce, TileID.Ebonsand, TileID.CorruptGrass, TileID.CorruptPlants, -1, -1, TileID.CorruptThorns });
-			Biomes.Add("hallow", new[] { TileID.Dirt, TileID.Pearlstone, TileID.HallowedIce, TileID.Pearlsand, TileID.HallowedGrass, TileID.HallowedPlants, TileID.HallowedPlants2, TileID.Vines, -1 });
-			Biomes.Add("jungle", new int[] { TileID.Mud, TileID.Stone, TileID.IceBlock, TileID.Sand, TileID.JungleGrass, TileID.JunglePlants, TileID.JunglePlants2, TileID.JungleVines, TileID.JungleThorns });
-			Biomes.Add("mushroom", new[] { TileID.Mud, TileID.Stone, TileID.IceBlock, TileID.Sand, TileID.MushroomGrass, TileID.MushroomPlants, -1, -1, -1 });
-			Biomes.Add("normal", new[] { TileID.Dirt, TileID.Stone, TileID.IceBlock, TileID.Sand, TileID.Grass, TileID.Plants, TileID.Plants2, TileID.Vines, -1 });
-			Biomes.Add("forest", new[] { TileID.Dirt, TileID.Stone, TileID.IceBlock, TileID.Sand, TileID.Grass, TileID.Plants, TileID.Plants2, TileID.Vines, -1 });
-			Biomes.Add("snow", new[] { TileID.SnowBlock, TileID.IceBlock, TileID.IceBlock, TileID.Sand, TileID.SnowBlock, -1, -1, -1, -1 });
-			#endregion
-			#region Colors
-			Colors.Add("blank", 0);
+            #region Biomes
+            Biomes.Add("crimson", new Commands.Biomes.Crimson());
+            Biomes.Add("corruption", new Commands.Biomes.Corruption());
+            Biomes.Add("hallow", new Commands.Biomes.Hallow());
+            Biomes.Add("jungle", new Commands.Biomes.Jungle());
+            Biomes.Add("mushroom", new Commands.Biomes.Mushroom());
+            Biomes.Add("normal", new Commands.Biomes.Forest());
+            Biomes.Add("forest", new Commands.Biomes.Forest());
+            Biomes.Add("snow", new Commands.Biomes.Snow());
+            Biomes.Add("ice", new Commands.Biomes.Snow());
+            Biomes.Add("desert", new Commands.Biomes.Desert());
+            Biomes.Add("sand", new Commands.Biomes.Desert());
+            Biomes.Add("hell", new Commands.Biomes.Hell());
+            #endregion
+            #region Colors
+            Colors.Add("blank", 0);
 
 			Main.player[Main.myPlayer] = new Player();
 			var item = new Item();
@@ -650,9 +656,10 @@ namespace WorldEdit
 		{
 			while (!Netplay.disconnect)
 			{
+                WECommand command = null;
 				try
 				{
-					if (!_commandQueue.TryTake(out var command, -1, _cancel.Token))
+					if (!_commandQueue.TryTake(out command, -1, _cancel.Token))
 						return;
 					if (Main.rand == null)
 						Main.rand = new UnifiedRandom();
@@ -663,6 +670,13 @@ namespace WorldEdit
 				{
 					return;
 				}
+                catch (Exception e)
+                {
+                    TShock.Log.ConsoleError(e.ToString());
+                    TSPlayer plr = command?.plr;
+                    if (plr?.Active ?? false)
+                        plr.SendErrorMessage("WorldEdit command failed, check logs for more details.");
+                }
 			}
 		}
 
@@ -915,7 +929,7 @@ namespace WorldEdit
 			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
 				e.Player.SendErrorMessage("Invalid selection!");
 			else
-				_commandQueue.Add(new Copy(info.X, info.Y, info.X2, info.Y2, e.Player));
+				_commandQueue.Add(new Copy(info.X, info.Y, info.X2, info.Y2, e.Player, null));
 		}
 
 		private void Cut(CommandArgs e)
@@ -2101,6 +2115,66 @@ namespace WorldEdit
 						e.Player.SendSuccessMessage("Saved clipboard to schematic '{0}'.", name);
 					}
 					return;
+                case "cs":
+                case "copysave":
+                    {
+                        if (e.Player.User == null)
+                        {
+                            e.Player.SendErrorMessage("You have to be logged in to use this command.");
+                            return;
+                        }
+                        else if (!e.Player.HasPermission("worldedit.schematic.save"))
+                        {
+                            e.Player.SendErrorMessage("You do not have permission to save schematics.");
+                            return;
+                        }
+
+                        PlayerInfo info = e.Player.GetPlayerInfo();
+                        if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
+                        {
+                            e.Player.SendErrorMessage("Invalid selection!");
+                            return;
+                        }
+
+                        string _1 = e.Parameters.ElementAtOrDefault(1)?.ToLower();
+                        bool force = ((_1 == "-force") || (_1 == "-f"));
+                        string name = e.Parameters.ElementAtOrDefault(force ? 2 : 1);
+                        if (string.IsNullOrWhiteSpace(name))
+                        {
+                            e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //schematic copysave [-force/-f] <name>");
+                            return;
+                        }
+
+                        if (!Tools.IsCorrectName(name))
+                        {
+                            e.Player.SendErrorMessage("Name should not contain these symbols: \"{0}\".",
+                                string.Join("\", \"", Path.GetInvalidFileNameChars()));
+                            return;
+                        }
+
+                        if (Config.StartSchematicNamesWithCreatorUserID)
+                            name = $"{e.Player.User.ID}-{name}";
+
+                        var path = Path.Combine("worldedit", string.Format(fileFormat, name));
+
+                        if (File.Exists(path))
+                        {
+                            if (!e.Player.HasPermission("worldedit.schematic.overwrite"))
+                            {
+                                e.Player.SendErrorMessage("You do not have permission to overwrite schematics.");
+                                return;
+                            }
+                            else if (!force)
+                            {
+                                e.Player.SendErrorMessage($"Schematic '{name}' already exists, " +
+                                    $"write '//schematic copysave <-force/-f> {name}' to overwrite it.");
+                                return;
+                            }
+                        }
+
+                        _commandQueue.Add(new Copy(info.X, info.Y, info.X2, info.Y2, e.Player, path));
+                    }
+                    return;
                 case "p":
                 case "paste":
                     {
@@ -2183,6 +2257,10 @@ namespace WorldEdit
                                            + "/sc list [page]\n"
                                            + "/sc load/l <name>\n"
                                            + "/sc save/s <name>\n"
+                                           + (Config.StartSchematicNamesWithCreatorUserID
+                                           ? "/sc save/s id\n"
+                                           : "")
+                                           + "/sc copysave/cs <name>\n"
                                            + "/sc paste/p <name> [alignment] [-f] [=> boolean expr...]");
                     return;
 			}
@@ -2357,205 +2435,7 @@ namespace WorldEdit
 			}
 			_commandQueue.Add(new SetWire(info.X, info.Y, info.X2, info.Y2, info.MagicWand, e.Player, wire, state, expression));
 		}
-        /*
-        private void Shape(CommandArgs e)
-        {
-            string error = "Invalid syntax! Proper syntax: //shape [-filled/-f] " +
-                           "<line/l/rectangle/r/ellipse/e/itriangle/it/rtriangle/rt> " +
-                           "<tile> [=> boolean expr...]";
-            if (e.Parameters.Count < 2)
-            {
-                e.Player.SendErrorMessage(error);
-                return;
-            }
 
-            PlayerInfo info = e.Player.GetPlayerInfo();
-            if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
-            {
-                e.Player.SendErrorMessage("Invalid selection!");
-                return;
-            }
-
-            bool filled = false;
-            int typeparam = 0, type;
-            if (e.Parameters[typeparam].ToLower() == "-filled"
-                || e.Parameters[typeparam].ToLower() == "-f")
-            {
-                filled = true;
-                typeparam++;
-            }
-
-            if (e.Parameters.Count < typeparam + 2)
-            {
-                e.Player.SendErrorMessage(error);
-                return;
-            }
-
-            switch (e.Parameters[typeparam].ToLower())
-            {
-                case "l":
-                case "line":
-                    {
-                        type = 0;
-                        break;
-                    }
-                case "r":
-                case "rect":
-                case "rectangle":
-                    {
-                        type = 1;
-                        break;
-                    }
-                case "e":
-                case "ellipse":
-                    {
-                        type = 2;
-                        break;
-                    }
-                case "it":
-                case "itriangle":
-                case "isoscelestriangle":
-                    {
-                        type = 3;
-                        break;
-                    }
-                case "rt":
-                case "rtriangle":
-                case "righttriangle":
-                    {
-                        type = 4;
-                        break;
-                    }
-                default:
-                    {
-                        e.Player.SendErrorMessage("Invalid shape type! Allowed types: line/l, " +
-                            "rectangle/r, ellipse/e, isoscelestriangle/it, righttriangle/rt.");
-                        return;
-                    }
-            }
-
-            var tiles = Tools.GetTileID(e.Parameters[typeparam + 1].ToLowerInvariant());
-            if (tiles.Count == 0)
-            {
-                e.Player.SendErrorMessage("Invalid tile '{0}'!", e.Parameters[typeparam + 1]);
-                return;
-            }
-            else if (tiles.Count > 1)
-            {
-                e.Player.SendErrorMessage("More than one tile matched!");
-                return;
-            }
-
-            Expression expression = null;
-            if (e.Parameters.Count > typeparam + 2)
-            {
-                if (!Parser.TryParseTree(e.Parameters.Skip(typeparam + 2), out expression))
-                {
-                    e.Player.SendErrorMessage("Invalid expression!");
-                    return;
-                }
-            }
-        }
-
-        private void ShapeWall(CommandArgs e)
-        {
-            string error = "Invalid syntax! Proper syntax: //shapewall [-filled/-f] " +
-                           "<line/l/rectangle/r/ellipse/e/itriangle/it/rtriangle/rt> " +
-                           "<tile> [=> boolean expr...]";
-            if (e.Parameters.Count < 2)
-            {
-                e.Player.SendErrorMessage(error);
-                return;
-            }
-
-            PlayerInfo info = e.Player.GetPlayerInfo();
-            if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
-            {
-                e.Player.SendErrorMessage("Invalid selection!");
-                return;
-            }
-
-            bool filled = false;
-            int typeparam = 0, type;
-            if (e.Parameters[typeparam].ToLower() == "-filled"
-                || e.Parameters[typeparam].ToLower() == "-f")
-            {
-                filled = true;
-                typeparam++;
-            }
-
-            if (e.Parameters.Count < typeparam + 2)
-            {
-                e.Player.SendErrorMessage(error);
-                return;
-            }
-
-            switch (e.Parameters[typeparam].ToLower())
-            {
-                case "l":
-                case "line":
-                    {
-                        type = 0;
-                        break;
-                    }
-                case "r":
-                case "rect":
-                case "rectangle":
-                    {
-                        type = 1;
-                        break;
-                    }
-                case "e":
-                case "ellipse":
-                    {
-                        type = 2;
-                        break;
-                    }
-                case "it":
-                case "itriangle":
-                case "isoscelestriangle":
-                    {
-                        type = 3;
-                        break;
-                    }
-                case "rt":
-                case "rtriangle":
-                case "righttriangle":
-                    {
-                        type = 4;
-                        break;
-                    }
-                default:
-                    {
-                        e.Player.SendErrorMessage("Invalid shape type! Allowed types: line/l, " +
-                            "rectangle/r, ellipse/e, isoscelestriangle/it, righttriangle/rt.");
-                        return;
-                    }
-            }
-
-            var walls = Tools.GetWallID(e.Parameters[typeparam + 1].ToLowerInvariant());
-            if (walls.Count == 0)
-            {
-                e.Player.SendErrorMessage("Invalid wall '{0}'!", e.Parameters[typeparam + 1]);
-                return;
-            }
-            else if (walls.Count > 1)
-            {
-                e.Player.SendErrorMessage("More than one wall matched!");
-                return;
-            }
-
-            Expression expression = null;
-            if (e.Parameters.Count > typeparam + 2)
-            {
-                if (!Parser.TryParseTree(e.Parameters.Skip(typeparam + 2), out expression))
-                {
-                    e.Player.SendErrorMessage("Invalid expression!");
-                    return;
-                }
-            }
-        }
-        */
         private void Shape(CommandArgs e)
         {
             bool wall = false, filled = false;
@@ -3032,6 +2912,29 @@ namespace WorldEdit
 			}
 			e.Player.SendSuccessMessage("Shifted selection.");
 		}
+
+        private void Text(CommandArgs e)
+        {
+            if (e.Parameters.Count == 0)
+            {
+                e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //text <text> (\\n for new line)");
+                e.Player.SendInfoMessage("In the beginning of new line:");
+                e.Player.SendSuccessMessage("\\m for middle position\n" +
+                    "\\r for right position\n" +
+                    "\\s<num> (for example \\s3) for line spacing\n" +
+                    "\\c for cropped statue (2 blocks heigh, without stand)");
+                return;
+            }
+
+            PlayerInfo info = e.Player.GetPlayerInfo();
+            if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
+            {
+                e.Player.SendErrorMessage("Invalid selection!");
+                return;
+            }
+
+            _commandQueue.Add(new Text(info.X, info.Y, info.X2, info.Y2, e.Player, e.Message.Substring(5).TrimStart()));
+        }
 
 		private void Undo(CommandArgs e)
         {

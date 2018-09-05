@@ -31,7 +31,7 @@ namespace WorldEdit.Commands
             Tools.PrepareUndo(x, y, x2, y2, plr);
 
 			var tiles = WorldEdit.Biomes[grass];
-			ushort dirtType = (ushort)tiles[0], grassType = (ushort)tiles[4];
+			ushort dirtType = (ushort)tiles.Dirt, grassType = (ushort)tiles.Grass;
 
 			int edits = 0;
 			for (int i = x; i <= x2; i++)

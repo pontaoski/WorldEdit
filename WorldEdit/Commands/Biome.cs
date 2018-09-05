@@ -26,21 +26,10 @@ namespace WorldEdit.Commands
 				{
 					for (int j = y; j <= y2; j++)
 					{
-						var tile = Main.tile[i, j];
-						if (select(i, j, plr) && tile.active())
-						{
-							for (int k = 0; k < WorldEdit.Biomes[biome1].Length; k++)
-							{
-								int conv = WorldEdit.Biomes[biome1][k];
-								if ((conv >= 0 && tile.active() && tile.type == conv) ||
-									(conv == -1 && !tile.active()))
-								{
-									SetTile(i, j, WorldEdit.Biomes[biome2][k]);
-									edits++;
-									break;
-								}
-							}
-						}
+                        if (select(i, j, plr)
+                            && WorldEdit.Biomes[biome1].ConvertTile(Main.tile[i, j],
+                            WorldEdit.Biomes[biome2]))
+                        { edits++; }
 					}
 				}
 				ResetSection();

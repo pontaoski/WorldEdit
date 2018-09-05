@@ -66,6 +66,16 @@
   <ItemGroup>
     <Compile Include="Commands\Activate.cs" />
     <Compile Include="Commands\Actuator.cs" />
+    <Compile Include="Commands\Biomes\Biome.cs" />
+    <Compile Include="Commands\Biomes\Desert.cs" />
+    <Compile Include="Commands\Biomes\Hell.cs" />
+    <Compile Include="Commands\Biomes\Snow.cs" />
+    <Compile Include="Commands\Biomes\Mushroom.cs" />
+    <Compile Include="Commands\Biomes\Jungle.cs" />
+    <Compile Include="Commands\Biomes\Hallow.cs" />
+    <Compile Include="Commands\Biomes\Crimson.cs" />
+    <Compile Include="Commands\Biomes\Corruption.cs" />
+    <Compile Include="Commands\Biomes\Forest.cs" />
     <Compile Include="Commands\FixGhosts.cs" />
     <Compile Include="Commands\Inactive.cs" />
     <Compile Include="Commands\Biome.cs" />
@@ -98,6 +108,7 @@
     <Compile Include="Commands\SlopeDelete.cs" />
     <Compile Include="Commands\Smooth.cs" />
     <Compile Include="Commands\SPaste.cs" />
+    <Compile Include="Commands\Text.cs" />
     <Compile Include="Commands\Undo.cs" />
     <Compile Include="Commands\WECommand.cs" />
     <Compile Include="Config.cs" />

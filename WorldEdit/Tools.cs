@@ -10,6 +10,7 @@ using TShockAPI.DB;
 using Terraria.GameContent.Tile_Entities;
 using Terraria.DataStructures;
 using Microsoft.Xna.Framework;
+using Terraria.ID;
 
 namespace WorldEdit
 {
@@ -690,6 +691,16 @@ namespace WorldEdit
                             while (point.Y - e >= 1)
                             { addPoint(points, x1, y1, x2, y2, i, e++); }
                         }
+                        else
+                        {
+                            int a = y1 + ((y2 - y1) / 2) - j;
+                            if (a > 0)
+                            {
+                                int e = j;
+                                while (a-- >= 0)
+                                { addPoint(points, x1, y1, x2, y2, i, e++); }
+                            }
+                        }
                         addPoint(points, x1, y1, x2, y2, i, j);
                         break;
                     }
@@ -705,6 +716,139 @@ namespace WorldEdit
             points.Add(new WEPoint((short)i, (short)(y2 - j + y1)));
             points.Add(new WEPoint((short)(x2 - i + x1), (short)(y2 - j + y1)));
             points.Add(new WEPoint((short)i, (short)j));
+        }
+
+        public static WEPoint[,] CreateStatueText(string Text, int Width, int Height)
+        {
+            WEPoint[,] text = new WEPoint[Width, Height];
+            if (string.IsNullOrWhiteSpace(Text)) { return text; }
+            List<Tuple<WEPoint[,], int>> rows = new List<Tuple<WEPoint[,], int>>();
+            string[] sRows = Text.ToLower().Replace("\\n", "\n").Split('\n');
+            int height = 0;
+            for (int i = 0; i < sRows.Length; i++)
+            {
+                Tuple<WEPoint[,], int> row = CreateStatueRow(sRows[i], Width, i == 0);
+                if ((height += (row.Item1.GetLength(1) + row.Item2)) > Height) { break; }
+                rows.Add(row);
+            }
+
+            int y = 0;
+            foreach (Tuple<WEPoint[,], int> row in rows)
+            {
+                y += row.Item2;
+                int w = row.Item1.GetLength(0), h = row.Item1.GetLength(1);
+                for (int i = 0; i < w; i++)
+                {
+                    for (int j = 0; j < h; j++)
+                    {
+                        if (j + y > Height) { break; }
+                        text[i, j + y] = row.Item1[i, j];
+                    }
+                }
+                y += h;
+            }
+            return text;            
+        }
+
+        private static Tuple<WEPoint[,], int> CreateStatueRow(string Row, int Width, bool FirstRow)
+        {
+            Tuple<string, int, int, int> settings = RowSettings(Row, FirstRow);
+            WEPoint[,] text = new WEPoint[Width, settings.Item4];
+            List<char> letters = settings.Item1.ToCharArray().ToList();
+
+            int diff = (int)Math.Ceiling((letters.Count * 2 - Width) / 2d), x = 0;
+            if (diff > 0) { letters.RemoveRange(letters.Count - diff, diff); }
+
+            if (settings.Item2 == 1 && letters.Count * 2 <= Width)
+            { x = ((Width - (letters.Count * 2)) / 2); }
+            else if (settings.Item2 == 2 && letters.Count * 2 <= Width)
+            { x = (Width - (letters.Count * 2)); }
+
+            for (int k = 0; k < letters.Count; k++)
+            {
+                WEPoint[,] letter = CreateStatueLetter(letters[k]);
+                for (int i = 0; i < 2; i++)
+                {
+                    if (i + x > Width) { break; }
+                    for (int j = 0; j < settings.Item4; j++)
+                    { text[x, j] = letter[i, j]; }
+                    x++;
+                }
+            }
+            return new Tuple<WEPoint[,], int>(text, settings.Item3);
+        }
+
+        private static Tuple<string, int, int, int> RowSettings(string Row, bool FirstRow)
+        {
+            int style = 0, spacing = FirstRow ? 0 : 1, height = 3;
+            while (Row.StartsWith("\\") && Row.Length > 1)
+            {
+                switch (char.ToLower(Row[1]))
+                {
+                    case 'l':
+                        {
+                            style = 0;
+                            Row = Row.Substring(2);
+                            break;
+                        }
+                    case 'm':
+                        {
+                            style = 1;
+                            Row = Row.Substring(2);
+                            break;
+                        }
+                    case 'r':
+                        {
+                            style = 2;
+                            Row = Row.Substring(2);
+                            break;
+                        }
+                    case 'c':
+                        {
+                            height = 2;
+                            Row = Row.Substring(2);
+                            break;
+                        }
+                    case 's':
+                        {
+                            Row = Row.Substring(2);
+                            string num = "";
+                            int index = 0;
+                            while (Row.Length > index + 1)
+                            {
+                                if (char.IsDigit(Row[index]))
+                                { num += Row[index++]; }
+                                else { break; }
+                            }
+                            Row = Row.Substring(index);
+                            if (!int.TryParse(num, out spacing)
+                                || spacing < 0)
+                            { spacing = FirstRow ? 0 : 1; }
+                            break;
+                        }
+                }
+            }
+            return new Tuple<string, int, int, int>(Row, style, spacing, height);
+        }
+
+        private static WEPoint[,] CreateStatueLetter(char Letter)
+        {
+            WEPoint[,] letter = new WEPoint[2, 3];
+            short leftTop, a = 0;
+            if ((Letter > 47) && (Letter < 58))
+            { leftTop = (short)((Letter - 48) * 36); }
+            else if ((Letter > 96) && (Letter < 123))
+            { leftTop = (short)((Letter - 87) * 36); }
+            else { return letter; }
+            
+            for (short i = leftTop; i <= (leftTop + 18); i += 18)
+            {
+                int b = 0;
+                for (short j = 0; j <= 36; j += 18)
+                { letter[a, b++] = new WEPoint(i, j); }
+                a++;
+            }
+            return letter;
         }
     }
 }
