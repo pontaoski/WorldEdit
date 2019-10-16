@@ -58,20 +58,26 @@ namespace WorldEdit.Commands
 			}
 		}
 		public void ResetSection()
-		{
-			int lowX = Netplay.GetSectionX(Math.Min(x, x2));
-			int highX = Netplay.GetSectionX(Math.Max(x, x2));
-			int lowY = Netplay.GetSectionY(Math.Min(y, y2));
-			int highY = Netplay.GetSectionY(Math.Max(y, y2));
-			foreach (RemoteClient sock in Netplay.Clients.Where(s => s.IsActive))
-			{
-				for (int i = lowX; i <= highX; i++)
-				{
-					for (int j = lowY; j <= highY; j++)
-						sock.TileSections[i, j] = false;
-				}
-			}
-		}
+        {
+            int left = Math.Min(x, x2), right = Math.Max(x, x2);
+            int top = Math.Min(y, y2), bottom = Math.Max(y, y2);
+            int sX = Netplay.GetSectionX(left), sX2 = Netplay.GetSectionX(right);
+            int sY = Netplay.GetSectionY(top), sY2 = Netplay.GetSectionY(bottom);
+
+            int w = (right - left + 1), h = (bottom - top + 1);
+            bool SendWholeSections = ((w > 200) || (h > 150));
+
+            if (SendWholeSections)
+                foreach (RemoteClient sock in Netplay.Clients.Where(s => s.IsActive))
+                    for (int i = sX; i <= sX2; i++)
+                        for (int j = sY; j <= sY2; j++)
+                            sock.TileSections[i, j] = false;
+            else
+            {
+                NetMessage.SendData(10, -1, -1, null, left, top, w, h);
+                NetMessage.SendData(11, -1, -1, null, sX, sY, sX2, sY2);
+            }
+        }
 		public void SetTile(int i, int j, int tileType)
 		{
 			var tile = Main.tile[i, j];
