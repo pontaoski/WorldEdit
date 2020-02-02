@@ -207,18 +207,19 @@ namespace WorldEdit
                 writer.Write(targetDummy.X);
                 writer.Write(targetDummy.Y);
             }
-        }
+		}
 
-		public void Write(string filePath)
+		public void Write(Stream stream)
 		{
-			using (var writer =
-				new BinaryWriter(
-					new BufferedStream(
-						new GZipStream(File.Open(filePath, FileMode.Create), CompressionMode.Compress), Tools.BUFFER_SIZE)))
+			using (var writer = new BinaryWriter(new BufferedStream(new GZipStream(stream,
+				CompressionMode.Compress), Tools.BUFFER_SIZE)))
 			{
 				Write(writer);
 			}
 		}
+
+		public void Write(string filePath) =>
+			Write(File.Open(filePath, FileMode.Create));
 
 		public static BinaryWriter WriteHeader(string filePath, int x, int y, int width, int height)
 		{
