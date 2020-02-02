@@ -98,12 +98,10 @@ namespace WorldEdit
 
         #region LoadWorldSectionData
 
-        public static WorldSectionData LoadWorldData(string path)
+        public static WorldSectionData LoadWorldData(Stream stream)
         {
-            using (var reader =
-                new BinaryReader(
-                    new BufferedStream(
-                        new GZipStream(File.Open(path, FileMode.Open), CompressionMode.Decompress), BUFFER_SIZE)))
+            using (var reader = new BinaryReader(new BufferedStream(new GZipStream(stream,
+                CompressionMode.Decompress), BUFFER_SIZE)))
             {
                 var x = reader.ReadInt32();
                 var y = reader.ReadInt32();
@@ -165,6 +163,9 @@ namespace WorldEdit
                 return worldData;
             }
         }
+
+        public static WorldSectionData LoadWorldData(string path) =>
+            LoadWorldData(File.Open(path, FileMode.Open));
 
         private static Tile ReadTile(this BinaryReader reader)
         {
