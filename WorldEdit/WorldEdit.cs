@@ -261,7 +261,6 @@ namespace WorldEdit
 
 		private void OnInitialize(EventArgs e)
 		{
-            OnReload(null);
 			var lockFilePath = Path.Combine(WorldEditFolderName, "deleted.lock");
 
 			if (!Directory.Exists(WorldEditFolderName))
@@ -269,6 +268,7 @@ namespace WorldEdit
 				Directory.CreateDirectory(WorldEditFolderName);
 				File.Create(lockFilePath).Close();
 			}
+            OnReload(null);
 
             #region Commands
             TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.admin", EditConfig, "/worldedit", "/wedit")
