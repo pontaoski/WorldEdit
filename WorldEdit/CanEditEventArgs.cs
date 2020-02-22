@@ -1,9 +1,9 @@
-﻿using System.ComponentModel;
+﻿using System;
 using TShockAPI;
 
 namespace WorldEdit
 {
-    public class CanEditEventArgs : HandledEventArgs
+    public class CanEditEventArgs : EventArgs
 	{
 		public TSPlayer Player { get; }
 		public int X { get; }

@@ -134,7 +134,11 @@ namespace WorldEdit.Commands
 			CanEditEventArgs args = new CanEditEventArgs(plr, x, y, x2, y2);
 			WorldEdit.CanEdit.Invoke(args);
 			if (args.CanEdit.HasValue)
+			{
+				if (!args.CanEdit.Value)
+					plr.SendErrorMessage("You do not have permission to use this command in this area.");
 				return args.CanEdit.Value;
+			}
 
             if (plr.HasPermission("worldedit.usage.everywhere")) { return true; }
 
