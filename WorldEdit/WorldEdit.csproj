@@ -64,6 +64,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CanEditEventArgs.cs" />
     <Compile Include="Commands\Activate.cs" />
     <Compile Include="Commands\Actuator.cs" />
     <Compile Include="Commands\Biomes\Biome.cs" />

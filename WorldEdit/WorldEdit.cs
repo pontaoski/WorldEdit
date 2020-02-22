@@ -39,12 +39,21 @@ namespace WorldEdit
 		public static Dictionary<string, int> Walls = new Dictionary<string, int>();
 		public static Dictionary<string, int> Slopes = new Dictionary<string, int>();
 
+		public static readonly HandlerCollection<CanEditEventArgs> CanEdit;
+
 		public override string Author => "Nyx Studios, massive upgrade by Anzhelika";
 		private readonly CancellationTokenSource _cancel = new CancellationTokenSource();
 		private readonly BlockingCollection<WECommand> _commandQueue = new BlockingCollection<WECommand>();
 		public override string Description => "Adds commands for mass editing of blocks.";
 		public override string Name => "WorldEdit";
 		public override Version Version => Assembly.GetExecutingAssembly().GetName().Version;
+
+		static WorldEdit()
+		{
+			CanEdit = Activator.CreateInstance(typeof(HandlerCollection<CanEditEventArgs>),
+				BindingFlags.Instance | BindingFlags.NonPublic,
+				null, new object[] { "CanEditHook" }, null) as HandlerCollection<CanEditEventArgs>;
+		}
 
 		public WorldEdit(Main game) : base(game)
 		{

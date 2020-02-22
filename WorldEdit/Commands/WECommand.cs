@@ -131,6 +131,11 @@ namespace WorldEdit.Commands
         public bool CanUseCommand() => CanUseCommand(x, y, x2, y2);
         public bool CanUseCommand(int x, int y, int x2, int y2)
         {
+			CanEditEventArgs args = new CanEditEventArgs(plr, x, y, x2, y2);
+			WorldEdit.CanEdit.Invoke(args);
+			if (args.CanEdit.HasValue)
+				return args.CanEdit.Value;
+
             if (plr.HasPermission("worldedit.usage.everywhere")) { return true; }
 
             bool noRegion = plr.HasPermission("worldedit.usage.noregion");
