@@ -161,7 +161,135 @@ namespace WorldEdit.Commands
             }
 
             #endregion            
-            if (noMsg == 5)
+            #region WeaponRacks
+
+            if ((_action == 255) || (_action == 5))
+            {
+                int success = 0, failure = 0;
+                for (int i = x; i <= x2; i++)
+                {
+                    for (int j = y; j <= y2; j++)
+                    {
+                        if (Main.tile[i, j].type == TileID.WeaponsRack2
+                            && Main.tile[i, j].frameX % 54 == 0
+                            && Main.tile[i, j].frameY == 0
+                            && TEWeaponsRack.Find(i, j) == -1)
+                        {
+                            if (TEWeaponsRack.Place(i, j) == -1) failure++;
+                            else success++;
+                        }
+                    }
+                }
+                if (success > 0 || failure > 0)
+                    plr.SendSuccessMessage("Activated weapon racks. ({0}){1}", success,
+                        failure > 0 ? " Failed to activate weapon racks. (" + failure + ")" : "");
+                else noMsg++;
+            }
+
+            #endregion
+            #region Pylons
+
+            if ((_action == 255) || (_action == 6))
+            {
+                int success = 0, failure = 0;
+                for (int i = x; i <= x2; i++)
+                {
+                    for (int j = y; j <= y2; j++)
+                    {
+                        if (Main.tile[i, j].type == TileID.TeleportationPylon
+                            && Main.tile[i, j].frameX % 54 == 0
+                            && Main.tile[i, j].frameY == 0
+                            && TETeleportationPylon.Find(i, j) == -1)
+                        {
+                            if (TETeleportationPylon.Place(i, j) == -1) failure++;
+                            else success++;
+                        }
+                    }
+                }
+                if (success > 0 || failure > 0)
+                    plr.SendSuccessMessage("Activated pylons. ({0}){1}", success,
+                        failure > 0 ? " Failed to activate pylons. (" + failure + ")" : "");
+                else noMsg++;
+            }
+
+            #endregion
+            #region Mannequins
+
+            if ((_action == 255) || (_action == 7))
+            {
+                int success = 0, failure = 0;
+                for (int i = x; i <= x2; i++)
+                {
+                    for (int j = y; j <= y2; j++)
+                    {
+                        if (Main.tile[i, j].type == TileID.DisplayDoll
+                            && Main.tile[i, j].frameX % 36 == 0
+                            && Main.tile[i, j].frameY == 0
+                            && TEDisplayDoll.Find(i, j) == -1)
+                        {
+                            if (TEDisplayDoll.Place(i, j) == -1) failure++;
+                            else success++;
+                        }
+                    }
+                }
+                if (success > 0 || failure > 0)
+                    plr.SendSuccessMessage("Activated mannequins. ({0}){1}", success,
+                        failure > 0 ? " Failed to activate mannequins. (" + failure + ")" : "");
+                else noMsg++;
+            }
+
+            #endregion
+            #region HatRacks
+
+            if ((_action == 255) || (_action == 8))
+            {
+                int success = 0, failure = 0;
+                for (int i = x; i <= x2; i++)
+                {
+                    for (int j = y; j <= y2; j++)
+                    {
+                        if (Main.tile[i, j].type == TileID.HatRack
+                            && Main.tile[i, j].frameX % 54 == 0
+                            && Main.tile[i, j].frameY == 0
+                            && TEHatRack.Find(i, j) == -1)
+                        {
+                            if (TEHatRack.Place(i, j) == -1) failure++;
+                            else success++;
+                        }
+                    }
+                }
+                if (success > 0 || failure > 0)
+                    plr.SendSuccessMessage("Activated hat racks. ({0}){1}", success,
+                        failure > 0 ? " Failed to activate hat racks. (" + failure + ")" : "");
+                else noMsg++;
+            }
+
+            #endregion
+            #region FoodPlates
+
+            if ((_action == 255) || (_action == 9))
+            {
+                int success = 0, failure = 0;
+                for (int i = x; i <= x2; i++)
+                {
+                    for (int j = y; j <= y2; j++)
+                    {
+                        if (Main.tile[i, j].type == TileID.FoodPlatter
+                            && TEFoodPlatter.Find(i, j) == -1)
+                        {
+                            if (TEFoodPlatter.Place(i, j) == -1) failure++;
+                            else success++;
+                        }
+                    }
+                }
+                if (success > 0 || failure > 0)
+                    plr.SendSuccessMessage("Activated food plates. ({0}){1}", success,
+                        failure > 0 ? " Failed to activate food plates. (" + failure + ")" : "");
+                else noMsg++;
+            }
+
+            #endregion
+            if (noMsg == 10)
             { plr.SendSuccessMessage("There are no objects to activate in this area."); }
             ResetSection();
 		}

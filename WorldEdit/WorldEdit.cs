@@ -827,7 +827,7 @@ namespace WorldEdit
 		{
 			if (e.Parameters.Count != 1)
 			{
-				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //activate <sign/chest/itemframe/sensor/dummy/all>");
+				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //activate <sign/chest/itemframe/sensor/dummy/weaponrack/pylon/mannequin/hatrack/foodplate/all>");
 				return;
 			}
 
@@ -875,7 +875,41 @@ namespace WorldEdit
                     {
                         action = 4;
                         break;
-                    }
+					}
+				case "w":
+				case "weapon":
+				case "weaponrack":
+					{
+						action = 5;
+						break;
+					}
+				case "p":
+				case "pylon":
+					{
+						action = 6;
+						break;
+					}
+				case "m":
+				case "mannequin":
+					{
+						action = 7;
+						break;
+					}
+				case "h":
+				case "hat":
+				case "hatrack":
+					{
+						action = 8;
+						break;
+					}
+				case "f":
+				case "food":
+				case "plate":
+				case "foodplate":
+					{
+						action = 9;
+						break;
+					}
                 case "a":
                 case "all":
                     {
