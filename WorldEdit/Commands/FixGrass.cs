@@ -10,11 +10,13 @@ namespace WorldEdit.Commands
 		private static ushort[] grassTiles = new[]
 		{
 			TileID.CorruptGrass,
-			TileID.FleshGrass,
+			TileID.CrimsonGrass,
 			TileID.Grass,
 			TileID.HallowedGrass,
 			TileID.JungleGrass,
 			TileID.MushroomGrass,
+			TileID.GolfGrass,
+			TileID.GolfGrassHallowed
 		};
 
 		public FixGrass(int x, int y, int x2, int y2, TSPlayer plr)

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -148,13 +149,8 @@ namespace WorldEdit
             }
 		}
 
-		public void Write(BinaryWriter writer)
+		private void WriteInner(BinaryWriter writer)
 		{
-			writer.Write(X);
-			writer.Write(Y);
-			writer.Write(Width);
-			writer.Write(Height);
-
 			for (var i = 0; i < Width; i++)
 			{
 				for (var j = 0; j < Height; j++)
@@ -213,27 +209,40 @@ namespace WorldEdit
 
 		public void Write(Stream stream)
 		{
+			using (var writer = new BinaryWriter(stream, System.Text.Encoding.UTF8, true))
+				WriteHeader(writer);
 			using (var writer = new BinaryWriter(new BufferedStream(new GZipStream(stream,
-				CompressionMode.Compress), Tools.BUFFER_SIZE)))
-			{
-				Write(writer);
-			}
+					CompressionMode.Compress), Tools.BUFFER_SIZE)))
+				WriteInner(writer);
 		}
 
-		public void Write(string filePath) =>
-			Write(File.Open(filePath, FileMode.Create));
+		public void Write(string filePath)
+		{
+			using (var writer = WriteHeader(filePath, X, Y, Width, Height))
+				WriteInner(writer);
+		}
+
+		public void WriteHeader(BinaryWriter writer)
+		{
+			writer.Write(X);
+			writer.Write(Y);
+			writer.Write(Width);
+			writer.Write(Height);
+		}
 
 		public static BinaryWriter WriteHeader(string filePath, int x, int y, int width, int height)
 		{
-			var writer =
-				new BinaryWriter(
+			Stream stream = File.Open(filePath, FileMode.Create);
+			using (var writer = new BinaryWriter(stream, System.Text.Encoding.UTF8, true))
+			{
+				writer.Write(x);
+				writer.Write(y);
+				writer.Write(width);
+				writer.Write(height);
+			}
+			return new BinaryWriter(
 					new BufferedStream(
-						new GZipStream(File.Open(filePath, FileMode.Create), CompressionMode.Compress), Tools.BUFFER_SIZE));
-			writer.Write(x);
-			writer.Write(y);
-			writer.Write(width);
-			writer.Write(height);
-			return writer;
+						new GZipStream(stream, CompressionMode.Compress), Tools.BUFFER_SIZE));
 		}
 
         public struct TrainingDummyData

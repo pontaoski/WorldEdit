@@ -102,7 +102,7 @@ namespace WorldEdit.Commands
 			{
 				var tile = Main.tile[p.X, p.Y];
 				tile.wallColor((byte)color);
-				tile.wall = (byte)wallType;
+				tile.wall = (ushort)wallType;
 			}
 
 			ResetSection();

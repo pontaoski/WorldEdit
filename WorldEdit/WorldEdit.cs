@@ -47,7 +47,7 @@ namespace WorldEdit
 		public override string Description => "Adds commands for mass editing of blocks.";
 		public override string Name => "WorldEdit";
 		public override Version Version => Assembly.GetExecutingAssembly().GetName().Version;
-
+		public static WorldEdit Instance { get; private set; }
 		static WorldEdit()
 		{
 			CanEdit = Activator.CreateInstance(typeof(HandlerCollection<CanEditEventArgs>),
@@ -57,6 +57,7 @@ namespace WorldEdit
 
 		public WorldEdit(Main game) : base(game)
 		{
+			Instance = this;
 		}
 
 		protected override void Dispose(bool disposing)
@@ -64,6 +65,7 @@ namespace WorldEdit
 			if (disposing)
 			{
 				ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
+				ServerApi.Hooks.GamePostInitialize.Deregister(this, OnPostInitialize);
 				ServerApi.Hooks.NetGetData.Deregister(this, OnGetData);
                 TShockAPI.Hooks.GeneralHooks.ReloadEvent -= OnReload;
 
@@ -73,6 +75,7 @@ namespace WorldEdit
 		public override void Initialize()
 		{
 			ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
+			ServerApi.Hooks.GamePostInitialize.Register(this, OnPostInitialize);
 			ServerApi.Hooks.NetGetData.Register(this, OnGetData);
             TShockAPI.Hooks.GeneralHooks.ReloadEvent += OnReload;
 		}
@@ -268,23 +271,36 @@ namespace WorldEdit
 			}
 		}
 
+		private string lockFilePath_Update_1_4 = Path.Combine(WorldEditFolderName, "1.4.0.lock");
+		private void OnPostInitialize(EventArgs e)
+		{
+			if (!File.Exists(lockFilePath_Update_1_4))
+			{
+				foreach (string f in Directory.EnumerateFiles(WorldEditFolderName, "*.dat"))
+					Tools.Translate(f, true);
+				File.Create(lockFilePath_Update_1_4).Close();
+				TShock.Log.ConsoleInfo("WorldEdit updated undo/redo/clipboard/schematic files to Terraria v1.4.x.");
+				TShock.Log.ConsoleInfo("Do not delete 1.4.0.lock inside worldedit folder; this message will only show once.");
+			}
+		}
 		private void OnInitialize(EventArgs e)
 		{
-			var lockFilePath = Path.Combine(WorldEditFolderName, "deleted.lock");
+			var lockFilePathOldVersion = Path.Combine(WorldEditFolderName, "deleted.lock");
 
 			if (!Directory.Exists(WorldEditFolderName))
 			{
 				Directory.CreateDirectory(WorldEditFolderName);
-				File.Create(lockFilePath).Close();
+				File.Create(lockFilePathOldVersion).Close();
+				File.Create(lockFilePath_Update_1_4).Close();
 			}
-            OnReload(null);
+			OnReload(null);
 
-            #region Commands
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.admin", EditConfig, "/worldedit", "/wedit")
-            {
-                HelpText = "Edits config options."
-            });
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.activate", Activate, "/activate")
+			#region Commands
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.admin", EditConfig, "/worldedit", "/wedit")
+			{
+				HelpText = "Edits config options."
+			});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.activate", Activate, "/activate")
 			{
 				HelpText = "Activates non-working signs, chests or item frames."
 			});
@@ -308,15 +324,15 @@ namespace WorldEdit
 			{
 				HelpText = "Drains liquids in the worldedit selection."
 			});
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.fill", Fill, "/fill")
-            {
-                HelpText = "Fills the worldedit selection."
-            });
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.fillwall", FillWall, "/fillwall", "/fillw")
-            {
-                HelpText = "Fills the worldedit selection."
-            });
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.fixghosts", FixGhosts, "/fixghosts")
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.fill", Fill, "/fill")
+			{
+				HelpText = "Fills the worldedit selection."
+			});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.fillwall", FillWall, "/fillwall", "/fillw")
+			{
+				HelpText = "Fills the worldedit selection."
+			});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.fixghosts", FixGhosts, "/fixghosts")
 			{
 				HelpText = "Fixes invisible signs, chests and item frames."
 			});
@@ -340,19 +356,19 @@ namespace WorldEdit
 			{
 				HelpText = "Floods liquids in the worldedit selection."
 			});
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.magic.wand", MagicWandTool, "/magicwand", "/mwand")
-            {
-                HelpText = "Creates worldedit selection from contiguous tiles that are matching boolean expression."
-            });
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.killempty", KillEmpty, "/killempty")
-            {
-                HelpText = "Deletes empty signs and/or chests (only entities, doesn't remove tiles)."
-            });
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.move", Move, "/move")
-            {
-                HelpText = "Moves tiles from the worldedit selection to new area."
-            });
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.mow", Mow, "/mow")
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.magic.wand", MagicWandTool, "/magicwand", "/mwand")
+			{
+				HelpText = "Creates worldedit selection from contiguous tiles that are matching boolean expression."
+			});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.killempty", KillEmpty, "/killempty")
+			{
+				HelpText = "Deletes empty signs and/or chests (only entities, doesn't remove tiles)."
+			});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.move", Move, "/move")
+			{
+				HelpText = "Moves tiles from the worldedit selection to new area."
+			});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.mow", Mow, "/mow")
 			{
 				HelpText = "Mows grass, thorns, and vines in the worldedit selection."
 			});
@@ -381,11 +397,11 @@ namespace WorldEdit
 			{
 				HelpText = "Pastes the clipboard to the worldedit selection."
 			});
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.spaste", SPaste, "/spaste", "/sp")
-            {
-                HelpText = "Pastes the clipboard to the worldedit selection with certain conditions."
-            });
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", Point1, "/point1", "/p1", "p1")
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.spaste", SPaste, "/spaste", "/sp")
+			{
+				HelpText = "Pastes the clipboard to the worldedit selection with certain conditions."
+			});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.point", Point1, "/point1", "/p1", "p1")
 			{
 				HelpText = "Sets the positions of the worldedit selection's first point."
 			});
@@ -401,15 +417,15 @@ namespace WorldEdit
 			{
 				HelpText = "Selects a region as a worldedit selection."
 			});
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.replace", Replace, "/replace", "/rep")
-            {
-                HelpText = "Replaces tiles in the worldedit selection."
-            });
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.replacewall", ReplaceWall, "/replacewall", "/repw")
-            {
-                HelpText = "Replaces walls in the worldedit selection."
-            });
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.resize", Resize, "/resize")
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.replace", Replace, "/replace", "/rep")
+			{
+				HelpText = "Replaces tiles in the worldedit selection."
+			});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.replacewall", ReplaceWall, "/replacewall", "/repw")
+			{
+				HelpText = "Replaces walls in the worldedit selection."
+			});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.resize", Resize, "/resize")
 			{
 				HelpText = "Resizes the worldedit selection in a direction."
 			});
@@ -441,27 +457,27 @@ namespace WorldEdit
 			{
 				HelpText = "Sets wires in the worldedit selection."
 			});
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.shape", Shape, "/shape")
-            {
-                HelpText = "Draws line/rectangle/ellipse/triangle in the worldedit selection."
-            });
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.shape", Shape, "/shapefill", "/shapef")
-            {
-                HelpText = "Draws line/rectangle/ellipse/triangle in the worldedit selection."
-            });
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.shape", Shape, "/shapewall", "/shapew")
-            {
-                HelpText = "Draws line/rectangle/ellipse/triangle in the worldedit selection."
-            });
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.shape", Shape, "/shapewallfill", "/shapewf")
-            {
-                HelpText = "Draws line/rectangle/ellipse/triangle in the worldedit selection."
-            });
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.size", Size, "/size")
-            {
-                HelpText = "Shows size of clipboard or schematic."
-            });
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.slope", Slope, "/slope")
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.shape", Shape, "/shape")
+			{
+				HelpText = "Draws line/rectangle/ellipse/triangle in the worldedit selection."
+			});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.shape", Shape, "/shapefill", "/shapef")
+			{
+				HelpText = "Draws line/rectangle/ellipse/triangle in the worldedit selection."
+			});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.shape", Shape, "/shapewall", "/shapew")
+			{
+				HelpText = "Draws line/rectangle/ellipse/triangle in the worldedit selection."
+			});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.shape", Shape, "/shapewallfill", "/shapewf")
+			{
+				HelpText = "Draws line/rectangle/ellipse/triangle in the worldedit selection."
+			});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.utils.size", Size, "/size")
+			{
+				HelpText = "Shows size of clipboard or schematic."
+			});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.slope", Slope, "/slope")
 			{
 				HelpText = "Slopes tiles in the worldedit selection."
 			});
@@ -481,11 +497,11 @@ namespace WorldEdit
 			{
 				HelpText = "Shifts the worldedit selection in a direction."
 			});
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.text", Text, "/text")
-            {
-                HelpText = "Creates text with alphabet statues in the worldedit selection."
-            });
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.history.undo", Undo, "/undo")
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.selection.text", Text, "/text")
+			{
+				HelpText = "Creates text with alphabet statues in the worldedit selection."
+			});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.history.undo", Undo, "/undo")
 			{
 				HelpText = "Undoes a number of worldedit actions."
 			});
@@ -493,13 +509,13 @@ namespace WorldEdit
 			{
 				HelpText = "Scale the clipboard"
 			});
-            TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.actuator", Actuator, "/actuator")
-            {
-                HelpText = "Sets actuators in the worldedit selection."
-            });
-            #endregion
-            #region Database
-            switch (TShock.Config.StorageType.ToLowerInvariant())
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.actuator", Actuator, "/actuator")
+			{
+				HelpText = "Sets actuators in the worldedit selection."
+			});
+			#endregion
+			#region Database
+			switch (TShock.Config.StorageType.ToLowerInvariant())
 			{
 				case "mysql":
 					string[] host = TShock.Config.MySqlHost.Split(':');
@@ -520,8 +536,8 @@ namespace WorldEdit
 			}
 
 			#region Old Version Support
-			
-			if (!File.Exists(lockFilePath))
+
+			if (!File.Exists(lockFilePathOldVersion))
 			{
 				Database.Query("DROP TABLE WorldEdit");
 				foreach (var file in Directory.EnumerateFiles(WorldEditFolderName, "undo-*.dat"))
@@ -536,7 +552,7 @@ namespace WorldEdit
 				{
 					File.Delete(file);
 				}
-				File.Create(lockFilePath).Close();
+				File.Create(lockFilePathOldVersion).Close();
 				TShock.Log.ConsoleInfo("WorldEdit doesn't support undo/redo/clipboard files that were saved by plugin below version 1.7.");
 				TShock.Log.ConsoleInfo("These files had been deleted. However, we still support old schematic files (*.dat)");
 				TShock.Log.ConsoleInfo("Do not delete deteted.lock inside worldedit folder; this message will only show once.");
@@ -549,7 +565,7 @@ namespace WorldEdit
 				new SqlColumn("Account", MySqlDbType.Int32) { Primary = true },
 				new SqlColumn("RedoLevel", MySqlDbType.Int32),
 				new SqlColumn("UndoLevel", MySqlDbType.Int32)));
-            #endregion
+			#endregion
 
             #region Biomes
             Biomes.Add("crimson", new Commands.Biomes.Crimson());
@@ -617,6 +633,8 @@ namespace WorldEdit
 
 			foreach (var fi in typeof(TileID).GetFields())
 			{
+				if (!(fi.GetValue(null) is ushort id) || (id < 0) || (id >= Main.maxTileSets))
+					continue;
 				string name = fi.Name;
 				var sb = new StringBuilder();
 				for (int i = 0; i < name.Length; i++)
@@ -626,7 +644,7 @@ namespace WorldEdit
 					else
 						sb.Append(name[i]);
 				}
-				Tiles.Add(sb.ToString(1, sb.Length - 1), (ushort)fi.GetValue(null));
+				Tiles.Add(sb.ToString(1, sb.Length - 1), id);
 			}
 			#endregion
 			#region Walls
@@ -634,6 +652,8 @@ namespace WorldEdit
 
 			foreach (var fi in typeof(WallID).GetFields())
 			{
+				if (!(fi.GetValue(null) is ushort id) || (id < 0) || (id >= Main.maxWallTypes))
+					continue;
 				string name = fi.Name;
 				var sb = new StringBuilder();
 				for (int i = 0; i < name.Length; i++)
@@ -643,7 +663,7 @@ namespace WorldEdit
 					else
 						sb.Append(name[i]);
 				}
-				Walls.Add(sb.ToString(1, sb.Length - 1), (byte)fi.GetValue(null));
+				Walls.Add(sb.ToString(1, sb.Length - 1), id);
 			}
 			#endregion
 			#region Slopes
@@ -663,7 +683,7 @@ namespace WorldEdit
 
 		private void QueueCallback(object context)
 		{
-			while (!Netplay.disconnect)
+			while (!Netplay.Disconnect)
 			{
                 WECommand command = null;
 				try
@@ -943,7 +963,7 @@ namespace WorldEdit
 
 		private void Cut(CommandArgs e)
 		{
-            if (e.Player.User == null)
+            if (e.Player.Account == null)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -1107,14 +1127,14 @@ namespace WorldEdit
 
 		private void Flip(CommandArgs e)
         {
-            if (e.Player.User == null)
+            if (e.Player.Account == null)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
             }
             if (e.Parameters.Count != 1)
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //flip <direction>");
-			else if (!Tools.HasClipboard(e.Player.User.ID))
+			else if (!Tools.HasClipboard(e.Player.Account.ID))
 				e.Player.SendErrorMessage("Invalid clipboard!");
 			else
 			{
@@ -1466,7 +1486,7 @@ namespace WorldEdit
 
 		private void Paste(CommandArgs e)
         {
-            if (e.Player.User == null)
+            if (e.Player.Account == null)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -1475,7 +1495,7 @@ namespace WorldEdit
 			e.Player.SendInfoMessage("X: {0}, Y: {1}", info.X, info.Y);
 			if (info.X == -1 || info.Y == -1)
 				e.Player.SendErrorMessage("Invalid first point!");
-			else if (!Tools.HasClipboard(e.Player.User.ID))
+			else if (!Tools.HasClipboard(e.Player.Account.ID))
 				e.Player.SendErrorMessage("Invalid clipboard!");
 			else
 			{
@@ -1524,13 +1544,13 @@ namespace WorldEdit
                         }
                     }
                 }
-                _commandQueue.Add(new Paste(info.X, info.Y, e.Player, Tools.GetClipboardPath(e.Player.User.ID), alignment, expression, mode_MainBlocks, true));
+                _commandQueue.Add(new Paste(info.X, info.Y, e.Player, Tools.GetClipboardPath(e.Player.Account.ID), alignment, expression, mode_MainBlocks, true));
 			}
         }
 
         private void SPaste(CommandArgs e)
         {
-            if (e.Player.User == null)
+            if (e.Player.Account == null)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -1539,7 +1559,7 @@ namespace WorldEdit
             e.Player.SendInfoMessage("X: {0}, Y: {1}", info.X, info.Y);
             if (info.X == -1 || info.Y == -1)
                 e.Player.SendErrorMessage("Invalid first point!");
-            else if (!Tools.HasClipboard(e.Player.User.ID))
+            else if (!Tools.HasClipboard(e.Player.Account.ID))
                 e.Player.SendErrorMessage("Invalid clipboard!");
             else if (e.Parameters.Count < 1)
                 e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //spaste [alignment] [-flag -flag ...] [=> boolean expr...]");
@@ -1677,7 +1697,7 @@ namespace WorldEdit
 
 		private void Redo(CommandArgs e)
         {
-            if (e.Player.User == null)
+            if (e.Player.Account == null)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -1689,7 +1709,7 @@ namespace WorldEdit
 			}
 
 			int steps = 1;
-			int ID = e.Player.User.ID;
+			int ID = e.Player.Account.ID;
 			if (e.Parameters.Count > 0 && (!int.TryParse(e.Parameters[0], out steps) || steps <= 0))
 				e.Player.SendErrorMessage("Invalid redo steps '{0}'!", e.Parameters[0]);
 			else
@@ -1701,7 +1721,7 @@ namespace WorldEdit
                         e.Player.SendErrorMessage("You do not have permission to redo other player's actions.");
                         return;
                     }
-                    User User = TShock.Users.GetUserByName(e.Parameters[1]);
+					UserAccount User = TShock.UserAccounts.GetUserAccountByName(e.Parameters[1]);
 					if (User == null)
 					{
 						e.Player.SendErrorMessage("Invalid account name!");
@@ -1909,7 +1929,7 @@ namespace WorldEdit
 
 		private void Rotate(CommandArgs e)
         {
-            if (e.Player.User == null)
+            if (e.Player.Account == null)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -1919,7 +1939,7 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //rotate <angle>");
 				return;
 			}
-			if (!Tools.HasClipboard(e.Player.User.ID))
+			if (!Tools.HasClipboard(e.Player.Account.ID))
 			{
 				e.Player.SendErrorMessage("Invalid clipboard!");
 				return;
@@ -1934,7 +1954,7 @@ namespace WorldEdit
 
 		private void Scale(CommandArgs e)
         {
-            if (e.Player.User == null)
+            if (e.Player.Account == null)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -1944,7 +1964,7 @@ namespace WorldEdit
 				e.Player.SendErrorMessage("Invalid syntax! Proper syntax: //scale <+/-> <amount>");
 				return;
 			}
-			if (!Tools.HasClipboard(e.Player.User.ID))
+			if (!Tools.HasClipboard(e.Player.Account.ID))
 			{
 				e.Player.SendErrorMessage("Invalid clipboard!");
 				return;
@@ -1964,6 +1984,25 @@ namespace WorldEdit
 			string subCmd = e.Parameters.Count == 0 ? "help" : e.Parameters[0].ToLowerInvariant();
 			switch (subCmd)
 			{
+				case "to1.4":
+				case "translate1.4":
+					{
+						if (!e.Player.HasPermission("worldedit.schematic.translate"))
+						{
+							e.Player.SendErrorMessage("You do not have permission to translate schematics.");
+							return;
+						}
+
+						string path = Path.Combine(WorldEditFolderName, string.Format(fileFormat, e.Parameters[1]));
+
+						if (!File.Exists(path))
+							e.Player.SendErrorMessage("Invalid schematic '{0}'!", e.Parameters[1]);
+						else if (!Tools.Translate(path, true))
+							e.Player.SendErrorMessage("Could not translate schematic. Check logs for more info.");
+						else
+							e.Player.SendSuccessMessage("Translated schematic '{0}'.", e.Parameters[1]);
+					}
+				return;
 				case "del":
 				case "delete":
                     {
@@ -2017,7 +2056,7 @@ namespace WorldEdit
 				case "l":
 				case "load":
                     {
-                        if (e.Player.User == null)
+                        if (e.Player.Account == null)
                         {
                             e.Player.SendErrorMessage("You have to be logged in to use this command.");
                             return;
@@ -2030,7 +2069,7 @@ namespace WorldEdit
 
 						var path = Path.Combine("worldedit", string.Format(fileFormat, e.Parameters[1]));
 
-						var clipboard = Tools.GetClipboardPath(e.Player.User.ID);
+						var clipboard = Tools.GetClipboardPath(e.Player.Account.ID);
 
 						if (File.Exists(path))
 						{
@@ -2048,7 +2087,7 @@ namespace WorldEdit
 				case "s":
 				case "save":
                     {
-                        if (e.Player.User == null)
+                        if (e.Player.Account == null)
                         {
                             e.Player.SendErrorMessage("You have to be logged in to use this command.");
                             return;
@@ -2063,8 +2102,8 @@ namespace WorldEdit
                         {
                             string uname = (e.Parameters.Count > 2)
                                                 ? e.Parameters[2]
-                                                : e.Player.User.Name;
-                            User user = TShock.Users.GetUserByName(uname);
+                                                : e.Player.Account.Name;
+							UserAccount user = TShock.UserAccounts.GetUserAccountByName(uname);
                             if (user == null)
                             {
                                 e.Player.SendErrorMessage($"Invalid user '{uname}'!");
@@ -2084,7 +2123,7 @@ namespace WorldEdit
 							return;
 						}
 
-						string clipboard = Tools.GetClipboardPath(e.Player.User.ID);
+						string clipboard = Tools.GetClipboardPath(e.Player.Account.ID);
 
 						if (!File.Exists(clipboard))
 						{
@@ -2100,7 +2139,7 @@ namespace WorldEdit
 						}
 
                         if (Config.StartSchematicNamesWithCreatorUserID)
-                            name = $"{e.Player.User.ID}-{name}";
+                            name = $"{e.Player.Account.ID}-{name}";
 
 						var path = Path.Combine("worldedit", string.Format(fileFormat, name));
 
@@ -2127,7 +2166,7 @@ namespace WorldEdit
                 case "cs":
                 case "copysave":
                     {
-                        if (e.Player.User == null)
+                        if (e.Player.Account == null)
                         {
                             e.Player.SendErrorMessage("You have to be logged in to use this command.");
                             return;
@@ -2162,7 +2201,7 @@ namespace WorldEdit
                         }
 
                         if (Config.StartSchematicNamesWithCreatorUserID)
-                            name = $"{e.Player.User.ID}-{name}";
+                            name = $"{e.Player.Account.ID}-{name}";
 
                         var path = Path.Combine("worldedit", string.Format(fileFormat, name));
 
@@ -2270,7 +2309,8 @@ namespace WorldEdit
                                            ? "/sc save/s id\n"
                                            : "")
                                            + "/sc copysave/cs <name>\n"
-                                           + "/sc paste/p <name> [alignment] [-f] [=> boolean expr...]");
+                                           + "/sc paste/p <name> [alignment] [-f] [=> boolean expr...]\n"
+										   + "/sc translate1.4/to1.4 <name>");
                     return;
 			}
 		}
@@ -2685,13 +2725,13 @@ namespace WorldEdit
                 case "c":
                 case "clipboard":
                     {
-                        if (e.Player.User == null)
+                        if (e.Player.Account == null)
                         {
                             e.Player.SendErrorMessage("You have to be logged in to use this command.");
                             return;
                         }
 
-                        User user = e.Player.User;
+                        UserAccount user = e.Player.Account;
                         if (e.Parameters.Count > 1)
                         {
                             if (!e.Player.HasPermission("worldedit.usage.otheraccounts"))
@@ -2699,7 +2739,7 @@ namespace WorldEdit
                                 e.Player.SendErrorMessage("You do not have permission to view other player's clipboards.");
                                 return;
                             }
-                            user = TShock.Users.GetUserByName(e.Parameters[1]);
+                            user = TShock.UserAccounts.GetUserAccountByName(e.Parameters[1]);
                             if (user == null)
                             {
                                 e.Player.SendErrorMessage("Invalid account name!");
@@ -2713,9 +2753,8 @@ namespace WorldEdit
                             return;
                         }
 
-                        WorldSectionData data = Tools.LoadWorldData(Tools.GetClipboardPath(user.ID));
-                        e.Player.SendSuccessMessage($"{user.Name}'s clipboard size: " +
-                            $"{data.Tiles.GetLength(0) - 1}x{data.Tiles.GetLength(1) - 1}.");
+						Rectangle size = Tools.ReadSize(Tools.GetClipboardPath(user.ID));
+                        e.Player.SendSuccessMessage($"{user.Name}'s clipboard size: {size.Width}x{size.Height}.");
                         break;
                     }
                 case "s":
@@ -2733,10 +2772,9 @@ namespace WorldEdit
                             e.Player.SendErrorMessage("Invalid schematic '{0}'!", e.Parameters[1]);
                             return;
                         }
-
-                        WorldSectionData data = Tools.LoadWorldData(path);
-                        e.Player.SendSuccessMessage($"Schematic's size ('{e.Parameters[1]}'): " +
-                            $"{data.Tiles.GetLength(0) - 1}x{data.Tiles.GetLength(1) - 1}.");
+						
+						Rectangle size = Tools.ReadSize(path);
+                        e.Player.SendSuccessMessage($"Schematic's size ('{e.Parameters[1]}'): {size.Width}x{size.Height}.");
                         break;
                     }
                 default:
@@ -2947,7 +2985,7 @@ namespace WorldEdit
 
 		private void Undo(CommandArgs e)
         {
-            if (e.Player.User == null)
+            if (e.Player.Account == null)
             {
                 e.Player.SendErrorMessage("You have to be logged in to use this command.");
                 return;
@@ -2959,7 +2997,7 @@ namespace WorldEdit
 			}
 
 			int steps = 1;
-			int ID = e.Player.User.ID;
+			int ID = e.Player.Account.ID;
 			if (e.Parameters.Count > 0 && (!int.TryParse(e.Parameters[0], out steps) || steps <= 0))
 				e.Player.SendErrorMessage("Invalid undo steps '{0}'!", e.Parameters[0]);
 			else if (e.Parameters.Count > 1)
@@ -2969,7 +3007,7 @@ namespace WorldEdit
                     e.Player.SendErrorMessage("You do not have permission to undo other player's actions.");
                     return;
                 }
-                User User = TShock.Users.GetUserByName(e.Parameters[1]);
+				UserAccount User = TShock.UserAccounts.GetUserAccountByName(e.Parameters[1]);
 				if (User == null)
 				{
 					e.Player.SendErrorMessage("Invalid account name!");
