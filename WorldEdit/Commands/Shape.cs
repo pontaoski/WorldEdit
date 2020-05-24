@@ -59,7 +59,7 @@ namespace WorldEdit.Commands
                                 if (Tools.CanSet(false, Main.tile[p.X, p.Y], materialType,
                                     select, expression, magicWand, p.X, p.Y, plr))
                                 {
-                                    Main.tile[p.X, p.Y].wall = (byte)materialType;
+                                    Main.tile[p.X, p.Y].wall = (ushort)materialType;
                                     edits++;
                                 }
                             }
@@ -95,7 +95,7 @@ namespace WorldEdit.Commands
                                         select, expression, magicWand, i, j, plr)
                                         && (filled ? true : WorldEdit.Selections["border"](i, j, plr)))
                                     {
-                                        Main.tile[i, j].wall = (byte)materialType;
+                                        Main.tile[i, j].wall = (ushort)materialType;
                                         edits++;
                                     }
                                 }
@@ -139,7 +139,7 @@ namespace WorldEdit.Commands
                                             select, expression, magicWand, i, j, plr)
                                             && WorldEdit.Selections["ellipse"](i, j, plr))
                                         {
-                                            Main.tile[i, j].wall = (byte)materialType;
+                                            Main.tile[i, j].wall = (ushort)materialType;
                                             edits++;
                                         }
                                     }
@@ -176,7 +176,7 @@ namespace WorldEdit.Commands
                                     if (Tools.CanSet(false, Main.tile[p.X, p.Y], materialType,
                                         select, expression, magicWand, p.X, p.Y, plr))
                                     {
-                                        Main.tile[p.X, p.Y].wall = (byte)materialType;
+                                        Main.tile[p.X, p.Y].wall = (ushort)materialType;
                                         edits++;
                                     }
                                 }
@@ -411,7 +411,7 @@ namespace WorldEdit.Commands
                                                     if (Tools.CanSet(false, Main.tile[p.X, y], materialType,
                                                         select, expression, magicWand, p.X, y, plr))
                                                     {
-                                                        Main.tile[p.X, y].wall = (byte)materialType;
+                                                        Main.tile[p.X, y].wall = (ushort)materialType;
                                                         edits++;
                                                     }
                                                 }
@@ -451,7 +451,7 @@ namespace WorldEdit.Commands
                                                     if (Tools.CanSet(false, Main.tile[p.X, y], materialType,
                                                         select, expression, magicWand, p.X, y, plr))
                                                     {
-                                                        Main.tile[p.X, y].wall = (byte)materialType;
+                                                        Main.tile[p.X, y].wall = (ushort)materialType;
                                                         edits++;
                                                     }
                                                 }
@@ -491,7 +491,7 @@ namespace WorldEdit.Commands
                                                     if (Tools.CanSet(false, Main.tile[x, p.Y], materialType,
                                                         select, expression, magicWand, x, p.Y, plr))
                                                     {
-                                                        Main.tile[x, p.Y].wall = (byte)materialType;
+                                                        Main.tile[x, p.Y].wall = (ushort)materialType;
                                                         edits++;
                                                     }
                                                 }
@@ -531,7 +531,7 @@ namespace WorldEdit.Commands
                                                     if (Tools.CanSet(false, Main.tile[x, p.Y], materialType,
                                                         select, expression, magicWand, x, p.Y, plr))
                                                     {
-                                                        Main.tile[x, p.Y].wall = (byte)materialType;
+                                                        Main.tile[x, p.Y].wall = (ushort)materialType;
                                                         edits++;
                                                     }
                                                 }
@@ -572,7 +572,7 @@ namespace WorldEdit.Commands
                                     if (Tools.CanSet(false, Main.tile[p.X, p.Y], materialType,
                                         select, expression, magicWand, p.X, p.Y, plr))
                                     {
-                                        Main.tile[p.X, p.Y].wall = (byte)materialType;
+                                        Main.tile[p.X, p.Y].wall = (ushort)materialType;
                                         edits++;
                                     }
                                 }
@@ -584,7 +584,7 @@ namespace WorldEdit.Commands
                                         if (Tools.CanSet(true, Main.tile[x, y], materialType,
                                             select, expression, magicWand, x, y, plr))
                                         {
-                                            Main.tile[x, y].wall = (byte)materialType;
+                                            Main.tile[x, y].wall = (ushort)materialType;
                                             edits++;
                                         }
                                     }
@@ -599,7 +599,7 @@ namespace WorldEdit.Commands
                                             if (Tools.CanSet(true, Main.tile[x, y], materialType,
                                                 select, expression, magicWand, x, y, plr))
                                             {
-                                                Main.tile[x, y].wall = (byte)materialType;
+                                                Main.tile[x, y].wall = (ushort)materialType;
                                                 edits++;
                                             }
                                         }

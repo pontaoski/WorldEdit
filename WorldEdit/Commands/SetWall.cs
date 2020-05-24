@@ -28,7 +28,7 @@ namespace WorldEdit.Commands
 					if (Tools.CanSet(false, Main.tile[i, j], wallType,
                         select, expression, magicWand, i, j, plr))
                     {
-                        Main.tile[i, j].wall = (byte)wallType;
+                        Main.tile[i, j].wall = (ushort)wallType;
 						edits++;
 					}
 				}

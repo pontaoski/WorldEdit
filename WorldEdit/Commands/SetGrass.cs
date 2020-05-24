@@ -1,4 +1,5 @@
-﻿using Terraria;
+﻿using System.Linq;
+using Terraria;
 using TShockAPI;
 using WorldEdit.Expressions;
 
@@ -31,7 +32,7 @@ namespace WorldEdit.Commands
             Tools.PrepareUndo(x, y, x2, y2, plr);
 
 			var tiles = WorldEdit.Biomes[grass];
-			ushort dirtType = (ushort)tiles.Dirt, grassType = (ushort)tiles.Grass;
+			ushort dirtType = (ushort)tiles.Dirt, grassType = (ushort)tiles.Grass.First();
 
 			int edits = 0;
 			for (int i = x; i <= x2; i++)

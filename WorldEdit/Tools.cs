@@ -11,6 +11,7 @@ using Terraria.GameContent.Tile_Entities;
 using Terraria.DataStructures;
 using Microsoft.Xna.Framework;
 using Terraria.ID;
+using System.Threading;
 
 namespace WorldEdit
 {
@@ -18,6 +19,30 @@ namespace WorldEdit
     {
         internal const int BUFFER_SIZE = 1048576;
         internal static int MAX_UNDOS;
+
+        private static int TranslateTempCounter = 0;
+        private static Random rnd = new Random();
+        public static bool Translate(string path, bool logError, string tempCopyPath = null)
+        {
+            string tempPath = tempCopyPath ?? Path.Combine(WorldEdit.WorldEditFolderName,
+                $"temp-{rnd.Next()}-{Interlocked.Increment(ref TranslateTempCounter)}.dat");
+            File.Copy(path, tempPath, true);
+            
+            bool translated = true;
+            try { LoadWorldDataOld(path).Write(path); }
+            catch (Exception e)
+            {
+                if (logError)
+                    TShock.Log.ConsoleError($"[WorldEdit] File '{path}' could not be converted to Terraria v1.4:\n{e}");
+                translated = false;
+            }
+            
+            if (!translated)
+                File.Copy(tempPath, path, true);
+            File.Delete(tempPath);
+
+            return translated;
+        }
 
         public static bool InMapBoundaries(int X, int Y) =>
             ((X >= 0) && (Y >= 0) && (X < Main.maxTilesX) && (Y < Main.maxTilesY));
@@ -96,17 +121,37 @@ namespace WorldEdit
             return File.Exists(GetClipboardPath(accountID));
         }
 
+        public static Rectangle ReadSize(Stream stream)
+        {
+            using (var reader = new BinaryReader(stream))
+                return new Rectangle
+                (
+                    reader.ReadInt32(),
+                    reader.ReadInt32(),
+                    reader.ReadInt32(),
+                    reader.ReadInt32()
+                );
+        }
+
+        public static Rectangle ReadSize(string path) =>
+            ReadSize(File.Open(path, FileMode.Open));
+
         #region LoadWorldSectionData
 
         public static WorldSectionData LoadWorldData(Stream stream)
         {
+            int x, y, width, height;
+            using (var reader = new BinaryReader(stream, System.Text.Encoding.UTF8, true))
+            {
+                x = reader.ReadInt32();
+                y = reader.ReadInt32();
+                width = reader.ReadInt32();
+                height = reader.ReadInt32();
+            }
+
             using (var reader = new BinaryReader(new BufferedStream(new GZipStream(stream,
                 CompressionMode.Decompress), BUFFER_SIZE)))
             {
-                var x = reader.ReadInt32();
-                var y = reader.ReadInt32();
-                var width = reader.ReadInt32();
-                var height = reader.ReadInt32();
                 var worldData = new WorldSectionData(width, height) { X = x, Y = y };
 
                 for (var i = 0; i < width; i++)
@@ -121,21 +166,21 @@ namespace WorldEdit
                     worldData.Signs = new WorldSectionData.SignData[signCount];
                     for (var i = 0; i < signCount; i++)
                     {
-                        worldData.Signs[i] = reader.ReadSign();
+                        worldData.Signs[i] = WorldSectionData.SignData.Read(reader);
                     }
 
                     var chestCount = reader.ReadInt32();
                     worldData.Chests = new WorldSectionData.ChestData[chestCount];
                     for (var i = 0; i < chestCount; i++)
                     {
-                        worldData.Chests[i] = reader.ReadChest();
+                        worldData.Chests[i] = WorldSectionData.ChestData.Read(reader);
                     }
 
                     var itemFrameCount = reader.ReadInt32();
-                    worldData.ItemFrames = new WorldSectionData.ItemFrameData[itemFrameCount];
+                    worldData.ItemFrames = new WorldSectionData.DisplayItemData[itemFrameCount];
                     for (var i = 0; i < itemFrameCount; i++)
                     {
-                        worldData.ItemFrames[i] = reader.ReadItemFrame();
+                        worldData.ItemFrames[i] = WorldSectionData.DisplayItemData.Read(reader);
                     }
                 }
                 catch (EndOfStreamException) // old version file
@@ -147,19 +192,58 @@ namespace WorldEdit
                     worldData.LogicSensors = new WorldSectionData.LogicSensorData[logicSensorCount];
                     for (var i = 0; i < logicSensorCount; i++)
                     {
-                        worldData.LogicSensors[i] = reader.ReadLogicSensor();
+                        worldData.LogicSensors[i] = WorldSectionData.LogicSensorData.Read(reader);
                     }
 
                     var trainingDummyCount = reader.ReadInt32();
-                    worldData.TrainingDummies = new WorldSectionData.TrainingDummyData[trainingDummyCount];
+                    worldData.TrainingDummies = new WorldSectionData.PositionData[trainingDummyCount];
                     for (var i = 0; i < trainingDummyCount; i++)
                     {
-                        worldData.TrainingDummies[i] = reader.ReadTrainingDummy();
+                        worldData.TrainingDummies[i] = WorldSectionData.PositionData.Read(reader);
                     }
                 }
                 catch (EndOfStreamException) // old version file
                 { }
 
+                try
+                {
+                    var weaponsRacksCount = reader.ReadInt32();
+                    worldData.WeaponsRacks = new WorldSectionData.DisplayItemData[weaponsRacksCount];
+                    for (var i = 0; i < weaponsRacksCount; i++)
+                    {
+                        worldData.WeaponsRacks[i] = WorldSectionData.DisplayItemData.Read(reader);
+                    }
+
+                    var teleportationPillarsCount = reader.ReadInt32();
+                    worldData.TeleportationPylons = new WorldSectionData.PositionData[teleportationPillarsCount];
+                    for (var i = 0; i < teleportationPillarsCount; i++)
+                    {
+                        worldData.TeleportationPylons[i] = WorldSectionData.PositionData.Read(reader);
+                    }
+
+                    var displayDollsCount = reader.ReadInt32();
+                    worldData.DisplayDolls = new WorldSectionData.DisplayItemsData[displayDollsCount];
+                    for (var i = 0; i < displayDollsCount; i++)
+                    {
+                        worldData.DisplayDolls[i] = WorldSectionData.DisplayItemsData.Read(reader);
+                    }
+
+                    var hatRacksCount = reader.ReadInt32();
+                    worldData.HatRacks = new WorldSectionData.DisplayItemsData[hatRacksCount];
+                    for (var i = 0; i < hatRacksCount; i++)
+                    {
+                        worldData.HatRacks[i] = WorldSectionData.DisplayItemsData.Read(reader);
+                    }
+
+                    var foodPlattersCount = reader.ReadInt32();
+                    worldData.FoodPlatters = new WorldSectionData.DisplayItemData[foodPlattersCount];
+                    for (var i = 0; i < foodPlattersCount; i++)
+                    {
+                        worldData.FoodPlatters[i] = WorldSectionData.DisplayItemData.Read(reader);
+                    }
+                }
+                catch (EndOfStreamException) // old version file
+                { }
                 return worldData;
             }
         }
@@ -167,7 +251,75 @@ namespace WorldEdit
         public static WorldSectionData LoadWorldData(string path) =>
             LoadWorldData(File.Open(path, FileMode.Open));
 
-        private static Tile ReadTile(this BinaryReader reader)
+        internal static WorldSectionData LoadWorldDataOld(Stream stream)
+        {
+            using (var reader = new BinaryReader(new BufferedStream(new GZipStream(stream,
+                CompressionMode.Decompress), BUFFER_SIZE)))
+            {
+                var x = reader.ReadInt32();
+                var y = reader.ReadInt32();
+                var width = reader.ReadInt32();
+                var height = reader.ReadInt32();
+                var worldData = new WorldSectionData(width, height) { X = x, Y = y };
+
+                for (var i = 0; i < width; i++)
+                {
+                    for (var j = 0; j < height; j++)
+                        worldData.Tiles[i, j] = reader.ReadTileOld();
+                }
+
+                try
+                {
+                    var signCount = reader.ReadInt32();
+                    worldData.Signs = new WorldSectionData.SignData[signCount];
+                    for (var i = 0; i < signCount; i++)
+                    {
+                        worldData.Signs[i] = WorldSectionData.SignData.Read(reader);
+                    }
+
+                    var chestCount = reader.ReadInt32();
+                    worldData.Chests = new WorldSectionData.ChestData[chestCount];
+                    for (var i = 0; i < chestCount; i++)
+                    {
+                        worldData.Chests[i] = WorldSectionData.ChestData.Read(reader);
+                    }
+
+                    var itemFrameCount = reader.ReadInt32();
+                    worldData.ItemFrames = new WorldSectionData.DisplayItemData[itemFrameCount];
+                    for (var i = 0; i < itemFrameCount; i++)
+                    {
+                        worldData.ItemFrames[i] = WorldSectionData.DisplayItemData.Read(reader);
+                    }
+                }
+                catch (EndOfStreamException) // old version file
+                { }
+
+                try
+                {
+                    var logicSensorCount = reader.ReadInt32();
+                    worldData.LogicSensors = new WorldSectionData.LogicSensorData[logicSensorCount];
+                    for (var i = 0; i < logicSensorCount; i++)
+                    {
+                        worldData.LogicSensors[i] = WorldSectionData.LogicSensorData.Read(reader);
+                    }
+
+                    var trainingDummyCount = reader.ReadInt32();
+                    worldData.TrainingDummies = new WorldSectionData.PositionData[trainingDummyCount];
+                    for (var i = 0; i < trainingDummyCount; i++)
+                    {
+                        worldData.TrainingDummies[i] = WorldSectionData.PositionData.Read(reader);
+                    }
+                }
+                catch (EndOfStreamException) // old version file
+                { }
+                return worldData;
+            }
+        }
+
+        internal static WorldSectionData LoadWorldDataOld(string path) =>
+            LoadWorldDataOld(File.Open(path, FileMode.Open));
+
+        public static Tile ReadTile(this BinaryReader reader)
         {
             var tile = new Tile
             {
@@ -186,69 +338,45 @@ namespace WorldEdit
                     tile.frameY = reader.ReadInt16();
                 }
             }
+            tile.wall = reader.ReadUInt16();
+            tile.liquid = reader.ReadByte();
+            return tile;
+        }
+
+        private static Tile ReadTileOld(this BinaryReader reader)
+        {
+            var tile = new Tile
+            {
+                sTileHeader = reader.ReadInt16(),
+                bTileHeader = reader.ReadByte(),
+                bTileHeader2 = reader.ReadByte()
+            };
+
+            // Tile type
+            if (tile.active())
+            {
+                tile.type = reader.ReadUInt16();
+                if (tile.type != TileID.WaterCandle && Main.tileFrameImportant[tile.type])
+                {
+                    tile.frameX = reader.ReadInt16();
+                    tile.frameY = reader.ReadInt16();
+                }
+            }
             tile.wall = reader.ReadByte();
             tile.liquid = reader.ReadByte();
             return tile;
         }
 
-        private static WorldSectionData.SignData ReadSign(this BinaryReader reader)
+        public static NetItem ReadNetItem(this BinaryReader reader) =>
+            new NetItem(reader.ReadInt32(), reader.ReadInt32(), reader.ReadByte());
+
+        internal static NetItem[] ReadNetItems(this BinaryReader reader)
         {
-            return new WorldSectionData.SignData
-            {
-                X = reader.ReadInt32(),
-                Y = reader.ReadInt32(),
-                Text = reader.ReadString()
-            };
-        }
-
-        private static WorldSectionData.ChestData ReadChest(this BinaryReader reader)
-        {
-            var x = reader.ReadInt32();
-            var y = reader.ReadInt32();
-
-            var count = reader.ReadInt32();
-            var items = new NetItem[count];
-
-            for (var i = 0; i < count; i++)
-            {
-                items[i] = new NetItem(reader.ReadInt32(), reader.ReadInt32(), reader.ReadByte());
-            }
-
-            return new WorldSectionData.ChestData
-            {
-                Items = items,
-                X = x,
-                Y = y
-            };
-        }
-
-        private static WorldSectionData.ItemFrameData ReadItemFrame(this BinaryReader reader)
-        {
-            return new WorldSectionData.ItemFrameData
-            {
-                X = reader.ReadInt32(),
-                Y = reader.ReadInt32(),
-                Item = new NetItem(reader.ReadInt32(), reader.ReadInt32(), reader.ReadByte())
-            };
-        }
-
-        private static WorldSectionData.LogicSensorData ReadLogicSensor(this BinaryReader reader)
-        {
-            return new WorldSectionData.LogicSensorData
-            {
-                X = reader.ReadInt32(),
-                Y = reader.ReadInt32(),
-                Type = (TELogicSensor.LogicCheckType)reader.ReadInt32()
-            };
-        }
-
-        private static WorldSectionData.TrainingDummyData ReadTrainingDummy(this BinaryReader reader)
-        {
-            return new WorldSectionData.TrainingDummyData
-            {
-                X = reader.ReadInt32(),
-                Y = reader.ReadInt32()
-            };
+            int length = reader.ReadInt32();
+            NetItem[] items = new NetItem[length];
+            for (int i = 0; i < length; i++)
+                items[i] = reader.ReadNetItem();
+            return items;
         }
 
         #endregion
@@ -301,6 +429,16 @@ namespace WorldEdit
                     { TELogicSensor.Kill(i, j); }
                     if (TETrainingDummy.Find(i, j) != -1)
                     { TETrainingDummy.Kill(i, j); }
+                    if (TEWeaponsRack.Find(i, j) != -1)
+                    { TEWeaponsRack.Kill(i, j); }
+                    if (TETeleportationPylon.Find(i, j) != -1)
+                    { TETeleportationPylon.Kill(i, j); }
+                    if (TEDisplayDoll.Find(i, j) != -1)
+                    { TEDisplayDoll.Kill(i, j); }
+                    if (TEHatRack.Find(i, j) != -1)
+                    { TEHatRack.Kill(i, j); }
+                    if (TEFoodPlatter.Find(i, j) != -1)
+                    { TEFoodPlatter.Kill(i, j); }
                 }
             }
         }
@@ -392,6 +530,95 @@ namespace WorldEdit
                 dummy.npc = -1;
             }
 
+            foreach (var weaponsRack in Data.WeaponsRacks)
+            {
+                var id = TEWeaponsRack.Place(weaponsRack.X + x, weaponsRack.Y + y);
+                if (id == -1) { continue; }
+                var rack = (TEWeaponsRack)TileEntity.ByID[id];
+                if (!InMapBoundaries(rack.Position.X, rack.Position.Y))
+                { continue; }
+                rack.item = new Item();
+                rack.item.netDefaults(weaponsRack.Item.NetId);
+                rack.item.stack = weaponsRack.Item.Stack;
+                rack.item.prefix = weaponsRack.Item.PrefixId;
+            }
+
+            foreach (var teleportationPylon in Data.TeleportationPylons)
+                TETeleportationPylon.Place(teleportationPylon.X + x, teleportationPylon.Y + y);
+
+            foreach (var displayDoll in Data.DisplayDolls)
+            {
+                var id = TEDisplayDoll.Place(displayDoll.X + x, displayDoll.Y + y);
+                if (id == -1) { continue; }
+                var doll = (TEDisplayDoll)TileEntity.ByID[id];
+                if (!InMapBoundaries(doll.Position.X, doll.Position.Y))
+                { continue; }
+                doll._items = new Item[displayDoll.Items.Length];
+                for (int i = 0; i < displayDoll.Items.Length; i++)
+                {
+                    var netItem = displayDoll.Items[i];
+                    var item = new Item();
+                    item.netDefaults(netItem.NetId);
+                    item.stack = netItem.Stack;
+                    item.prefix = netItem.PrefixId;
+                    doll._items[i] = item;
+                }
+                doll._dyes = new Item[displayDoll.Dyes.Length];
+                for (int i = 0; i < displayDoll.Dyes.Length; i++)
+                {
+                    var netItem = displayDoll.Dyes[i];
+                    var item = new Item();
+                    item.netDefaults(netItem.NetId);
+                    item.stack = netItem.Stack;
+                    item.prefix = netItem.PrefixId;
+                    doll._dyes[i] = item;
+                }
+            }
+
+            foreach (var hatRack in Data.HatRacks)
+            {
+                var id = TEHatRack.Place(hatRack.X + x, hatRack.Y + y);
+                if (id == -1) { continue; }
+
+                var rack = (TEHatRack)TileEntity.ByID[id];
+                if (!InMapBoundaries(rack.Position.X, rack.Position.Y))
+                { continue; }
+                rack._items = new Item[hatRack.Items.Length];
+                for (int i = 0; i < hatRack.Items.Length; i++)
+                {
+                    var netItem = hatRack.Items[i];
+                    var item = new Item();
+                    item.netDefaults(netItem.NetId);
+                    item.stack = netItem.Stack;
+                    item.prefix = netItem.PrefixId;
+                    rack._items[i] = item;
+                }
+                rack._dyes = new Item[hatRack.Dyes.Length];
+                for (int i = 0; i < hatRack.Dyes.Length; i++)
+                {
+                    var netItem = hatRack.Dyes[i];
+                    var item = new Item();
+                    item.netDefaults(netItem.NetId);
+                    item.stack = netItem.Stack;
+                    item.prefix = netItem.PrefixId;
+                    rack._dyes[i] = item;
+                }
+            }
+
+            foreach (var foodPlatter in Data.FoodPlatters)
+            {
+                var id = TEFoodPlatter.Place(foodPlatter.X + x, foodPlatter.Y + y);
+                if (id == -1) { continue; }
+
+                var platter = (TEFoodPlatter)TileEntity.ByID[id];
+                if (!InMapBoundaries(platter.Position.X, platter.Position.Y))
+                { continue; }
+                platter.item = new Item();
+                platter.item.netDefaults(foodPlatter.Item.NetId);
+                platter.item.stack = foodPlatter.Item.Stack;
+                platter.item.prefix = foodPlatter.Item.PrefixId;
+            }
+
             ResetSection(x, y, x + Data.Width, y + Data.Height);
 		}
 
@@ -401,25 +628,25 @@ namespace WorldEdit
                 return;
 
 			if (WorldEdit.Database.GetSqlType() == SqlType.Mysql)
-				WorldEdit.Database.Query("INSERT IGNORE INTO WorldEdit VALUES (@0, -1, -1)", plr.User.ID);
+				WorldEdit.Database.Query("INSERT IGNORE INTO WorldEdit VALUES (@0, -1, -1)", plr.Account.ID);
 			else
-				WorldEdit.Database.Query("INSERT OR IGNORE INTO WorldEdit VALUES (@0, 0, 0)", plr.User.ID);
-			WorldEdit.Database.Query("UPDATE WorldEdit SET RedoLevel = -1 WHERE Account = @0", plr.User.ID);
-			WorldEdit.Database.Query("UPDATE WorldEdit SET UndoLevel = UndoLevel + 1 WHERE Account = @0", plr.User.ID);
+				WorldEdit.Database.Query("INSERT OR IGNORE INTO WorldEdit VALUES (@0, 0, 0)", plr.Account.ID);
+			WorldEdit.Database.Query("UPDATE WorldEdit SET RedoLevel = -1 WHERE Account = @0", plr.Account.ID);
+			WorldEdit.Database.Query("UPDATE WorldEdit SET UndoLevel = UndoLevel + 1 WHERE Account = @0", plr.Account.ID);
 
 			int undoLevel = 0;
-			using (var reader = WorldEdit.Database.QueryReader("SELECT UndoLevel FROM WorldEdit WHERE Account = @0", plr.User.ID))
+			using (var reader = WorldEdit.Database.QueryReader("SELECT UndoLevel FROM WorldEdit WHERE Account = @0", plr.Account.ID))
 			{
 				if (reader.Read())
 					undoLevel = reader.Get<int>("UndoLevel");
 			}
 
-			string path = Path.Combine("worldedit", string.Format("undo-{0}-{1}.dat", plr.User.ID, undoLevel));
+			string path = Path.Combine("worldedit", string.Format("undo-{0}-{1}.dat", plr.Account.ID, undoLevel));
 			SaveWorldSection(x, y, x2, y2, path);
 
-			foreach (string fileName in Directory.EnumerateFiles("worldedit", string.Format("redo-{0}-*.dat", plr.User.ID)))
+			foreach (string fileName in Directory.EnumerateFiles("worldedit", string.Format("redo-{0}-*.dat", plr.Account.ID)))
 				File.Delete(fileName);
-			File.Delete(Path.Combine("worldedit", string.Format("undo-{0}-{1}.dat", plr.User.ID, undoLevel - MAX_UNDOS)));
+			File.Delete(Path.Combine("worldedit", string.Format("undo-{0}-{1}.dat", plr.Account.ID, undoLevel - MAX_UNDOS)));
 		}
 
 		public static bool Redo(int accountID)
@@ -452,15 +679,11 @@ namespace WorldEdit
 			string undoPath = Path.Combine("worldedit", string.Format("undo-{0}-{1}.dat", accountID, undoLevel));
 			WorldEdit.Database.Query("UPDATE WorldEdit SET UndoLevel = @0 WHERE Account = @1", undoLevel, accountID);
 
-			using (var reader = new BinaryReader(new GZipStream(new FileStream(redoPath, FileMode.Open), CompressionMode.Decompress)))
-			{
-				int x = Math.Max(0, reader.ReadInt32());
-				int y = Math.Max(0, reader.ReadInt32());
-				int x2 = Math.Min(x + reader.ReadInt32() - 1, Main.maxTilesX - 1);
-				int y2 = Math.Min(y + reader.ReadInt32() - 1, Main.maxTilesY - 1);
-				SaveWorldSection(x, y, x2, y2, undoPath);
-			}
-			LoadWorldSection(redoPath);
+            Rectangle size = ReadSize(redoPath);
+            SaveWorldSection(Math.Max(0, size.X), Math.Max(0, size.Y),
+                Math.Min(size.X + size.Width - 1, Main.maxTilesX - 1),
+                Math.Min(size.Y + size.Height - 1, Main.maxTilesY - 1), undoPath);
+            LoadWorldSection(redoPath);
 			File.Delete(redoPath);
 			return true;
 		}
@@ -485,18 +708,8 @@ namespace WorldEdit
 			}
 		}
 
-		public static void SaveWorldSection(int x, int y, int x2, int y2, string path)
-		{
-			using (var writer =
-				new BinaryWriter(
-					new BufferedStream(
-						new GZipStream(File.Open(path, FileMode.Create), CompressionMode.Compress), BUFFER_SIZE)))
-			{
-				var data = SaveWorldSection(x, y, x2, y2);
-
-				data.Write(writer);
-			}
-		}
+		public static void SaveWorldSection(int x, int y, int x2, int y2, string path) =>
+            SaveWorldSection(x, y, x2, y2).Write(path);
 
 		public static void Write(this BinaryWriter writer, ITile tile)
 		{
@@ -517,7 +730,21 @@ namespace WorldEdit
 			writer.Write(tile.liquid);
 		}
 
-		public static WorldSectionData SaveWorldSection(int x, int y, int x2, int y2)
+        public static void Write(this BinaryWriter writer, NetItem item)
+        {
+            writer.Write(item.NetId);
+            writer.Write(item.Stack);
+            writer.Write(item.PrefixId);
+        }
+
+        internal static void Write(this BinaryWriter writer, NetItem[] items)
+        {
+            writer.Write(items.Length);
+            foreach (NetItem item in items)
+                writer.Write(item);
+        }
+
+        public static WorldSectionData SaveWorldSection(int x, int y, int x2, int y2)
 		{
 			var width = x2 - x + 1;
 			var height = y2 - y + 1;
@@ -525,12 +752,7 @@ namespace WorldEdit
 			var data = new WorldSectionData(width, height)
 			{
 				X = x,
-				Y = y,
-				Chests = new List<WorldSectionData.ChestData>(),
-				Signs = new List<WorldSectionData.SignData>(),
-				ItemFrames = new List<WorldSectionData.ItemFrameData>(),
-                LogicSensors = new List<WorldSectionData.LogicSensorData>(),
-                TrainingDummies = new List<WorldSectionData.TrainingDummyData>()
+				Y = y
             };
 
 			for (var i = x; i <= x2; i++)
@@ -573,14 +795,10 @@ namespace WorldEdit
 			string redoPath = Path.Combine("worldedit", string.Format("redo-{0}-{1}.dat", accountID, redoLevel));
 			WorldEdit.Database.Query("UPDATE WorldEdit SET RedoLevel = @0 WHERE Account = @1", redoLevel, accountID);
 
-			using (var reader = new BinaryReader(new GZipStream(new FileStream(undoPath, FileMode.Open), CompressionMode.Decompress)))
-			{
-				int x = Math.Max(0, reader.ReadInt32());
-				int y = Math.Max(0, reader.ReadInt32());
-				int x2 = Math.Min(x + reader.ReadInt32() - 1, Main.maxTilesX - 1);
-				int y2 = Math.Min(y + reader.ReadInt32() - 1, Main.maxTilesY - 1);
-				SaveWorldSection(x, y, x2, y2, redoPath);
-			}
+            Rectangle size = ReadSize(undoPath);
+            SaveWorldSection(Math.Max(0, size.X), Math.Max(0, size.Y),
+                Math.Min(size.X + size.Width - 1, Main.maxTilesX - 1),
+                Math.Min(size.Y + size.Height - 1, Main.maxTilesY - 1), redoPath);
 			LoadWorldSection(undoPath);
 			File.Delete(undoPath);
 			return true;
