@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using OTAPI.Tile;
 using Terraria;
 using TShockAPI;
 using TShockAPI.DB;
@@ -23,18 +22,39 @@ namespace WorldEdit
 
         private static int TranslateTempCounter = 0;
         private static Random rnd = new Random();
-        public static bool Translate(string path, bool logError, string tempCopyPath = null)
+        public static bool TranslateFrom140To144(string path, bool logError, string tempCopyPath = null)
         {
             string tempPath = tempCopyPath ?? Path.Combine(WorldEdit.WorldEditFolderName,
                 $"temp-{rnd.Next()}-{Interlocked.Increment(ref TranslateTempCounter)}.dat");
             File.Copy(path, tempPath, true);
             
             bool translated = true;
-            try { LoadWorldDataOld(path).Write(path); }
+            try { LoadWorldDataOld140(path).Write(path); }
             catch (Exception e)
             {
                 if (logError)
-                    TShock.Log.ConsoleError($"[WorldEdit] File '{path}' could not be converted to Terraria v1.4:\n{e}");
+                    TShock.Log.ConsoleError($"[WorldEdit] File '{path}' could not be converted to Terraria v1.4.4:\n{e}");
+                translated = false;
+            }
+            
+            if (!translated)
+                File.Copy(tempPath, path, true);
+            File.Delete(tempPath);
+
+            return translated;
+        }
+        public static bool TranslateFromPre140To144(string path, bool logError, string tempCopyPath = null)
+        {
+            string tempPath = tempCopyPath ?? Path.Combine(WorldEdit.WorldEditFolderName,
+                $"temp-{rnd.Next()}-{Interlocked.Increment(ref TranslateTempCounter)}.dat");
+            File.Copy(path, tempPath, true);
+            
+            bool translated = true;
+            try { LoadWorldDataOldPre140(path).Write(path); }
+            catch (Exception e)
+            {
+                if (logError)
+                    TShock.Log.ConsoleError($"[WorldEdit] File '{path}' could not be converted to Terraria v1.4.0:\n{e}");
                 translated = false;
             }
             
@@ -252,7 +272,7 @@ namespace WorldEdit
         public static WorldSectionData LoadWorldData(string path) =>
             LoadWorldData(File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read));
 
-        internal static WorldSectionData LoadWorldDataOld(Stream stream)
+        internal static WorldSectionData LoadWorldDataOld140(Stream stream)
         {
             using (var reader = new BinaryReader(new BufferedStream(new GZipStream(stream,
                 CompressionMode.Decompress), BUFFER_SIZE)))
@@ -266,7 +286,7 @@ namespace WorldEdit
                 for (var i = 0; i < width; i++)
                 {
                     for (var j = 0; j < height; j++)
-                        worldData.Tiles[i, j] = reader.ReadTileOld();
+                        worldData.Tiles[i, j] = reader.ReadTileOld144();
                 }
 
                 try
@@ -317,14 +337,107 @@ namespace WorldEdit
             }
         }
 
-        internal static WorldSectionData LoadWorldDataOld(string path) =>
-            LoadWorldDataOld(File.Open(path, FileMode.Open));
+        internal static WorldSectionData LoadWorldDataOld140(string path) =>
+            LoadWorldDataOld140(File.Open(path, FileMode.Open));
+
+        internal static WorldSectionData LoadWorldDataOldPre140(Stream stream)
+        {
+            using (var reader = new BinaryReader(new BufferedStream(new GZipStream(stream,
+                CompressionMode.Decompress), BUFFER_SIZE)))
+            {
+                var x = reader.ReadInt32();
+                var y = reader.ReadInt32();
+                var width = reader.ReadInt32();
+                var height = reader.ReadInt32();
+                var worldData = new WorldSectionData(width, height) { X = x, Y = y };
+
+                for (var i = 0; i < width; i++)
+                {
+                    for (var j = 0; j < height; j++)
+                        worldData.Tiles[i, j] = reader.ReadTileOld140();
+                }
+
+                try
+                {
+                    var signCount = reader.ReadInt32();
+                    worldData.Signs = new WorldSectionData.SignData[signCount];
+                    for (var i = 0; i < signCount; i++)
+                    {
+                        worldData.Signs[i] = WorldSectionData.SignData.Read(reader);
+                    }
+
+                    var chestCount = reader.ReadInt32();
+                    worldData.Chests = new WorldSectionData.ChestData[chestCount];
+                    for (var i = 0; i < chestCount; i++)
+                    {
+                        worldData.Chests[i] = WorldSectionData.ChestData.Read(reader);
+                    }
+
+                    var itemFrameCount = reader.ReadInt32();
+                    worldData.ItemFrames = new WorldSectionData.DisplayItemData[itemFrameCount];
+                    for (var i = 0; i < itemFrameCount; i++)
+                    {
+                        worldData.ItemFrames[i] = WorldSectionData.DisplayItemData.Read(reader);
+                    }
+                }
+                catch (EndOfStreamException) // old version file
+                { }
+
+                try
+                {
+                    var logicSensorCount = reader.ReadInt32();
+                    worldData.LogicSensors = new WorldSectionData.LogicSensorData[logicSensorCount];
+                    for (var i = 0; i < logicSensorCount; i++)
+                    {
+                        worldData.LogicSensors[i] = WorldSectionData.LogicSensorData.Read(reader);
+                    }
+
+                    var trainingDummyCount = reader.ReadInt32();
+                    worldData.TrainingDummies = new WorldSectionData.PositionData[trainingDummyCount];
+                    for (var i = 0; i < trainingDummyCount; i++)
+                    {
+                        worldData.TrainingDummies[i] = WorldSectionData.PositionData.Read(reader);
+                    }
+                }
+                catch (EndOfStreamException) // old version file
+                { }
+                return worldData;
+            }
+        }
+
+        internal static WorldSectionData LoadWorldDataOldPre140(string path) =>
+            LoadWorldDataOldPre140(File.Open(path, FileMode.Open));
 
         public static Tile ReadTile(this BinaryReader reader)
         {
             var tile = new Tile
             {
-                sTileHeader = reader.ReadInt16(),
+                sTileHeader = reader.ReadUInt16(),
+                bTileHeader = reader.ReadByte(),
+                bTileHeader2 = reader.ReadByte(),
+                bTileHeader3 = reader.ReadByte()
+            };
+
+            // Tile type
+            if (tile.active())
+            {
+                tile.type = reader.ReadUInt16();
+                if (Main.tileFrameImportant[tile.type])
+                {
+                    tile.frameX = reader.ReadInt16();
+                    tile.frameY = reader.ReadInt16();
+                }
+            }
+            tile.wall = reader.ReadUInt16();
+            tile.liquid = reader.ReadByte();
+            return tile;
+        }
+
+        private static Tile ReadTileOld144(this BinaryReader reader)
+        {
+            var tile = new Tile
+            {
+                sTileHeader = reader.ReadUInt16(),
                 bTileHeader = reader.ReadByte(),
                 bTileHeader2 = reader.ReadByte()
             };
@@ -344,11 +457,11 @@ namespace WorldEdit
             return tile;
         }
 
-        private static Tile ReadTileOld(this BinaryReader reader)
+        private static Tile ReadTileOld140(this BinaryReader reader)
         {
             var tile = new Tile
             {
-                sTileHeader = reader.ReadInt16(),
+                sTileHeader = reader.ReadUInt16(),
                 bTileHeader = reader.ReadByte(),
                 bTileHeader2 = reader.ReadByte()
             };
@@ -357,7 +470,7 @@ namespace WorldEdit
             if (tile.active())
             {
                 tile.type = reader.ReadUInt16();
-                if (tile.type != TileID.WaterCandle && Main.tileFrameImportant[tile.type])
+                if (Main.tileFrameImportant[tile.type])
                 {
                     tile.frameX = reader.ReadInt16();
                     tile.frameY = reader.ReadInt16();
@@ -720,6 +833,7 @@ namespace WorldEdit
 			writer.Write(tile.sTileHeader);
 			writer.Write(tile.bTileHeader);
 			writer.Write(tile.bTileHeader2);
+			writer.Write(tile.bTileHeader3);
 
 			if (tile.active())
 			{

@@ -7,8 +7,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using Microsoft.Data.Sqlite;
 using Microsoft.Xna.Framework;
-using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using Terraria;
 using Terraria.ID;
@@ -272,15 +272,25 @@ namespace WorldEdit
 		}
 
 		private string lockFilePath_Update_1_4 = Path.Combine(WorldEditFolderName, "1.4.0.lock");
+		private string lockFilePath_Update_1_4_4 = Path.Combine(WorldEditFolderName, "1.4.4.lock");
 		private void OnPostInitialize(EventArgs e)
 		{
 			if (!File.Exists(lockFilePath_Update_1_4))
 			{
 				foreach (string f in Directory.EnumerateFiles(WorldEditFolderName, "*.dat"))
-					Tools.Translate(f, true);
+					Tools.TranslateFromPre140To144(f, true);
 				File.Create(lockFilePath_Update_1_4).Close();
-				TShock.Log.ConsoleInfo("WorldEdit updated undo/redo/clipboard/schematic files to Terraria v1.4.x.");
-				TShock.Log.ConsoleInfo("Do not delete 1.4.0.lock inside worldedit folder; this message will only show once.");
+				File.Create(lockFilePath_Update_1_4_4).Close();
+				TShock.Log.ConsoleInfo("WorldEdit updated undo/redo/clipboard/schematic files to Terraria v1.4.4.");
+				TShock.Log.ConsoleInfo("Do not delete 1.4.4.lock or 1.4.0.lock inside worldedit folder; this message will only show once.");
+			}
+			if (!File.Exists(lockFilePath_Update_1_4_4))
+			{
+				foreach (string f in Directory.EnumerateFiles(WorldEditFolderName, "*.dat"))
+					Tools.TranslateFrom140To144(f, true);
+				File.Create(lockFilePath_Update_1_4_4).Close();
+				TShock.Log.ConsoleInfo("WorldEdit updated undo/redo/clipboard/schematic files to Terraria v1.4.4.");
+				TShock.Log.ConsoleInfo("Do not delete 1.4.4.lock inside worldedit folder; this message will only show once.");
 			}
 		}
 		private void OnInitialize(EventArgs e)
@@ -2031,7 +2041,7 @@ namespace WorldEdit
 
 						if (!File.Exists(path))
 							e.Player.SendErrorMessage("Invalid schematic '{0}'!", e.Parameters[1]);
-						else if (!Tools.Translate(path, true))
+						else if (!Tools.TranslateFromPre140To144(path, true))
 							e.Player.SendErrorMessage("Could not translate schematic. Check logs for more info.");
 						else
 							e.Player.SendSuccessMessage("Translated schematic '{0}'.", e.Parameters[1]);
