@@ -302,6 +302,7 @@ namespace WorldEdit
 				Directory.CreateDirectory(WorldEditFolderName);
 				File.Create(lockFilePathOldVersion).Close();
 				File.Create(lockFilePath_Update_1_4).Close();
+				File.Create(lockFilePath_Update_1_4_4).Close();
 			}
 			OnReload(null);
 
@@ -540,8 +541,9 @@ namespace WorldEdit
 					};
 					break;
 				case "sqlite":
-					string sql = Path.Combine(TShock.SavePath, "worldedit.sqlite");
-					Database = new SqliteConnection(string.Format("uri=file://{0},Version=3", sql));
+					Database = new SqliteConnection(new SqliteConnectionStringBuilder() {
+						DataSource = Path.Combine(TShock.SavePath, "worldedit.sqlite")
+					}.ToString());
 					break;
 			}
 
