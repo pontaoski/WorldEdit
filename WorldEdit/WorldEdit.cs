@@ -389,6 +389,14 @@ namespace WorldEdit
 			{
 				HelpText = "Paints walls in the worldedit selection."
 			});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.coat", Coat, "/coat", "/co")
+			{
+				HelpText = "Coats tiles in the worldedit selection"
+			});
+			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.region.coatwalls", CoatWalls, "/coatwalls", "/coatwall", "/cw")
+			{
+				HelpText = "Coats walls in the worldedit selection"
+			});
 			TShockAPI.Commands.ChatCommands.Add(new Command("worldedit.clipboard.paste", Paste, "/paste", "/p")
 			{
 				HelpText = "Pastes the clipboard to the worldedit selection."
@@ -1445,6 +1453,57 @@ namespace WorldEdit
 					_commandQueue.Add(new OutlineWall(info.X, info.Y, info.X2, info.Y2, info.MagicWand, e.Player, walls[0], colors[0], expression));
 				}
 			}
+		}
+
+		private void CoatImpl(string cmd, bool walls, CommandArgs e)
+		{
+			if (e.Parameters.Count == 0)
+			{
+				e.Player.SendErrorMessage($"Invalid syntax! Proper syntax: //{cmd} [-]<echo|e|illuminant|i|none|n> [where] [conditions...]");
+				return;
+			}
+
+			PlayerInfo info = e.Player.GetPlayerInfo();
+			if (info.X == -1 || info.Y == -1 || info.X2 == -1 || info.Y2 == -1)
+			{
+				e.Player.SendErrorMessage("Invalid selection!");
+				return;
+			}
+
+			CoatingKind? kind = e.Parameters[0].ToLowerInvariant() switch {
+				"echo" or "e" => CoatingKind.AddEcho,
+				"illuminant" or "i" => CoatingKind.AddIlluminant,
+				"-echo" or "-e" => CoatingKind.RemoveEcho,
+				"-illuminant" or "-i" => CoatingKind.RemoveIlluminant,
+				"none" or "n" => CoatingKind.RemoveAll,
+				_ => null,
+			};
+			if (kind == null) {
+				e.Player.SendErrorMessage($"Invalid coating '{e.Parameters[0]}'");
+				return;
+			}
+
+			Expression expression = null;
+			if (e.Parameters.Count > 1)
+			{
+				if (!Parser.TryParseTree(e.Parameters.Skip(1), out expression))
+				{
+					e.Player.SendErrorMessage("Invalid expression!");
+					return;
+				}
+			}
+
+			_commandQueue.Add(new Coat(info.X, info.Y, info.X2, info.Y2, info.MagicWand, e.Player, kind.Value, walls, expression));
+		}
+
+		private void Coat(CommandArgs e)
+		{
+			CoatImpl("coat", false, e);
+		}
+
+		private void CoatWalls(CommandArgs e)
+		{
+			CoatImpl("coatwalls", true, e);
 		}
 
 		private void Paint(CommandArgs e)
