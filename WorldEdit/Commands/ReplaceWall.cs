@@ -7,10 +7,10 @@ namespace WorldEdit.Commands
     public class ReplaceWall : WECommand
     {
         private Expression expression;
-        private int from;
-        private int to;
+        private WallPlaceID from;
+        private WallPlaceID to;
 
-        public ReplaceWall(int x, int y, int x2, int y2, TSPlayer plr, int from, int to, Expression expression)
+        public ReplaceWall(int x, int y, int x2, int y2, TSPlayer plr, WallPlaceID from, WallPlaceID to, Expression expression)
             : base(x, y, x2, y2, plr)
         {
             this.from = from;
@@ -28,16 +28,16 @@ namespace WorldEdit.Commands
                 for (int j = y; j <= y2; j++)
                 {
                     ITile tile = Main.tile[i, j];
-                    if ((tile.wall == from)
-                     && Tools.CanSet(false, tile, to, select, expression, magicWand, i, j, plr))
+                    if ((tile.wall == from.wallID)
+                     && Tools.CanSet(tile, to, select, expression, magicWand, i, j, plr))
                     {
-                        tile.wall = (byte)to;
+                        tile.wall = (ushort)to.wallID;
                         edits++;
                     }
                 }
             }
             ResetSection();
-            plr.SendSuccessMessage("Replaced walls. ({0})", edits);
+            plr.SendSuccessMessage($"Replaced {from.name} with {to.name}. ({edits})");
         }
     }
 }

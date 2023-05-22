@@ -14,6 +14,12 @@ using System.Threading;
 
 namespace WorldEdit
 {
+    public interface PlaceID { string Name { get; } }
+    public readonly record struct TilePlaceID(int tileID, int placeStyle, string name) : PlaceID
+    { public string Name => name; }
+    public readonly record struct WallPlaceID(int wallID, string name) : PlaceID
+    { public string Name => name; }
+
     public static class Tools
     {
         internal const int BUFFER_SIZE = 1048576;
@@ -50,33 +56,46 @@ namespace WorldEdit
             }
             return list;
         }
-        public static List<int> GetTileID(string tile)
+        public static List<TilePlaceID> GetTileID(string tile)
         {
-            int ID;
-            if (int.TryParse(tile, out ID) && ID >= 0 && ID < Main.maxTileSets)
-                return new List<int> { ID };
+            if (int.TryParse(tile, out int ID) && ID >= 0 && ID < Main.maxTileSets)
+                return new() { new(ID, -1, tile) };
 
-            var list = new List<int>();
+            if (tile.Contains("/") && tile.Split("/").Count() == 2)
+            {
+                var arr = tile.Split("/");
+
+                if (
+                    int.TryParse(arr[0], out int ID1) && ID1 >= 0 && ID1 < Main.maxTileSets
+                    &&
+                    int.TryParse(arr[1], out int ID2) && ID2 >= 0
+                )
+                {
+                    return new() { new(ID1, ID2, tile) };
+                }
+            }
+
+            var list = new List<TilePlaceID>();
             foreach (var kvp in WorldEdit.Tiles)
             {
                 if (kvp.Key == tile)
-                    return new List<int> { kvp.Value };
+                    return new() { kvp.Value };
                 if (kvp.Key.StartsWith(tile))
                     list.Add(kvp.Value);
             }
             return list;
         }
-        public static List<int> GetWallID(string wall)
+        public static List<WallPlaceID> GetWallID(string wall)
         {
             int ID;
             if (int.TryParse(wall, out ID) && ID >= 0 && ID < Main.maxWallTypes)
-                return new List<int> { ID };
+                return new() { new(ID, wall) };
 
-            var list = new List<int>();
+            var list = new List<WallPlaceID>();
             foreach (var kvp in WorldEdit.Walls)
             {
                 if (kvp.Key == wall)
-                    return new List<int> { kvp.Value };
+                    return new() { kvp.Value };
                 if (kvp.Key.StartsWith(wall))
                     list.Add(kvp.Value);
             }
@@ -706,19 +725,26 @@ namespace WorldEdit
 			return true;
 		}
 
-        public static bool CanSet(bool Tile, ITile tile, int type,
+        public static bool CanSet(ITile tile, TilePlaceID type,
             Selection selection, Expressions.Expression expression,
-            MagicWand magicWand, int x, int y, TSPlayer player) =>
-            Tile
-                ? ((((type >= 0) && (!tile.active() || (tile.type != type)))
-                 || ((type == -1) && tile.active())
-                 || ((type == -2) && ((tile.liquid == 0) || (tile.liquidType() != 1)))
-                 || ((type == -3) && ((tile.liquid == 0) || (tile.liquidType() != 2)))
-                 || ((type == -4) && ((tile.liquid == 0) || (tile.liquidType() != 0))))
-                 && selection(x, y, player) && expression.Evaluate(tile)
-                 && magicWand.InSelection(x, y))
-                : ((tile.wall != type) && selection(x, y, player)
-                 && expression.Evaluate(tile) && magicWand.InSelection(x, y));
+            MagicWand magicWand, int x, int y, TSPlayer player)
+        {
+            return
+                (!tile.active() || (tile.type != type.tileID))
+                && selection(x, y, player)
+                && expression.Evaluate(tile)
+                && magicWand.InSelection(x, y);
+        }
+        public static bool CanSet(ITile tile, WallPlaceID type,
+            Selection selection, Expressions.Expression expression,
+            MagicWand magicWand, int x, int y, TSPlayer player)
+        {
+            return
+                tile.wall != type.wallID
+                && selection(x, y, player)
+                && expression.Evaluate(tile)
+                && magicWand.InSelection(x, y);
+        }
 
         public static WEPoint[] CreateLine(int x1, int y1, int x2, int y2)
         {

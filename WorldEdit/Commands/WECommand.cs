@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using Terraria;
+using Terraria.DataStructures;
 using TShockAPI;
 using WorldEdit.Extensions;
 
@@ -78,51 +79,18 @@ namespace WorldEdit.Commands
                 NetMessage.SendData(11, -1, -1, null, sX, sY, sX2, sY2);
             }
         }
-		public void SetTile(int i, int j, int tileType)
+		public void SetTile(int i, int j, TilePlaceID tileType)
 		{
-			var tile = Main.tile[i, j];
-			switch (tileType)
+			Main.tile[i, j].Clear(TileDataType.Tile);
+			WorldGen.PlaceTile(i, j, tileType.tileID, style: tileType.placeStyle);
+
+			#region Workarounds for WorldGen.PlaceTile being silly
+			// for some reason PlaceTile discards the placestyle for books
+			if (tileType.tileID == 50)
 			{
-				case -1:
-					tile.active(false);
-					tile.frameX = -1;
-					tile.frameY = -1;
-					tile.liquidType(0);
-					tile.liquid = 0;
-					tile.type = 0;
-					return;
-				case -2:
-					tile.active(false);
-					tile.liquidType(1);
-					tile.liquid = 255;
-					tile.type = 0;
-					return;
-				case -3:
-					tile.active(false);
-					tile.liquidType(2);
-					tile.liquid = 255;
-					tile.type = 0;
-					return;
-				case -4:
-					tile.active(false);
-					tile.liquidType(0);
-					tile.liquid = 255;
-					tile.type = 0;
-					return;
-				default:
-					if (Main.tileFrameImportant[tileType])
-						WorldGen.PlaceTile(i, j, tileType);
-					else
-					{
-						tile.active(true);
-						tile.frameX = -1;
-						tile.frameY = -1;
-						tile.liquidType(0);
-						tile.liquid = 0;
-						tile.type = (ushort)tileType;
-					}
-					return;
+				Main.tile[i, j].frameX = (short)(18 * tileType.placeStyle);
 			}
+			#endregion
 		}
 		public bool TileSolid(int x, int y)
 		{

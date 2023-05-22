@@ -37,8 +37,8 @@ namespace WorldEdit
 		public static Dictionary<string, int> Colors = new Dictionary<string, int>();
 		public static IDbConnection Database;
 		public static Dictionary<string, Selection> Selections = new Dictionary<string, Selection>();
-		public static Dictionary<string, int> Tiles = new Dictionary<string, int>();
-		public static Dictionary<string, int> Walls = new Dictionary<string, int>();
+		public static Dictionary<string, TilePlaceID> Tiles = new();
+		public static Dictionary<string, WallPlaceID> Walls = new();
 		public static Dictionary<string, int> Slopes = new Dictionary<string, int>();
 
 		public static readonly HandlerCollection<CanEditEventArgs> CanEdit;
@@ -632,15 +632,14 @@ namespace WorldEdit
 			});
 			#endregion
 			#region Tiles
-			Tiles.Add("air", -1);
-			Tiles.Add("lava", -2);
-			Tiles.Add("honey", -3);
-			Tiles.Add("water", -4);
+			Tiles.Add("air", new(0, -1, "air"));
 
-			foreach (var fi in typeof(TileID).GetFields())
+			Item it = new();
+			foreach (var fi in typeof(ItemID).GetFields())
 			{
-				if (!(fi.GetValue(null) is ushort id) || (id < 0) || (id >= Main.maxTileSets))
+				if (!(fi.GetValue(null) is short id))
 					continue;
+
 				string name = fi.Name;
 				var sb = new StringBuilder();
 				for (int i = 0; i < name.Length; i++)
@@ -650,11 +649,17 @@ namespace WorldEdit
 					else
 						sb.Append(name[i]);
 				}
-				Tiles.Add(sb.ToString(1, sb.Length - 1), id);
+
+				it.SetDefaults(id);
+				if (it.createTile != -1)
+				{
+					Tiles.TryAdd(it.Name.ToLower(), new(it.createTile, it.placeStyle, it.Name));
+					Tiles.TryAdd(sb.ToString(1, sb.Length - 1), new(it.createTile, it.placeStyle, it.Name));
+				}
 			}
 			#endregion
 			#region Walls
-			Walls.Add("air", 0);
+			Walls.Add("air", new(0, "air"));
 
 			foreach (var fi in typeof(WallID).GetFields())
 			{
@@ -669,7 +674,7 @@ namespace WorldEdit
 					else
 						sb.Append(name[i]);
 				}
-				Walls.Add(sb.ToString(1, sb.Length - 1), id);
+				Walls.Add(sb.ToString(1, sb.Length - 1), new(id, sb.ToString(1, sb.Length - 1)));
 			}
 			#endregion
 			#region Slopes
@@ -1921,15 +1926,15 @@ namespace WorldEdit
                 return;
             }
 
-            var wallsFrom = Tools.GetTileID(e.Parameters[0].ToLowerInvariant());
+            var wallsFrom = Tools.GetWallID(e.Parameters[0].ToLowerInvariant());
             if (wallsFrom.Count == 0)
             {
-                e.Player.SendErrorMessage("Invalid tile '{0}'!", e.Parameters[0]);
+                e.Player.SendErrorMessage("Invalid wall '{0}'!", e.Parameters[0]);
                 return;
             }
             else if (wallsFrom.Count > 1)
             {
-                e.Player.SendErrorMessage("More than one tile matched!");
+                e.Player.SendErrorMessage("More than one wall matched!");
                 return;
             }
 
@@ -2745,7 +2750,7 @@ namespace WorldEdit
                 return;
             }
 
-            int materialType;
+            PlaceID materialType;
             if (wall)
             {
                 var walls = Tools.GetWallID(e.Parameters[param].ToLowerInvariant());
@@ -2787,7 +2792,7 @@ namespace WorldEdit
                 }
             }
             
-            _commandQueue.Add(new Shape(info.X, info.Y, info.X2, info.Y2, info.MagicWand, e.Player, type, rotateType, flipType, wall, filled, materialType, expression));
+            _commandQueue.Add(new Shape(info.X, info.Y, info.X2, info.Y2, info.MagicWand, e.Player, type, rotateType, flipType, materialType, filled, expression));
         }
 
         private void Size(CommandArgs e)

@@ -7,10 +7,10 @@ namespace WorldEdit.Commands
     public class Replace : WECommand
     {
         private Expression expression;
-        private int from;
-        private int to;
+        private TilePlaceID from;
+        private TilePlaceID to;
 
-        public Replace(int x, int y, int x2, int y2, TSPlayer plr, int from, int to, Expression expression)
+        public Replace(int x, int y, int x2, int y2, TSPlayer plr, TilePlaceID from, TilePlaceID to, Expression expression)
             : base(x, y, x2, y2, plr)
         {
             this.from = from;
@@ -28,12 +28,8 @@ namespace WorldEdit.Commands
                 for (int j = y; j <= y2; j++)
                 {
                     ITile tile = Main.tile[i, j];
-                    if ((((from >= 0) && tile.active() && (from == tile.type))
-                     || ((from == -1) && !tile.active())
-                     || ((from == -2) && (tile.liquid != 0) && (tile.liquidType() == 1))
-                     || ((from == -3) && (tile.liquid != 0) && (tile.liquidType() == 2))
-                     || ((from == -4) && (tile.liquid == 0) && (tile.liquidType() == 0)))
-                     && Tools.CanSet(true, tile, to, select, expression, magicWand, i, j, plr))
+                    if (((from.tileID >= 0) && tile.active() && (from.tileID == tile.type))
+                     && Tools.CanSet(tile, to, select, expression, magicWand, i, j, plr))
                     {
                         SetTile(i, j, to);
                         edits++;
@@ -41,7 +37,7 @@ namespace WorldEdit.Commands
                 }
             }
             ResetSection();
-            plr.SendSuccessMessage("Replaced tiles. ({0})", edits);
+            plr.SendSuccessMessage($"Replaced {from.name} with {to.name}. ({edits})");
         }
     }
 }

@@ -7,9 +7,9 @@ namespace WorldEdit.Commands
 	public class Set : WECommand
 	{
 		private Expression expression;
-		private int tileType;
+		private TilePlaceID tileType;
 
-		public Set(int x, int y, int x2, int y2, MagicWand magicWand, TSPlayer plr, int tileType, Expression expression)
+		public Set(int x, int y, int x2, int y2, MagicWand magicWand, TSPlayer plr, TilePlaceID tileType, Expression expression)
 			: base(x, y, x2, y2, magicWand, plr)
 		{
 			this.tileType = tileType;
@@ -25,7 +25,7 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (Tools.CanSet(true, Main.tile[i, j], tileType,
+					if (Tools.CanSet(Main.tile[i, j], tileType,
                         select, expression, magicWand, i, j, plr))
 					{
 						SetTile(i, j, tileType);
@@ -34,7 +34,7 @@ namespace WorldEdit.Commands
 				}
 			}
 			ResetSection();
-			plr.SendSuccessMessage("Set tiles. ({0})", edits);
+			plr.SendSuccessMessage($"Set tiles to {tileType.name}. ({edits})");
 		}
 	}
 }
