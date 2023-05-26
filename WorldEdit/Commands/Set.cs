@@ -25,16 +25,16 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (Tools.CanSet(Main.tile[i, j], tileType,
+					if (tileType.CanSet(Main.tile[i, j],
                         select, expression, magicWand, i, j, plr))
 					{
-						SetTile(i, j, tileType);
+						tileType.SetTile(i, j);
 						edits++;
 					}
 				}
 			}
 			ResetSection();
-			plr.SendSuccessMessage($"Set tiles to {tileType.name}. ({edits})");
+			plr.SendSuccessMessage($"Set tiles to {tileType.Name}. ({edits})");
 		}
 	}
 }

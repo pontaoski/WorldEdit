@@ -25,7 +25,7 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (Tools.CanSet(Main.tile[i, j], wallType,
+					if (wallType.CanSet(Main.tile[i, j],
                         select, expression, magicWand, i, j, plr))
                     {
                         Main.tile[i, j].wall = (ushort)wallType.wallID;

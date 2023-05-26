@@ -105,11 +105,11 @@ namespace WorldEdit.Commands
 				var tile = Main.tile[p.X, p.Y];
 				tile.color((byte)color);
 				tile.inActive(!active);
-				SetTile(p.X, p.Y, tileType);
+				tileType.SetTile(p.X, p.Y);
 			}
 
 			ResetSection();
-			plr.SendSuccessMessage($"Outlined with {tileType.name}. ({edits})");
+			plr.SendSuccessMessage($"Outlined with {tileType.Name}. ({edits})");
 		}
 	}
 }

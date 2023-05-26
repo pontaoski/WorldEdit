@@ -48,17 +48,17 @@ namespace WorldEdit.Commands
                 {
                     case TilePlaceID tileID:
                         {
-                            if (Tools.CanSet(Main.tile[x, y], tileID,
+                            if (tileID.CanSet(Main.tile[x, y],
                                 select, expression, magicWand, x, y, plr))
                             {
-                                SetTile(x, y, tileID);
+                                tileID.SetTile(x, y);
                                 edits++;
                             }
                             break;
                         }
                     case WallPlaceID wallID:
                         {
-                            if (Tools.CanSet(Main.tile[x, y], wallID,
+                            if (wallID.CanSet(Main.tile[x, y],
                                 select, expression, magicWand, x, y, plr))
                             {
                                 Main.tile[x, y].wall = (ushort)wallID.wallID;

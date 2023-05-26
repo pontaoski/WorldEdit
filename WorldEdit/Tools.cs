@@ -14,12 +14,6 @@ using System.Threading;
 
 namespace WorldEdit
 {
-    public interface PlaceID { string Name { get; } }
-    public readonly record struct TilePlaceID(int tileID, int placeStyle, string name) : PlaceID
-    { public string Name => name; }
-    public readonly record struct WallPlaceID(int wallID, string name) : PlaceID
-    { public string Name => name; }
-
     public static class Tools
     {
         internal const int BUFFER_SIZE = 1048576;
@@ -59,7 +53,7 @@ namespace WorldEdit
         public static List<TilePlaceID> GetTileID(string tile)
         {
             if (int.TryParse(tile, out int ID) && ID >= 0 && ID < Main.maxTileSets)
-                return new() { new(ID, -1, tile) };
+                return new() { new BlockPlaceID(ID, -1, tile) };
 
             if (tile.Contains("/") && tile.Split("/").Count() == 2)
             {
@@ -71,7 +65,7 @@ namespace WorldEdit
                     int.TryParse(arr[1], out int ID2) && ID2 >= 0
                 )
                 {
-                    return new() { new(ID1, ID2, tile) };
+                    return new() { new BlockPlaceID(ID1, ID2, tile) };
                 }
             }
 
@@ -724,27 +718,6 @@ namespace WorldEdit
 			File.Delete(undoPath);
 			return true;
 		}
-
-        public static bool CanSet(ITile tile, TilePlaceID type,
-            Selection selection, Expressions.Expression expression,
-            MagicWand magicWand, int x, int y, TSPlayer player)
-        {
-            return
-                (!tile.active() || (tile.type != type.tileID))
-                && selection(x, y, player)
-                && expression.Evaluate(tile)
-                && magicWand.InSelection(x, y);
-        }
-        public static bool CanSet(ITile tile, WallPlaceID type,
-            Selection selection, Expressions.Expression expression,
-            MagicWand magicWand, int x, int y, TSPlayer player)
-        {
-            return
-                tile.wall != type.wallID
-                && selection(x, y, player)
-                && expression.Evaluate(tile)
-                && magicWand.InSelection(x, y);
-        }
 
         public static WEPoint[] CreateLine(int x1, int y1, int x2, int y2)
         {

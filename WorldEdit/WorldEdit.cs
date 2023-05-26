@@ -632,7 +632,11 @@ namespace WorldEdit
 			});
 			#endregion
 			#region Tiles
-			Tiles.Add("air", new(0, -1, "air"));
+			Tiles.Add("air", new BlockPlaceID(0, -1, "air"));
+			Tiles.Add("water", new LiquidPlaceID(LiquidKind.Water));
+			Tiles.Add("lava", new LiquidPlaceID(LiquidKind.Lava));
+			Tiles.Add("shimmer", new LiquidPlaceID(LiquidKind.Shimmer));
+			Tiles.Add("honey", new LiquidPlaceID(LiquidKind.Honey));
 
 			Item it = new();
 			foreach (var fi in typeof(ItemID).GetFields())
@@ -653,8 +657,8 @@ namespace WorldEdit
 				it.SetDefaults(id);
 				if (it.createTile != -1)
 				{
-					Tiles.TryAdd(it.Name.ToLower(), new(it.createTile, it.placeStyle, it.Name));
-					Tiles.TryAdd(sb.ToString(1, sb.Length - 1), new(it.createTile, it.placeStyle, it.Name));
+					Tiles.TryAdd(it.Name.ToLower(), new BlockPlaceID(it.createTile, it.placeStyle, it.Name));
+					Tiles.TryAdd(sb.ToString(1, sb.Length - 1), new BlockPlaceID(it.createTile, it.placeStyle, it.Name));
 				}
 			}
 			#endregion

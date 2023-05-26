@@ -79,19 +79,6 @@ namespace WorldEdit.Commands
                 NetMessage.SendData(11, -1, -1, null, sX, sY, sX2, sY2);
             }
         }
-		public void SetTile(int i, int j, TilePlaceID tileType)
-		{
-			Main.tile[i, j].Clear(TileDataType.Tile);
-			WorldGen.PlaceTile(i, j, tileType.tileID, style: tileType.placeStyle);
-
-			#region Workarounds for WorldGen.PlaceTile being silly
-			// for some reason PlaceTile discards the placestyle for books
-			if (tileType.tileID == 50)
-			{
-				Main.tile[i, j].frameX = (short)(18 * tileType.placeStyle);
-			}
-			#endregion
-		}
 		public bool TileSolid(int x, int y)
 		{
 			return x < 0 || y < 0 || x >= Main.maxTilesX || y >= Main.maxTilesY || (Main.tile[x, y].active() && Main.tileSolid[Main.tile[x, y].type]);

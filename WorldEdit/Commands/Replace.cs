@@ -28,16 +28,15 @@ namespace WorldEdit.Commands
                 for (int j = y; j <= y2; j++)
                 {
                     ITile tile = Main.tile[i, j];
-                    if (((from.tileID >= 0) && tile.active() && (from.tileID == tile.type))
-                     && Tools.CanSet(tile, to, select, expression, magicWand, i, j, plr))
+                    if (from.Is(tile) && to.CanSet(tile, select, expression, magicWand, i, j, plr))
                     {
-                        SetTile(i, j, to);
+                        to.SetTile(i, j);
                         edits++;
                     }
                 }
             }
             ResetSection();
-            plr.SendSuccessMessage($"Replaced {from.name} with {to.name}. ({edits})");
+            plr.SendSuccessMessage($"Replaced {from.Name} with {to.Name}. ({edits})");
         }
     }
 }

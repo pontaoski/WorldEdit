@@ -167,7 +167,7 @@ namespace WorldEdit.Expressions
                         var tiles = Tools.GetTileID(rhs);
                         if (tiles.Count == 0 || tiles.Count > 1)
                             throw new ArgumentException();
-                        return test = t => (t.active() && t.type == tiles[0].tileID) != negated;
+                        return test = t => tiles[0].Is(t) != negated;
                     }
                 case "nt":
                 case "ntile":
