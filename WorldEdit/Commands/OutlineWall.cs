@@ -9,10 +9,10 @@ namespace WorldEdit.Commands
 	public class OutlineWall : WECommand
 	{
 		private Expression expression;
-		private int wallType;
+		private WallPlaceID wallType;
 		private int color;
 
-		public OutlineWall(int x, int y, int x2, int y2, MagicWand magicWand, TSPlayer plr, int wallType, int color, Expression expression)
+		public OutlineWall(int x, int y, int x2, int y2, MagicWand magicWand, TSPlayer plr, WallPlaceID wallType, int color, Expression expression)
 			: base(x, y, x2, y2, magicWand, plr)
 		{
 			this.wallType = wallType;
@@ -102,11 +102,11 @@ namespace WorldEdit.Commands
 			{
 				var tile = Main.tile[p.X, p.Y];
 				tile.wallColor((byte)color);
-				tile.wall = (ushort)wallType;
+				tile.wall = (ushort)wallType.wallID;
 			}
 
 			ResetSection();
-			plr.SendSuccessMessage("Set wall outline. ({0})", edits);
+			plr.SendSuccessMessage($"Outlined with {wallType.name}. ({edits})");
 		}
 	}
 }

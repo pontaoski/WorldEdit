@@ -164,10 +164,10 @@ namespace WorldEdit.Expressions
                         if (string.IsNullOrEmpty(rhs))
                             return test = t => t.active();
 
-                        List<int> tiles = Tools.GetTileID(rhs);
+                        var tiles = Tools.GetTileID(rhs);
                         if (tiles.Count == 0 || tiles.Count > 1)
                             throw new ArgumentException();
-                        return test = t => (t.active() && t.type == tiles[0]) != negated;
+                        return test = t => tiles[0].Is(t) != negated;
                     }
                 case "nt":
                 case "ntile":
@@ -192,10 +192,10 @@ namespace WorldEdit.Expressions
                         if (string.IsNullOrEmpty(rhs))
                             return test = t => t.wall != 0;
 
-                        var walls = Tools.GetTileID(rhs);
+                        var walls = Tools.GetWallID(rhs);
                         if (walls.Count == 0 || walls.Count > 1)
                             throw new ArgumentException();
-                        return test = t => (t.wall == walls[0]) != negated;
+                        return test = t => (t.wall == walls[0].wallID) != negated;
                     }
                 case "nw":
                 case "nwall":

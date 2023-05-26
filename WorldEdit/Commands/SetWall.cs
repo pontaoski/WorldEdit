@@ -7,9 +7,9 @@ namespace WorldEdit.Commands
 	public class SetWall : WECommand
 	{
 		private Expression expression;
-		private int wallType;
+		private WallPlaceID wallType;
 
-		public SetWall(int x, int y, int x2, int y2, MagicWand magicWand, TSPlayer plr, int wallType, Expression expression)
+		public SetWall(int x, int y, int x2, int y2, MagicWand magicWand, TSPlayer plr, WallPlaceID wallType, Expression expression)
 			: base(x, y, x2, y2, magicWand, plr)
 		{
 			this.expression = expression ?? new TestExpression(new Test(t => true));
@@ -25,18 +25,17 @@ namespace WorldEdit.Commands
 			{
 				for (int j = y; j <= y2; j++)
 				{
-					if (Tools.CanSet(false, Main.tile[i, j], wallType,
+					if (wallType.CanSet(Main.tile[i, j],
                         select, expression, magicWand, i, j, plr))
                     {
-                        Main.tile[i, j].wall = (ushort)wallType;
+                        Main.tile[i, j].wall = (ushort)wallType.wallID;
 						edits++;
 					}
 				}
 			}
 			ResetSection();
 
-			string wallName = wallType == 0 ? "air" : "wall " + wallType;
-			plr.SendSuccessMessage("Set walls to {0}. ({1})", wallName, edits);
+			plr.SendSuccessMessage($"Set walls to {wallType.name}. ({edits})");
 		}
 	}
 }

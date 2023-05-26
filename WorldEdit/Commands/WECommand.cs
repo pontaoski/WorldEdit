@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using Terraria;
+using Terraria.DataStructures;
 using TShockAPI;
 using WorldEdit.Extensions;
 
@@ -78,52 +79,6 @@ namespace WorldEdit.Commands
                 NetMessage.SendData(11, -1, -1, null, sX, sY, sX2, sY2);
             }
         }
-		public void SetTile(int i, int j, int tileType)
-		{
-			var tile = Main.tile[i, j];
-			switch (tileType)
-			{
-				case -1:
-					tile.active(false);
-					tile.frameX = -1;
-					tile.frameY = -1;
-					tile.liquidType(0);
-					tile.liquid = 0;
-					tile.type = 0;
-					return;
-				case -2:
-					tile.active(false);
-					tile.liquidType(1);
-					tile.liquid = 255;
-					tile.type = 0;
-					return;
-				case -3:
-					tile.active(false);
-					tile.liquidType(2);
-					tile.liquid = 255;
-					tile.type = 0;
-					return;
-				case -4:
-					tile.active(false);
-					tile.liquidType(0);
-					tile.liquid = 255;
-					tile.type = 0;
-					return;
-				default:
-					if (Main.tileFrameImportant[tileType])
-						WorldGen.PlaceTile(i, j, tileType);
-					else
-					{
-						tile.active(true);
-						tile.frameX = -1;
-						tile.frameY = -1;
-						tile.liquidType(0);
-						tile.liquid = 0;
-						tile.type = (ushort)tileType;
-					}
-					return;
-			}
-		}
 		public bool TileSolid(int x, int y)
 		{
 			return x < 0 || y < 0 || x >= Main.maxTilesX || y >= Main.maxTilesY || (Main.tile[x, y].active() && Main.tileSolid[Main.tile[x, y].type]);
