@@ -632,7 +632,7 @@ namespace WorldEdit
 			});
 			#endregion
 			#region Tiles
-			Tiles.Add("air", new BlockPlaceID(0, -1, "air"));
+			Tiles.Add("air", new AirPlaceID());
 			Tiles.Add("water", new LiquidPlaceID(LiquidKind.Water));
 			Tiles.Add("lava", new LiquidPlaceID(LiquidKind.Lava));
 			Tiles.Add("shimmer", new LiquidPlaceID(LiquidKind.Shimmer));

@@ -31,6 +31,23 @@ namespace WorldEdit
         Water,
         Shimmer,
     }
+    public readonly record struct AirPlaceID : TilePlaceID
+    {
+        public string Name => "air";
+        public bool Is(ITile tile) => !tile.active();
+        public bool CanSet(ITile tile, Selection selection, Expression expression, MagicWand magicWand, int x, int y, TSPlayer player) =>
+            tile.active() && PlaceID.CanSetBase(tile, selection, expression, magicWand, x, y, player);
+        public void SetTile(int x, int y)
+        {
+            var tile = Main.tile[x, y];
+            tile.active(false);
+            tile.frameX = -1;
+            tile.frameY = -1;
+            tile.liquidType(0);
+            tile.liquid = 0;
+            tile.type = 0;
+        }
+    }
     public readonly record struct LiquidPlaceID(LiquidKind kind) : TilePlaceID
     {
         public string Name => kind switch
